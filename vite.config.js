@@ -5,7 +5,7 @@ import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [react(),tailwindcss(),],
-  base: '/gamehub/', // MUST match your repo name
+  base: '/rawfids-gamehub/', // MUST match your repo name
   build: {
     rollupOptions: {
       input: {
