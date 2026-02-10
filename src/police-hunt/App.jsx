@@ -1525,12 +1525,9 @@ export default function ThiefPoliceGame() {
                                 ${
                                   isMe
                                     ? "bg-slate-800/90 shadow-[0_0_20px_rgba(6,182,212,0.4)] border-green-400 ring-2 ring-cyan-400/30 transform scale-105 z-10"
-                                    : "border-cyan-700"
-                                }
-                                ${
-                                  canSelect
-                                    ? "cursor-pointer hover:scale-105 border-red-400 bg-red-900/20 shadow-[0_0_15px_rgba(248,113,113,0.5)]"
-                                    : ""
+                                    : canSelect
+                                      ? "cursor-pointer hover:scale-105 border-red-400 bg-red-900/20 shadow-[0_0_15px_rgba(248,113,113,0.5)]"
+                                      : "border-slate-700"
                                 }
                             `}
                 >
