@@ -1,0 +1,2926 @@
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  signInAnonymously,
+  onAuthStateChanged,
+  signInWithCustomToken,
+} from "firebase/auth";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  onSnapshot,
+  arrayUnion,
+  increment,
+  collection,
+} from "firebase/firestore";
+import {
+  StepBack,
+  Anchor,
+  Fish,
+  Ship,
+  Scissors, // Crabs
+  Sword, // Sharks
+  Shell, // Shells
+  Aperture, // Octopus
+  Snowflake, // Penguin/Snowman
+  Sparkles, // Mermaid
+  Waves,
+  Trophy,
+  User, // Sailor
+  LogOut,
+  RotateCcw,
+  BookOpen,
+  History,
+  X,
+  CheckCircle,
+  AlertTriangle,
+  Hand,
+  Eye, // Lighthouse
+  Crown,
+  Sailboat,
+  FishingHook,
+  Kayak,
+  Origami,
+  Play,
+  Copy,
+  Trash2,
+  HelpCircle,
+  Hammer,
+  Bird, // Generic fallback
+  Compass,
+  ShipWheel, // Captain
+  Magnet, // Horseshoe Crab
+  ChessKnight,
+  Loader,
+  Coins,
+} from "lucide-react";
+
+// ---------------------------------------------------------------------------
+// CONFIGURATION
+// ---------------------------------------------------------------------------
+
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const APP_ID = typeof __app_id !== "undefined" ? __app_id : "paper-oceans-game";
+const GAME_ID = "18";
+const STOP_THRESHOLD = 7;
+
+const GET_WIN_THRESHOLD = (playerCount) => {
+  if (playerCount === 4) return 30;
+  if (playerCount === 3) return 35;
+  return 40;
+};
+
+const CARD_TYPES = {
+  // --- DUOS (Action Pairs) ---
+  CRAB: {
+    id: "CRAB",
+    name: "Paper Crab",
+    type: "DUO",
+    points: 0,
+    icon: Scissors,
+    color: "text-red-400",
+    bg: "bg-red-950",
+    border: "border-red-700",
+    desc: "Pair: Look through discard pile and pick 1 card.",
+    count: 9,
+    cardColor: "RED",
+  },
+  BOAT: {
+    id: "BOAT",
+    name: "Origami Boat",
+    type: "DUO",
+    points: 0,
+    icon: Sailboat,
+    color: "text-blue-400",
+    bg: "bg-blue-950",
+    border: "border-blue-700",
+    desc: "Pair: Take another turn immediately.",
+    count: 8,
+    cardColor: "BLUE",
+  },
+  FISH: {
+    id: "FISH",
+    name: "Flying Fish",
+    type: "DUO",
+    points: 0,
+    icon: Fish,
+    color: "text-emerald-400",
+    bg: "bg-emerald-950",
+    border: "border-emerald-700",
+    desc: "Pair: Draw the top card of the deck.",
+    count: 5,
+    cardColor: "GREEN",
+  },
+  SHARK: {
+    id: "SHARK",
+    name: "Shadow Shark",
+    type: "DUO",
+    points: 0,
+    icon: Sword,
+    color: "text-slate-400",
+    bg: "bg-slate-800",
+    border: "border-slate-600",
+    desc: "Pair: Steal a random card from an opponent.",
+    count: 4,
+    cardColor: "BLACK",
+  },
+
+  // --- COLLECTORS (Set Collection) ---
+  SHELL: {
+    id: "SHELL",
+    name: "Spiral Shell",
+    type: "COLLECT",
+    points: 0,
+    icon: Shell,
+    color: "text-yellow-200",
+    bg: "bg-yellow-950",
+    border: "border-yellow-700",
+    desc: "Set: 0 for 1st, 2pts for each additional.",
+    count: 6,
+    cardColor: "YELLOW",
+  },
+  OCTOPUS: {
+    id: "OCTOPUS",
+    name: "Ink Octopus",
+    type: "COLLECT",
+    points: 0,
+    icon: Aperture,
+    color: "text-purple-400",
+    bg: "bg-purple-950",
+    border: "border-purple-700",
+    desc: "Set: 0 for 1st, 3pts for each additional.",
+    count: 5,
+    cardColor: "PURPLE",
+  },
+  PENGUIN: {
+    id: "PENGUIN",
+    name: "Ice Penguin",
+    type: "COLLECT",
+    points: 0,
+    icon: Bird,
+    color: "text-cyan-200",
+    bg: "bg-cyan-950",
+    border: "border-cyan-700",
+    desc: "Set: 1=1pt, 2=3pts, 3=5pts.",
+    count: 3,
+    cardColor: "CYAN",
+  },
+  SAILOR: {
+    id: "SAILOR",
+    name: "Lost Sailor",
+    type: "COLLECT",
+    points: 0,
+    icon: Kayak,
+    color: "text-orange-300",
+    bg: "bg-orange-950",
+    border: "border-orange-700",
+    desc: "Set: 1=0pts, 2=5pts.",
+    count: 2,
+    cardColor: "ORANGE",
+  },
+
+  // --- MULTIPLIERS ---
+  MERMAID: {
+    id: "MERMAID",
+    name: "Mystic Mermaid",
+    type: "MULTIPLIER",
+    points: 0,
+    icon: Sparkles,
+    color: "text-fuchsia-400",
+    bg: "bg-fuchsia-950",
+    border: "border-fuchsia-700",
+    desc: "Scores your 1st, 2nd, 3rd highest color groups respectively.",
+    count: 4,
+    cardColor: "MULTI",
+  },
+  SHIP: {
+    id: "SHIP",
+    name: "Ship",
+    type: "MULTIPLIER",
+    points: 0,
+    icon: Ship,
+    color: "text-blue-200",
+    bg: "bg-blue-900",
+    border: "border-blue-500",
+    desc: "+1 Point for each Boat.",
+    count: 1,
+    cardColor: "BLUE",
+  },
+  SHOAL: {
+    id: "SHOAL",
+    name: "Shoal of Fish",
+    type: "MULTIPLIER",
+    points: 0,
+    icon: FishingHook,
+    color: "text-emerald-200",
+    bg: "bg-emerald-900",
+    border: "border-emerald-500",
+    desc: "+1 Point for each Fish.",
+    count: 1,
+    cardColor: "GREEN",
+  },
+  SNOWMAN: {
+    id: "SNOWMAN",
+    name: "Snowman",
+    type: "MULTIPLIER",
+    points: 0,
+    icon: Snowflake,
+    color: "text-cyan-100",
+    bg: "bg-cyan-900",
+    border: "border-cyan-500",
+    desc: "+2 Points for each Penguin.",
+    count: 1,
+    cardColor: "CYAN",
+  },
+  CAPTAIN: {
+    id: "CAPTAIN",
+    name: "Captain",
+    type: "MULTIPLIER",
+    points: 0,
+    icon: ShipWheel,
+    color: "text-orange-200",
+    bg: "bg-orange-900",
+    border: "border-orange-500",
+    desc: "+3 Points for each Sailor.",
+    count: 1,
+    cardColor: "ORANGE",
+  },
+  // NEW CARD
+  HORSESHOE_CRAB: {
+    id: "HORSESHOE_CRAB",
+    name: "Horse Crab",
+    type: "MULTIPLIER",
+    points: 0,
+    icon: ChessKnight, // Visual approximation
+    color: "text-red-300",
+    bg: "bg-red-900",
+    border: "border-red-500",
+    desc: "+1 Point for each Crab.",
+    count: 1,
+    cardColor: "RED",
+  },
+};
+
+// ---------------------------------------------------------------------------
+// HELPER FUNCTIONS
+// ---------------------------------------------------------------------------
+
+const createDeck = () => {
+  let deck = [];
+  Object.values(CARD_TYPES).forEach((card) => {
+    for (let i = 0; i < card.count; i++) {
+      deck.push({
+        id: `${card.id}-${Math.random().toString(36).substr(2, 9)}`,
+        type: card.id,
+      });
+    }
+  });
+  // Fisher-Yates Shuffle
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+  return deck;
+};
+
+const calculatePoints = (hand, tableau, isLastChance = false) => {
+  const allCards = [...hand, ...tableau];
+  let score = 0;
+
+  // 1. Duos (Score for every pair in Hand + Tableau)
+  const duoTypes = ["CRAB", "BOAT", "FISH", "SHARK"];
+  duoTypes.forEach((type) => {
+    const count = allCards.filter((c) => c.type === type).length;
+    score += Math.floor(count / 2);
+  });
+
+  // 2. Collectors
+  const shells = allCards.filter((c) => c.type === "SHELL").length;
+  // UPDATE: Points from 2nd card (1st is 0, subsequent are 2pts)
+  if (shells > 1) score += (shells - 1) * 2;
+
+  const octopuses = allCards.filter((c) => c.type === "OCTOPUS").length;
+  // UPDATE: Points from 2nd card (1st is 0, subsequent are 3pts)
+  if (octopuses > 1) score += (octopuses - 1) * 3;
+
+  const penguins = allCards.filter((c) => c.type === "PENGUIN").length;
+  if (penguins === 1) score += 1;
+  else if (penguins === 2) score += 3;
+  else if (penguins >= 3) score += 5;
+
+  const sailors = allCards.filter((c) => c.type === "SAILOR").length;
+  if (sailors === 2) score += 5;
+
+  // 3. Multipliers
+  const hasShip = allCards.some((c) => c.type === "SHIP");
+  if (hasShip) {
+    const boats = allCards.filter((c) => c.type === "BOAT").length;
+    score += boats;
+  }
+
+  const hasShoal = allCards.some((c) => c.type === "SHOAL");
+  if (hasShoal) {
+    const fish = allCards.filter((c) => c.type === "FISH").length;
+    score += fish;
+  }
+
+  const hasSnowman = allCards.some((c) => c.type === "SNOWMAN");
+  if (hasSnowman) {
+    score += penguins * 2;
+  }
+
+  const hasCaptain = allCards.some((c) => c.type === "CAPTAIN");
+  if (hasCaptain) {
+    score += sailors * 3;
+  }
+
+  // NEW: Horseshoe Crab Logic
+  const hasHorseshoe = allCards.some((c) => c.type === "HORSESHOE_CRAB");
+  if (hasHorseshoe) {
+    const crabs = allCards.filter((c) => c.type === "CRAB").length;
+    score += crabs;
+  }
+
+  // 4. Mermaids & Color Bonus
+  const mermaids = allCards.filter((c) => c.type === "MERMAID").length;
+
+  // Calculate color frequencies
+  const colorCounts = {};
+  allCards.forEach((c) => {
+    const def = CARD_TYPES[c.type];
+    const color = def ? def.cardColor : null;
+    if (color) {
+      colorCounts[color] = (colorCounts[color] || 0) + 1;
+    }
+  });
+
+  // UPDATE: Sort values descending [5, 3, 2, 0...]
+  const sortedCounts = Object.values(colorCounts).sort((a, b) => b - a);
+  const maxColorCount = sortedCounts.length > 0 ? sortedCounts[0] : 0;
+
+  if (mermaids > 0) {
+    // NEW LOGIC: Mermaids score 1st highest, 2nd highest, etc.
+    for (let i = 0; i < mermaids; i++) {
+      if (sortedCounts[i]) {
+        score += sortedCounts[i];
+      }
+    }
+  } else if (isLastChance) {
+    // Standard rule: If no mermaid, but it's Last Chance, get flat color bonus
+    score += maxColorCount;
+  }
+
+  return score;
+};
+
+// ---------------------------------------------------------------------------
+// COMPONENTS
+// ---------------------------------------------------------------------------
+
+const FloatingBackground = ({ isShaking }) => (
+  <div
+    className={`absolute inset-0 overflow-hidden pointer-events-none z-0 ${
+      isShaking ? "animate-shake bg-red-900/20" : ""
+    }`}
+  >
+    <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-yellow-900/20 via-gray-950 to-black" />
+    <div className="absolute top-0 left-0 w-full h-full opacity-10">
+      {[...Array(20)].map((_, i) => {
+        const fruitKeys = Object.keys(CARD_TYPES);
+        const Icon = CARD_TYPES[fruitKeys[i % fruitKeys.length]].icon;
+        return (
+          <div
+            key={i}
+            className="absolute animate-float text-white/60"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animationDuration: `${10 + Math.random() * 20}s`,
+              transform: `scale(${0.5 + Math.random()})`,
+            }}
+          >
+            <Icon size={32} />
+          </div>
+        );
+      })}
+    </div>
+    <style>{`
+      @keyframes float {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(10deg); }
+      }
+      .animate-float { animation: float infinite ease-in-out; }
+      
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+      }
+      .animate-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+    `}</style>
+  </div>
+);
+
+const GameLogo = () => (
+  <div className="flex items-center justify-center gap-2 opacity-40 mt-auto pb-4 pt-2 relative z-10 pointer-events-none select-none">
+    <Origami size={14} className="text-cyan-500" />
+    <span className="text-[10px] font-black tracking-[0.2em] text-cyan-500 uppercase">
+      PAPER OCEANS
+    </span>
+  </div>
+);
+
+const GameLogoBig = () => (
+  <div className="flex items-center justify-center gap-2 opacity-40 mt-auto pb-4 pt-2 relative z-10 pointer-events-none select-none">
+    <Origami size={22} className="text-cyan-500" />
+    <span className="text-[20px] font-black tracking-[0.2em] text-cyan-500 uppercase">
+      PAPER OCEANS
+    </span>
+  </div>
+);
+
+const FeedbackOverlay = ({ type, message, subtext, icon: Icon }) => (
+  <div className="fixed inset-0 z-160 flex items-center justify-center pointer-events-none animate-in fade-in zoom-in duration-300">
+    <div
+      className={`
+      flex flex-col items-center justify-center p-8 md:p-12 rounded-3xl border-4 shadow-2xl backdrop-blur-xl max-w-sm md:max-w-xl mx-4 text-center
+      ${
+        type === "success"
+          ? "bg-emerald-900/90 border-emerald-500 text-emerald-100"
+          : type === "failure"
+            ? "bg-red-900/90 border-red-500 text-red-100"
+            : type === "warning"
+              ? "bg-amber-900/90 border-amber-500 text-amber-100"
+              : "bg-blue-900/90 border-blue-500 text-blue-100"
+      }
+    `}
+    >
+      {Icon && (
+        <div className="mb-4 p-4 bg-black/20 rounded-full">
+          <Icon size={64} className="animate-bounce" />
+        </div>
+      )}
+      <h2 className="text-3xl md:text-5xl font-black uppercase tracking-widest drop-shadow-md mb-2">
+        {message}
+      </h2>
+      {subtext && (
+        <p className="text-lg md:text-xl font-bold opacity-90 tracking-wide">
+          {subtext}
+        </p>
+      )}
+    </div>
+  </div>
+);
+
+const CardDisplay = ({
+  cardType,
+  onClick,
+  disabled,
+  highlight,
+  small,
+  tiny,
+  mini,
+  count,
+}) => {
+  const card = CARD_TYPES[cardType];
+  if (!card) return <div className="w-16 h-24 bg-gray-800 rounded"></div>;
+
+  // Tiny: For opponents and detailed logs (very small)
+  if (tiny) {
+    return (
+      <div
+        className={`w-6 h-8 rounded flex items-center justify-center ${card.bg} border ${card.border} shadow-sm shrink-0`}
+        title={card.name}
+      >
+        <card.icon size={12} className={card.color} />
+      </div>
+    );
+  }
+
+  // Mini: For Player Tableau (Small card, Icon Only, No Text, Fit 2 across)
+  if (mini) {
+    return (
+      <div
+        className={`w-10 h-14 rounded-lg flex items-center justify-center ${card.bg} border-2 ${card.border} shadow-md shrink-0 cursor-help transition-transform hover:scale-105`}
+        title={card.name}
+      >
+        <card.icon size={20} className={card.color} />
+      </div>
+    );
+  }
+
+  const baseClasses =
+    "relative rounded-xl border-2 shadow-lg transition-all flex flex-col items-center justify-between cursor-pointer active:scale-95 select-none";
+
+  const sizeClasses = small
+    ? "w-14 h-20 md:w-16 md:h-24 p-1"
+    : "w-20 h-28 sm:w-24 sm:h-36 md:w-28 md:h-44 lg:w-32 lg:h-48 p-2 md:p-3";
+
+  return (
+    <div
+      onClick={!disabled ? onClick : undefined}
+      className={`
+        ${baseClasses} ${sizeClasses} ${card.bg} ${
+          highlight ? "ring-4 ring-yellow-400 z-10 scale-105" : card.border
+        }
+        ${
+          disabled
+            ? "opacity-50 grayscale cursor-not-allowed"
+            : "hover:brightness-110 hover:-translate-y-1"
+        }
+      `}
+    >
+      <div className="w-full flex justify-between items-center text-[8px] md:text-[10px] font-bold text-white/70">
+        <span>
+          {card.type === "DUO"
+            ? "DUO"
+            : card.type === "COLLECT"
+              ? "SET"
+              : card.type === "MULTIPLIER"
+                ? "MULT"
+                : "X"}
+        </span>
+        {count > 1 && (
+          <span className="bg-black/50 px-1 rounded text-white">x{count}</span>
+        )}
+      </div>
+
+      <card.icon className={`${card.color}`} size={small ? 16 : 28} />
+
+      <div className="w-full text-center">
+        <div className="font-bold text-white text-[8px] sm:text-[9px] md:text-xs lg:text-sm leading-tight mb-1 truncate px-1">
+          {card.name}
+        </div>
+        {!small && (
+          <div className="text-[7px] sm:text-[8px] md:text-[9px] text-white/60 leading-tight bg-black/40 p-1 rounded h-8 flex items-center justify-center overflow-hidden">
+            {card.desc}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const HowToPlayModal = ({ onClose, winPoints }) => {
+  // Helper to filter cards by type for the guide
+  const getCardsByType = (type) =>
+    Object.values(CARD_TYPES).filter((c) => c.type === type);
+
+  return (
+    <div className="fixed inset-0 z-200 bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
+      <div className="bg-slate-900 border border-slate-700 w-full max-w-5xl rounded-3xl shadow-2xl p-6 md:p-8 relative my-8 max-h-[90vh] flex flex-col">
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 bg-slate-800 rounded-full hover:bg-red-500/20 hover:text-red-400 transition-colors z-10"
+        >
+          <X size={24} />
+        </button>
+
+        <div className="text-center mb-6 shrink-0">
+          <h2 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-blue-500 tracking-widest uppercase mb-2">
+            Captain's Guide
+          </h2>
+          <p className="text-slate-400 text-sm">
+            Reach <strong>{winPoints} points</strong> to win. 4 Mermaids wins
+            instantly.
+          </p>
+        </div>
+
+        <div className="overflow-y-auto pr-2 custom-scrollbar flex-1">
+          {/* --- SECTION 1: DUOS --- */}
+          <div className="mb-8">
+            <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2 border-b border-slate-700 pb-2">
+              <Sparkles className="text-cyan-500" size={18} />
+              Duos (Action Pairs)
+              <span className="text-xs font-normal text-slate-400 ml-auto">
+                1 Point per pair • Play pair to activate effect
+              </span>
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              {getCardsByType("DUO").map((card) => (
+                <div
+                  key={card.id}
+                  className="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 flex items-start gap-3"
+                >
+                  <CardDisplay cardType={card.id} tiny />
+                  <div>
+                    <div className="font-bold text-slate-200 text-sm flex items-center gap-2">
+                      {card.name}
+                      <span className="text-[10px] bg-black/40 px-1.5 py-0.5 rounded text-slate-500">
+                        {card.count} in deck
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 leading-relaxed mt-1">
+                      {card.desc}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* --- SECTION 2: COLLECTORS --- */}
+          <div className="mb-8">
+            <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2 border-b border-slate-700 pb-2">
+              <Shell className="text-amber-500" size={18} />
+              Collectors (Sets)
+              <span className="text-xs font-normal text-slate-400 ml-auto">
+                Score increases with quantity
+              </span>
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              {getCardsByType("COLLECT").map((card) => (
+                <div
+                  key={card.id}
+                  className="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 flex items-start gap-3"
+                >
+                  <CardDisplay cardType={card.id} tiny />
+                  <div className="w-full">
+                    <div className="font-bold text-slate-200 text-sm flex items-center gap-2">
+                      {card.name}
+                      <span className="text-[10px] bg-black/40 px-1.5 py-0.5 rounded text-slate-500">
+                        {card.count} in deck
+                      </span>
+                    </div>
+                    <div className="mt-2 bg-black/20 rounded p-2 text-xs font-mono text-cyan-300">
+                      {card.desc}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* --- SECTION 3: MULTIPLIERS --- */}
+          <div className="mb-8">
+            <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2 border-b border-slate-700 pb-2">
+              <Trophy className="text-purple-500" size={18} />
+              Multipliers & Bonuses
+              <span className="text-xs font-normal text-slate-400 ml-auto">
+                Boosts score based on other cards
+              </span>
+            </h3>
+            <div className="grid md:grid-cols-2 gap-4">
+              {getCardsByType("MULTIPLIER").map((card) => (
+                <div
+                  key={card.id}
+                  className="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50 flex items-start gap-3"
+                >
+                  <CardDisplay cardType={card.id} tiny />
+                  <div>
+                    <div className="font-bold text-slate-200 text-sm flex items-center gap-2">
+                      {card.name}
+                      <span className="text-[10px] bg-black/40 px-1.5 py-0.5 rounded text-slate-500">
+                        {card.count} in deck
+                      </span>
+                    </div>
+                    <p
+                      className={`text-xs leading-relaxed mt-1 ${
+                        card.id === "MERMAID"
+                          ? "text-fuchsia-300 font-bold"
+                          : "text-slate-400"
+                      }`}
+                    >
+                      {card.desc}
+                    </p>
+                    {card.id === "MERMAID" && (
+                      <p className="text-[10px] text-fuchsia-500/80 mt-1 italic">
+                        Win instantly if you collect 4!
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* --- SECTION 4: GAME FLOW --- */}
+          <div>
+            <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2 border-b border-slate-700 pb-2">
+              <Anchor className="text-emerald-500" size={18} />
+              Game Flow
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div className="bg-slate-800 p-4 rounded-xl">
+                <strong className="text-cyan-400 block text-sm mb-1">
+                  1. DRAW
+                </strong>
+                Draw 2, Keep 1 <br /> OR <br /> Take 1 from Discard.
+              </div>
+              <div className="bg-slate-800 p-4 rounded-xl">
+                <strong className="text-purple-400 block text-sm mb-1">
+                  2. PLAY (Optional)
+                </strong>
+                Play Duo pairs to trigger effects. They score points even if you
+                keep them in hand, but effects only happen if played.
+              </div>
+              <div className="bg-slate-800 p-4 rounded-xl">
+                <strong className="text-yellow-400 block text-sm mb-1">
+                  3. END ROUND
+                </strong>
+                Reach {STOP_THRESHOLD} pts to call <strong>STOP</strong> (Safe)
+                or <strong>LAST CHANCE</strong> (Bet).
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="text-center pt-4 border-t border-slate-800 shrink-0 mt-4">
+          <button
+            onClick={onClose}
+            className="bg-cyan-600 hover:bg-cyan-500 text-white px-10 py-3 rounded-full font-bold shadow-lg transition-transform active:scale-95"
+          >
+            Set Sail
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// MAIN LOGIC
+// ---------------------------------------------------------------------------
+
+export default function PaperOceans() {
+  const [user, setUser] = useState(null);
+  const [view, setView] = useState("menu");
+  const [playerName, setPlayerName] = useState("");
+  const [roomCode, setRoomCode] = useState("");
+  const [roomId, setRoomId] = useState("");
+  const [gameState, setGameState] = useState(null);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const [isMaintenance, setIsMaintenance] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
+
+  // UI States
+  const [showLogs, setShowLogs] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [selectedHandIndices, setSelectedHandIndices] = useState([]);
+  const [feedback, setFeedback] = useState(null);
+  const [discardSearchMode, setDiscardSearchMode] = useState(false);
+  const [sharkStealMode, setSharkStealMode] = useState(false);
+
+  const lastLogIdRef = useRef(null);
+
+  // --- AUTH ---
+  useEffect(() => {
+    const initAuth = async () => {
+      if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
+        await signInWithCustomToken(auth, __initial_auth_token);
+      } else {
+        await signInAnonymously(auth);
+      }
+    };
+    initAuth();
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      if (u) {
+        const savedName = localStorage.getItem("gameHub_playerName");
+        if (savedName) setPlayerName(savedName);
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  // --- RESTORE SESSION ---
+  useEffect(() => {
+    const savedRoomId = localStorage.getItem("paperoceans_roomId");
+    if (savedRoomId) {
+      setRoomId(savedRoomId);
+    }
+  }, []);
+
+  // --- SYNC ---
+  useEffect(() => {
+    if (!roomId || !user) return;
+
+    const unsub = onSnapshot(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+
+          if (!data.players.some((p) => p.id === user.uid)) {
+            setRoomId("");
+            setView("menu");
+            localStorage.removeItem("paperoceans_roomId");
+            setError("You have been kicked from the room.");
+            return;
+          }
+
+          setGameState(data);
+
+          if (data.status === "lobby") setView("lobby");
+          else if (
+            data.status === "playing" ||
+            data.status === "last_chance" ||
+            data.status === "finished" ||
+            data.status === "round_end"
+          )
+            setView("game");
+        } else {
+          setView("menu");
+          setRoomId("");
+          localStorage.removeItem("paperoceans_roomId");
+          setError("Session dissolved or room does not exist.");
+        }
+      },
+      (err) => {
+        console.error("Sync error:", err);
+        setError("Connection lost.");
+      },
+    );
+    return () => unsub();
+  }, [roomId, user]);
+
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, "game_hub_settings", "config"), (doc) => {
+      if (doc.exists() && doc.data()[GAME_ID]?.maintenance) {
+        setIsMaintenance(true);
+      } else {
+        setIsMaintenance(false);
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  // --- INSTANT WIN CHECK (4 MERMAIDS) ---
+  useEffect(() => {
+    if (!gameState || !gameState.players || gameState.status === "finished")
+      return;
+
+    const checkInstantWin = async () => {
+      const winner = gameState.players.find((p) => {
+        const all = [...p.hand, ...p.tableau];
+        const mermaids = all.filter((c) => c.type === "MERMAID").length;
+        return mermaids === 4;
+      });
+
+      if (winner && gameState.status !== "finished") {
+        if (gameState.hostId === user.uid) {
+          await updateDoc(
+            doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+            {
+              status: "finished",
+              winnerId: winner.id,
+              logs: arrayUnion({
+                text: `INSTANT WIN! ${winner.name} found all 4 Mermaids!`,
+                type: "success",
+                id: Date.now(),
+              }),
+            },
+          );
+        }
+      }
+    };
+    checkInstantWin();
+  }, [
+    gameState?.players,
+    gameState?.status,
+    gameState?.hostId,
+    roomId,
+    user?.uid,
+  ]);
+
+  // --- GLOBAL ALERT SYSTEM ---
+  // --- GLOBAL ALERT SYSTEM ---
+  useEffect(() => {
+    if (!roomId) {
+      lastLogIdRef.current = null;
+    }
+  }, [roomId]);
+
+  // 1. Handle Standard Logs (Existing logic, slightly modified)
+  useEffect(() => {
+    if (!gameState?.logs || gameState.logs.length === 0) return;
+    const latestLog = gameState.logs[gameState.logs.length - 1];
+
+    if (lastLogIdRef.current === null) {
+      lastLogIdRef.current = latestLog.id;
+      return;
+    }
+    if (latestLog.id <= lastLogIdRef.current) return;
+    lastLogIdRef.current = latestLog.id;
+
+    const text = latestLog.text;
+
+    // Skip the generic "stole a card" log here, because we handle it in the
+    // specific feedbackTrigger useEffect below for better detail.
+    if (text.includes("stole a card from")) return;
+
+    // ... (Keep your existing text parsing for Pairs, Stop, Last Chance, etc.) ...
+    let title = "";
+    let sub = "";
+    let Icon = CheckCircle;
+    let isImportant = false;
+
+    if (text.includes("played a pair")) {
+      isImportant = true;
+      title = "ACTION PLAYED";
+      sub = text;
+      Icon = Sparkles;
+      if (text.includes("Shark")) Icon = Sword;
+      else if (text.includes("Crab")) Icon = Scissors;
+      else if (text.includes("Boat")) Icon = Sailboat;
+      else if (text.includes("Fish")) Icon = Fish;
+    } else if (text.includes("STOP")) {
+      isImportant = true;
+      title = "ROUND STOPPED!";
+      sub = text;
+      Icon = Hand;
+    } else if (text.includes("LAST CHANCE")) {
+      isImportant = true;
+      title = "LAST CHANCE!";
+      sub = "All other players get 1 final turn.";
+      Icon = AlertTriangle;
+    } else if (text.includes("Bet Succeeded")) {
+      isImportant = true;
+      title = "BET WON!";
+      sub = text;
+      Icon = Trophy;
+    } else if (text.includes("Bet Failed")) {
+      isImportant = true;
+      title = "BET LOST!";
+      sub = text;
+      Icon = AlertTriangle;
+    } else if (text.includes("INSTANT WIN")) {
+      isImportant = true;
+      title = "INSTANT WIN!";
+      sub = "4 Mermaids Found!";
+      Icon = Crown;
+    }
+
+    if (isImportant) {
+      triggerFeedback(latestLog.type, title, sub, Icon);
+    }
+  }, [gameState?.logs]);
+
+  // 2. Handle Specific Feedback Triggers (The Shark Logic)
+  useEffect(() => {
+    if (!gameState?.feedbackTrigger) return;
+
+    // We use the ID to ensure we don't re-trigger old alerts on refresh
+    // In a real app we might compare against a ref, but simple check helps:
+    const trigger = gameState.feedbackTrigger;
+
+    // Check if this trigger happened extremely recently (within 3 seconds)
+    // to avoid re-showing it on page reload
+    if (Date.now() - trigger.id > 4000) return;
+
+    if (trigger.type === "STEAL") {
+      if (user.uid === trigger.actorId) {
+        // I AM THE STEALER
+        triggerFeedback(
+          "success",
+          "YOU STOLE!",
+          `You took the ${trigger.cardName} from ${trigger.targetName}`,
+          Sword,
+        );
+      } else if (user.uid === trigger.targetId) {
+        // I AM THE VICTIM
+        triggerFeedback(
+          "failure",
+          "THIEVERY!",
+          `${trigger.actorName} stole your ${trigger.cardName}!`,
+          AlertTriangle,
+        );
+      } else {
+        // I AM A BYSTANDER
+        triggerFeedback(
+          "neutral",
+          "THEFT",
+          `${trigger.actorName} stole a card from ${trigger.targetName}.`,
+          Sword,
+        );
+      }
+    }
+  }, [gameState?.feedbackTrigger, user?.uid]);
+
+  const triggerFeedback = (type, msg, sub, icon) => {
+    setFeedback({ type, message: msg, subtext: sub, icon });
+    setTimeout(() => setFeedback(null), 2500);
+  };
+
+  // --- ACTIONS ---
+
+  const createRoom = async () => {
+    if (!playerName) return setError("Enter Name.");
+    localStorage.setItem("gameHub_playerName", playerName);
+    setLoading(true);
+
+    const chars = "123456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
+    let newId = "";
+    for (let i = 0; i < 6; i++) {
+      newId += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    const initialData = {
+      roomId: newId,
+      hostId: user.uid,
+      status: "lobby",
+      players: [
+        {
+          id: user.uid,
+          name: playerName,
+          score: 0,
+          hand: [],
+          tableau: [],
+          ready: true,
+        },
+      ],
+      deck: [],
+      discardPile: [],
+      turnIndex: 0,
+      turnState: "DRAW",
+      logs: [],
+      winnerId: null,
+      bettingPlayerId: null,
+      tempDraw: [],
+      feedbackTrigger: null,
+      round: 1,
+    };
+
+    try {
+      await setDoc(
+        doc(db, "artifacts", APP_ID, "public", "data", "rooms", newId),
+        initialData,
+      );
+      localStorage.setItem("paperoceans_roomId", newId); // Save Session
+      setRoomId(newId);
+    } catch (e) {
+      console.error(e);
+      setError("Could not create room.");
+    }
+    setLoading(false);
+  };
+
+  const joinRoom = async () => {
+    if (!roomCode || !playerName) return setError("Input credentials.");
+    localStorage.setItem("gameHub_playerName", playerName);
+    setLoading(true);
+
+    const code = roomCode.toUpperCase().trim();
+    const ref = doc(db, "artifacts", APP_ID, "public", "data", "rooms", code);
+
+    try {
+      const snap = await getDoc(ref);
+      if (!snap.exists()) {
+        setError("Room not found.");
+        setLoading(false);
+        return;
+      }
+
+      const data = snap.data();
+      if (data.status !== "lobby") {
+        setError("Game in progress.");
+        setLoading(false);
+        return;
+      }
+
+      if (data.players.length >= 4) {
+        setError("Room full (Max 4).");
+        setLoading(false);
+        return;
+      }
+
+      if (data.players.some((p) => p.id === user.uid)) {
+        localStorage.setItem("paperoceans_roomId", code); // Save Session
+        setRoomId(code);
+        setLoading(false);
+        return;
+      }
+
+      const newPlayers = [
+        ...data.players,
+        {
+          id: user.uid,
+          name: playerName,
+          score: 0,
+          hand: [],
+          tableau: [],
+          ready: false,
+        },
+      ];
+
+      await updateDoc(ref, { players: newPlayers });
+      localStorage.setItem("paperoceans_roomId", code); // Save Session
+      setRoomId(code);
+    } catch (e) {
+      console.error(e);
+      setError("Error joining room.");
+    }
+    setLoading(false);
+  };
+
+  const toggleReady = async () => {
+    const players = [...gameState.players];
+    const myIdx = players.findIndex((p) => p.id === user.uid);
+    if (myIdx > -1) {
+      players[myIdx].ready = !players[myIdx].ready;
+      await updateDoc(
+        doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+        { players },
+      );
+    }
+  };
+
+  const kickPlayer = async (targetId) => {
+    if (gameState.hostId !== user.uid) return;
+    const players = gameState.players.filter((p) => p.id !== targetId);
+    await updateDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      { players },
+    );
+  };
+
+  const startRound = async (continueGame = false) => {
+    if (gameState.hostId !== user.uid) return;
+
+    let deck = createDeck();
+
+    const players = gameState.players.map((p) => ({
+      ...p,
+      hand: [],
+      tableau: [],
+      score: continueGame ? p.score : 0,
+    }));
+
+    // Calculate random start ONLY if it's a new game
+    const startIndex = continueGame
+      ? (gameState.turnIndex + 1) % gameState.players.length
+      : Math.floor(Math.random() * gameState.players.length);
+
+    await updateDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      {
+        status: "playing",
+        deck,
+        discardPile: [deck.pop(), deck.pop()],
+        players,
+        turnIndex: continueGame
+          ? (gameState.turnIndex + 1) % players.length
+          : 0,
+        turnState: "DRAW",
+        logs: arrayUnion({
+          text: continueGame
+            ? `--- Round ${gameState.round + 1} Start ---`
+            : `--- Game Start ---`,
+          type: "neutral",
+          id: Date.now(),
+        }),
+        bettingPlayerId: null,
+        tempDraw: [],
+        round: continueGame ? increment(1) : 1,
+      },
+    );
+  };
+
+  const handleLeave = async () => {
+    if (!roomId) return;
+    try {
+      const ref = doc(
+        db,
+        "artifacts",
+        APP_ID,
+        "public",
+        "data",
+        "rooms",
+        roomId,
+      );
+      if (gameState.hostId === user.uid) {
+        await deleteDoc(ref);
+      } else {
+        const newPlayers = gameState.players.filter((p) => p.id !== user.uid);
+        await updateDoc(ref, { players: newPlayers });
+      }
+    } catch (e) {
+      console.log("Room might already be deleted");
+    }
+
+    localStorage.removeItem("paperoceans_roomId"); // Clear Session
+    setRoomId("");
+    setView("menu");
+    setShowLeaveConfirm(false);
+    setGameState(null);
+  };
+
+  const returnToLobby = async () => {
+    if (gameState.hostId !== user.uid) return;
+    const players = gameState.players.map((p) => ({
+      ...p,
+      hand: [],
+      tableau: [],
+      score: 0,
+      ready: false,
+    }));
+    const host = players.find((p) => p.id === gameState.hostId);
+    if (host) host.ready = true;
+
+    await updateDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      {
+        status: "lobby",
+        players,
+        deck: [],
+        discardPile: [],
+        logs: [],
+        round: 1,
+        turnIndex: 0,
+        winnerId: null,
+        bettingPlayerId: null,
+        tempDraw: [],
+        feedbackTrigger: null,
+      },
+    );
+    setShowLeaveConfirm(false);
+  };
+
+  const copyToClipboard = () => {
+    const textToCopy = gameState.roomId;
+
+    // Logic to show the popup and hide it after 2 seconds
+    const handleSuccess = () => {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+
+      // Keep your existing global feedback if needed
+      if (triggerFeedback)
+        triggerFeedback("neutral", "COPIED!", "", CheckCircle);
+    };
+
+    try {
+      navigator.clipboard.writeText(textToCopy);
+      handleSuccess();
+    } catch (e) {
+      // Fallback for older browsers
+      const el = document.createElement("textarea");
+      el.value = textToCopy;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+      handleSuccess();
+    }
+  };
+
+  // --- GAMEPLAY LOGIC ---
+
+  const handleDrawDeck = async () => {
+    const players = [...gameState.players];
+    const deck = [...gameState.deck];
+    const discard = [...gameState.discardPile];
+
+    // --- SAFETY CHECK 1: DECK EXHAUSTION ---
+    // If we don't have enough cards in Deck + Discard to draw 2
+    if (deck.length + discard.length < 2) {
+      // ---------------------------------------------------------
+      // START CHANGE: Check BOTH Deck and Discard for a final card
+      // ---------------------------------------------------------
+      if (deck.length > 0) {
+        // Case A: 1 card left in Deck
+        players[gameState.turnIndex].hand.push(deck.pop());
+      } else if (discard.length > 0) {
+        // Case B: 0 in Deck, 1 in Discard (The loophole you found)
+        players[gameState.turnIndex].hand.push(discard.pop());
+      }
+      // ---------------------------------------------------------
+      // END CHANGE
+      // ---------------------------------------------------------
+
+      // Calculate scores as if everyone did a Safe Stop (Normal Score)
+      players.forEach((p) => {
+        const pts = calculatePoints(p.hand, p.tableau);
+        p.score += pts;
+        p.ready = p.id === gameState.hostId;
+      });
+
+      await updateDoc(
+        doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+        {
+          status: "round_end",
+          players,
+          deck: deck, // Update the deck in DB (now empty)
+          discardPile: discard, // Update discard too (in case we pulled from it)
+          logs: arrayUnion({
+            text: "🌊 The Ocean is empty! Round ends immediately.",
+            type: "warning",
+            id: Date.now(),
+          }),
+        },
+      );
+      setTimeout(() => checkForGameWin(players, roomId), 3000);
+      return;
+    }
+    // ---------------------------------------
+
+    if (deck.length < 2) {
+      if (gameState.discardPile.length > 0) {
+        const topDiscard = discard.pop();
+        const newDeck = [...deck, ...discard];
+        for (let i = newDeck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [newDeck[i], newDeck[j]] = [newDeck[j], newDeck[i]];
+        }
+        await updateDoc(
+          doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+          {
+            deck: newDeck,
+            discardPile: [topDiscard],
+            logs: arrayUnion({
+              text: "Deck reshuffled from discard.",
+              type: "neutral",
+              id: Date.now(),
+            }),
+          },
+        );
+        return;
+      }
+    }
+
+    const drawn = [deck.pop(), deck.pop()].filter(Boolean);
+
+    await updateDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      {
+        turnState: "DRAW_DECISION",
+        tempDraw: drawn,
+        deck,
+        logs: arrayUnion({
+          text: `${players[gameState.turnIndex].name} draws 2...`,
+          type: "neutral",
+          id: Date.now(),
+        }),
+      },
+    );
+  };
+
+  const handleKeepCard = async (cardIndex) => {
+    const players = [...gameState.players];
+    const discardPile = [...gameState.discardPile];
+    const tempDraw = [...gameState.tempDraw];
+    const pIdx = gameState.turnIndex;
+
+    const kept = tempDraw[cardIndex];
+    const rejected = tempDraw[cardIndex === 0 ? 1 : 0];
+
+    players[pIdx].hand.push(kept);
+    if (rejected) discardPile.push(rejected);
+
+    await updateDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      {
+        turnState: "ACTION_PHASE",
+        players,
+        discardPile,
+        tempDraw: [],
+        logs: arrayUnion({
+          text: `...kept 1 and discarded 1.`,
+          type: "neutral",
+          id: Date.now(),
+        }),
+      },
+    );
+  };
+
+  const handleDrawDiscard = async () => {
+    const players = [...gameState.players];
+    const discardPile = [...gameState.discardPile];
+    const pIdx = gameState.turnIndex;
+
+    const card = discardPile.pop();
+    players[pIdx].hand.push(card);
+
+    await updateDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      {
+        turnState: "ACTION_PHASE",
+        players,
+        discardPile,
+        logs: arrayUnion({
+          text: `${players[pIdx].name} took ${
+            CARD_TYPES[card.type].name
+          } from discard.`,
+          type: "neutral",
+          id: Date.now(),
+        }),
+      },
+    );
+  };
+
+  const handlePlayDuo = async () => {
+    if (selectedHandIndices.length !== 2) return;
+    const pIdx = gameState.turnIndex;
+    const players = [...gameState.players];
+    const me = players[pIdx];
+    const card1 = me.hand[selectedHandIndices[0]];
+    const card2 = me.hand[selectedHandIndices[1]];
+
+    // Capture the deck state here to ensure modifications persist in updateDoc
+    let deck = [...gameState.deck];
+
+    if (card1.type !== card2.type || CARD_TYPES[card1.type].type !== "DUO") {
+      triggerFeedback(
+        "failure",
+        "INVALID DUO",
+        "Must pick 2 matching Duo cards.",
+        AlertTriangle,
+      );
+      setSelectedHandIndices([]);
+      return;
+    }
+
+    const indices = [...selectedHandIndices].sort((a, b) => b - a);
+    me.hand.splice(indices[0], 1);
+    me.hand.splice(indices[1], 1);
+    me.tableau.push(card1, card2);
+
+    let nextState = "ACTION_PHASE";
+    let logText = `${me.name} played a pair of ${CARD_TYPES[card1.type].name}s!`;
+
+    // TRIGGER LOCAL UI MODALS FIRST
+    if (card1.type === "CRAB") {
+      if (gameState.discardPile.length > 0) {
+        setDiscardSearchMode(true); // Open the Modal
+      }
+    } else if (card1.type === "SHARK") {
+      const hasOpponentWithCards = players.some(
+        (p, i) => i !== pIdx && p.hand.length > 0,
+      );
+      if (hasOpponentWithCards) {
+        setSharkStealMode(true); // Show "STEAL" buttons on opponents
+      }
+    } else if (card1.type === "BOAT") {
+      nextState = "DRAW"; // Grant extra turn
+    } else if (card1.type === "FISH") {
+      // Use the local deck variable which is passed to updateDoc
+      if (deck.length > 0) {
+        me.hand.push(deck.pop());
+      }
+    }
+
+    setSelectedHandIndices([]); // Clear selection
+
+    // Update Firebase
+    await updateDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      {
+        players,
+        turnState: nextState,
+        deck: deck, // Correctly updated deck
+        logs: arrayUnion({
+          text: logText,
+          type: "success",
+          id: Date.now(),
+        }),
+      },
+    );
+  };
+
+  const handleCrabPick = async (card) => {
+    const players = [...gameState.players];
+    const discardPile = [...gameState.discardPile];
+
+    const index = discardPile.findIndex((c) => c.id === card.id);
+    if (index > -1) {
+      discardPile.splice(index, 1);
+      players[gameState.turnIndex].hand.push(card);
+    }
+
+    setDiscardSearchMode(false);
+    await updateDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      {
+        players,
+        discardPile,
+        logs: arrayUnion({
+          text: `Effect: Picked a card from discard.`,
+          type: "neutral",
+          id: Date.now(),
+        }),
+      },
+    );
+  };
+
+  const handleSharkSteal = async (targetId) => {
+    const players = [...gameState.players];
+    const meIdx = gameState.turnIndex;
+    const me = players[meIdx]; // Need reference to self for name
+    const targetIdx = players.findIndex((p) => p.id === targetId);
+    const target = players[targetIdx];
+
+    if (players[targetIdx].hand.length > 0) {
+      const rand = Math.floor(Math.random() * players[targetIdx].hand.length);
+
+      // Capture the card object before splicing
+      const stolen = players[targetIdx].hand.splice(rand, 1)[0];
+      const cardName = CARD_TYPES[stolen.type].name; // Get the readable name
+
+      players[meIdx].hand.push(stolen);
+
+      setSharkStealMode(false);
+
+      await updateDoc(
+        doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+        {
+          players,
+          // 1. Generic Log for history (Public)
+          logs: arrayUnion({
+            text: `${me.name} stole a card from ${target.name}.`,
+            type: "neutral",
+            id: Date.now(),
+          }),
+          // 2. Specific Trigger for UI Modals (Contains Private Data)
+          feedbackTrigger: {
+            id: Date.now(), // Unique ID to trigger useEffect
+            type: "STEAL",
+            actorId: me.id,
+            actorName: me.name,
+            targetId: target.id,
+            targetName: target.name,
+            cardName: cardName, // The secret info
+          },
+        },
+      );
+    } else {
+      setSharkStealMode(false);
+    }
+  };
+
+  const handleEndTurn = async () => {
+    const players = [...gameState.players];
+    const nextIdx = (gameState.turnIndex + 1) % players.length;
+
+    if (gameState.status === "last_chance") {
+      if (players[nextIdx].id === gameState.bettingPlayerId) {
+        await resolveRound(players);
+        return;
+      }
+    }
+
+    await updateDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      {
+        turnIndex: nextIdx,
+        turnState: "DRAW",
+        logs: arrayUnion({
+          text: `Turn: ${players[nextIdx].name}`,
+          type: "neutral",
+          id: Date.now(),
+        }),
+      },
+    );
+  };
+
+  const handleStop = async () => {
+    const players = gameState.players.map((p) => ({ ...p }));
+    const me = players[gameState.turnIndex];
+
+    players.forEach((p) => {
+      const pts = calculatePoints(p.hand, p.tableau);
+      p.score += pts;
+      p.ready = p.id === gameState.hostId;
+    });
+
+    await updateDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      {
+        status: "round_end",
+        players,
+        logs: arrayUnion({
+          text: `${me.name} called STOP! Round ended safely.`,
+          type: "success",
+          id: Date.now(),
+        }),
+      },
+    );
+    setTimeout(() => checkForGameWin(players, roomId), 3000);
+  };
+
+  const handleLastChance = async () => {
+    const players = [...gameState.players];
+    const me = players[gameState.turnIndex];
+
+    await updateDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      {
+        status: "last_chance",
+        bettingPlayerId: me.id,
+        turnIndex: (gameState.turnIndex + 1) % players.length,
+        turnState: "DRAW",
+        logs: arrayUnion({
+          text: `⚠️ ${me.name} called LAST CHANCE! Everyone gets 1 turn to beat them.`,
+          type: "warning",
+          id: Date.now(),
+        }),
+      },
+    );
+  };
+
+  const resolveRound = async (currentPlayers) => {
+    const players = currentPlayers.map((p) => ({ ...p }));
+    const bettorId = gameState.bettingPlayerId;
+    const bettor = players.find((p) => p.id === bettorId);
+
+    // 1. Calculate Standard Scores (Strength) using global function
+    // NOTE: 'calculatePoints' handles the Mermaid Multiplication logic.
+    // We pass 'false' to ensure we get the strict score (Normal Score).
+    const bettorStrength = calculatePoints(bettor.hand, bettor.tableau, false);
+
+    let bettorWon = true;
+
+    players.forEach((p) => {
+      if (p.id !== bettorId) {
+        // Opponent Normal Score (includes Mermaid Multiplier)
+        const oppStrength = calculatePoints(p.hand, p.tableau, false);
+
+        // If opponent ties or exceeds bettor, bettor loses
+        if (oppStrength >= bettorStrength) bettorWon = false;
+      }
+    });
+
+    // 2. Helper: Special Color Bonus (SCB)
+    // This is the NEW logic: Highest color count ONLY. No multiplication.
+    const getSpecialColorBonus = (p) => {
+      const all = [...p.hand, ...p.tableau];
+      const colorCounts = {};
+      all.forEach((c) => {
+        const def = CARD_TYPES[c.type];
+        const color = def ? def.cardColor : null;
+        if (color) colorCounts[color] = (colorCounts[color] || 0) + 1;
+      });
+      return Math.max(0, ...Object.values(colorCounts));
+    };
+
+    // 3. Apply Scoring Rules
+    if (bettorWon) {
+      // SCENARIO: BETTOR WINS
+      // Bettor gets: Normal Score (w/ Mermaids) + SCB (Flat)
+      bettor.score += bettorStrength + getSpecialColorBonus(bettor);
+
+      players.forEach((p) => {
+        if (p.id !== bettorId) {
+          // Opponents (Losers) get: SCB only
+          p.score += getSpecialColorBonus(p);
+        }
+      });
+    } else {
+      // SCENARIO: BETTOR LOSES
+      // Bettor (Loser) gets: SCB only
+      bettor.score += getSpecialColorBonus(bettor);
+
+      players.forEach((p) => {
+        if (p.id !== bettorId) {
+          // Opponents (Winners) get: Normal Score (w/ Mermaids)
+          p.score += calculatePoints(p.hand, p.tableau, false);
+        }
+      });
+    }
+
+    players.forEach((p) => (p.ready = p.id === gameState.hostId));
+
+    await updateDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      {
+        status: "round_end",
+        players,
+        logs: arrayUnion({
+          text: bettorWon
+            ? `Bet Succeeded! ${bettor.name} gets Bonus.`
+            : `Bet Failed! ${bettor.name} pays the price.`,
+          type: bettorWon ? "success" : "failure",
+          id: Date.now(),
+        }),
+      },
+    );
+    setTimeout(() => checkForGameWin(players, roomId), 4000);
+  };
+
+  const checkForGameWin = async (players, rId) => {
+    const sorted = [...players].sort((a, b) => b.score - a.score);
+    const winner = sorted[0];
+    const threshold = GET_WIN_THRESHOLD(players.length);
+
+    if (winner.score >= threshold) {
+      await updateDoc(
+        doc(db, "artifacts", APP_ID, "public", "data", "rooms", rId),
+        {
+          status: "finished",
+          winnerId: winner.id,
+        },
+      );
+    }
+  };
+
+  if (isMaintenance) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-white p-4 text-center">
+        <GameLogoBig />
+        <div className="bg-orange-500/10 p-8 rounded-2xl border border-orange-500/30">
+          <Hammer
+            size={64}
+            className="text-orange-500 mx-auto mb-4 animate-bounce"
+          />
+          <h1 className="text-3xl font-bold mb-2">Under Maintenance</h1>
+          <p className="text-gray-400">
+            Tide is low. Folding operations paused.
+          </p>
+        </div>
+        <div className="h-8"></div>
+        <a href={import.meta.env.BASE_URL}>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <div className="text-center pb-12 animate-pulse">
+              <div className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900/50 rounded-full border border-indigo-500/20 text-indigo-300 font-bold tracking-widest text-sm uppercase backdrop-blur-sm">
+                <Sparkles size={16} /> Visit Gamehub...Try our other releases...{" "}
+                <Sparkles size={16} />
+              </div>
+            </div>
+          </div>
+        </a>
+        <GameLogo />
+      </div>
+    );
+  }
+
+  if (!user)
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-cyan-500 animate-pulse">
+        Approaching horizon...
+      </div>
+    );
+
+  // RECONNECTING STATE
+  if (roomId && !gameState && !error) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4">
+        <FloatingBackground />
+        <div className="bg-zinc-900/80 backdrop-blur p-8 rounded-2xl border border-zinc-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
+          <Loader size={48} className="text-cyan-500 animate-spin" />
+          <div className="text-center">
+            <h2 className="text-xl font-bold">Reconnecting...</h2>
+            <p className="text-zinc-400 text-sm">Resuming your session</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // --- RENDER HELPERS ---
+
+  if (view === "menu") {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans select-none">
+        <FloatingBackground />
+        {/* --- START OF BACK BUTTON --- */}
+        <nav className="absolute top-0 left-0 w-full p-4 z-50">
+          <a
+            href={import.meta.env.BASE_URL}
+            className="flex items-center gap-2 text-cyan-800 rounded-lg 
+			font-bold shadow-md hover:text-cyan-400 transition-colors w-fit animate-pulse"
+          >
+            {/* Arrow Icon */}
+            <StepBack />
+            <span>Back to Gamehub</span>
+          </a>
+        </nav>
+        {/* --- END OF BACK BUTTON --- */}
+
+        {/* GUIDE MODAL */}
+        {showGuide && (
+          <HowToPlayModal
+            onClose={() => setShowGuide(false)}
+            winPoints={GET_WIN_THRESHOLD(2)}
+          />
+        )}
+
+        <div className="z-10 text-center mb-10 animate-in fade-in zoom-in duration-700">
+          <Origami
+            size={64}
+            className="text-cyan-400 mx-auto mb-4 animate-bounce"
+          />
+          <h1 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-linear-to-b from-cyan-400 to-blue-600 tracking-widest drop-shadow-md">
+            PAPER OCEANS
+          </h1>
+          <p className="text-white-400/60 tracking-[0.3em] uppercase mt-2">
+            Fold. Collect. Bet.
+          </p>
+        </div>
+        <div className="bg-slate-900/80 backdrop-blur-md border border-cyan-500/30 p-8 rounded-2xl w-full max-w-md shadow-2xl z-10 relative">
+          {error && (
+            <div className="bg-red-500/20 border border-red-500/50 text-red-200 p-3 mb-4 rounded text-center text-sm font-bold flex items-center justify-center gap-2">
+              <AlertTriangle size={16} /> {error}
+            </div>
+          )}
+          <div className="space-y-4">
+            <div>
+              <label className="text-xs font-bold text-cyan-500 uppercase ml-1">
+                Captain Name
+              </label>
+              <input
+                className="w-full bg-black/50 border border-slate-700 focus:border-cyan-500 p-4 rounded-xl text-white outline-none transition-all text-lg font-bold"
+                placeholder="Enter Name..."
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                maxLength={12}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                onClick={createRoom}
+                disabled={loading}
+                className="bg-linear-to-br from-cyan-600 to-blue-700 hover:from-cyan-500 hover:to-blue-600 p-4 rounded-xl font-bold flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-lg shadow-cyan-900/50"
+              >
+                <Anchor size={24} />
+                <span>New Voyage</span>
+              </button>
+              <div className="flex flex-col gap-2">
+                <input
+                  className="bg-black/50 border border-slate-700 focus:border-cyan-500 p-2 rounded-xl text-white text-center uppercase font-mono font-bold tracking-widest outline-none h-12"
+                  placeholder="CODE"
+                  value={roomCode}
+                  onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+                  maxLength={6}
+                />
+                <button
+                  onClick={joinRoom}
+                  disabled={loading}
+                  className="bg-slate-800 hover:bg-slate-700 p-2 rounded-xl font-bold text-slate-300 transition-all active:scale-95 h-full"
+                >
+                  Join Fleet
+                </button>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => setShowGuide(true)}
+            className="w-full mt-4 text-slate-400 hover:text-cyan-400 text-sm font-bold flex items-center justify-center gap-2 transition-colors py-2"
+          >
+            <BookOpen size={16} /> Captains Guide Book
+          </button>
+        </div>
+        <div className="absolute bottom-4 text-slate-600 text-xs text-center">
+          Inspired by Sea, Salt and Paper. A tribute game.
+          <br />
+          Developed by <strong>RAWFID K SHUVO</strong>. Visit{" "}
+          <a
+            href={import.meta.env.BASE_URL}
+            //target="_blank"
+            rel="noopener noreferrer"
+            className="text-cyan-500 underline hover:text-cyan-600"
+          >
+            GAMEHUB
+          </a>{" "}
+          for more games.
+        </div>
+      </div>
+    );
+  }
+
+  if (view === "lobby" && gameState) {
+    const isHost = gameState.hostId === user.uid;
+
+    // ... existing const definitions ...
+    const pIdx = gameState.players.findIndex((p) => p.id === user.uid);
+    const me = gameState.players[pIdx];
+    const isMyTurn = gameState.turnIndex === pIdx;
+    const currentPoints = calculatePoints(me.hand, me.tableau);
+
+    // --- NEW: Calculate Win Threshold Check ---
+    const winThreshold = GET_WIN_THRESHOLD(gameState.players.length);
+    const potentialTotalScore = me.score + currentPoints;
+
+    // Player must stop if:
+    // 1. They reached the winning score (Total + Current >= Threshold)
+    // 2. They meet the minimum stop requirement (>= 7 points)
+    // 3. It is not an opponent's Last Chance phase
+    const mustStopOrBet =
+      potentialTotalScore >= winThreshold &&
+      currentPoints >= STOP_THRESHOLD &&
+      gameState.status !== "last_chance";
+
+    const canEndRound =
+      currentPoints >= STOP_THRESHOLD &&
+      isMyTurn &&
+      gameState.turnState === "ACTION_PHASE" &&
+      gameState.status !== "last_chance";
+    // ------------------------------------------
+
+    return (
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative">
+        <FloatingBackground />
+        <GameLogoBig />
+        {/* GUIDE MODAL */}
+        {showGuide && (
+          <HowToPlayModal
+            onClose={() => setShowGuide(false)}
+            winPoints={GET_WIN_THRESHOLD(gameState.players.length)}
+          />
+        )}
+
+        <div className="z-10 w-full max-w-lg bg-slate-900/90 backdrop-blur p-8 rounded-2xl border border-cyan-500/30 shadow-2xl animate-in slide-in-from-bottom-8">
+          <div className="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
+            {/* Grouping Title and Copy Button together on the left */}
+            <div>
+              <h2 className="text-lg md:text-xl text-cyan-500 font-bold uppercase">
+                Voyage Code
+              </h2>
+
+              {/* Flex container to align ID and Button side-by-side */}
+              <div className="flex items-center gap-3 mt-1">
+                <div className="text-2xl md:text-3xl font-mono text-white font-black">
+                  {roomId}
+                </div>
+
+                {/* 2. Container set to relative for positioning the popup */}
+                <div className="relative">
+                  <button
+                    onClick={copyToClipboard}
+                    className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
+                  >
+                    {/* Optional: Change icon to checkmark when copied */}
+                    {isCopied ? (
+                      <CheckCircle size={16} className="text-green-500" />
+                    ) : (
+                      <Copy size={16} />
+                    )}
+                  </button>
+
+                  {/* 3. The Copied Popup */}
+                  {isCopied && (
+                    <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-cyan-500 text-black text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">
+                      Copied!
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm text-gray-400">
+                <User size={16} /> {gameState.players.length}/2
+              </div>
+              <button
+                onClick={() => setShowLeaveConfirm(true)} // This triggers the modal
+                className="p-2 bg-red-900/50 hover:bg-red-900 rounded text-red-300"
+                title="Leave Room"
+              >
+                <LogOut size={16} />
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-3 mb-8">
+            <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">
+              Crew Manifest ({gameState.players.length}/4)
+            </h3>
+            {gameState.players.map((p) => (
+              <div
+                key={p.id}
+                className="flex justify-between items-center bg-slate-800 p-4 rounded-xl border border-slate-700"
+              >
+                <span className="font-bold flex items-center gap-3 text-lg">
+                  <div className="w-8 h-8 rounded-full bg-linear-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-xs font-black">
+                    {p.name.charAt(0)}
+                  </div>
+                  {p.name}
+                  {p.id === gameState.hostId && (
+                    <Crown size={16} className="text-yellow-500" />
+                  )}
+                </span>
+
+                <div className="flex items-center gap-2">
+                  {isHost && p.id !== user.uid && (
+                    <button
+                      onClick={() => kickPlayer(p.id)}
+                      className="p-1.5 hover:bg-red-900/50 rounded text-slate-500 hover:text-red-400 transition-colors"
+                      title="Kick Player"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+            {Array.from({ length: 4 - gameState.players.length }).map(
+              (_, i) => (
+                <div
+                  key={i}
+                  className="border-2 border-dashed border-slate-800 rounded-xl p-4 flex items-center justify-center text-slate-700 font-bold uppercase text-sm"
+                >
+                  Empty Slot
+                </div>
+              ),
+            )}
+          </div>
+
+          {isHost ? (
+            <button
+              onClick={() => startRound(false)}
+              disabled={gameState.players.length < 2}
+              className="w-full bg-linear-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 py-4 rounded-xl font-bold text-xl disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-emerald-900/50 transition-all active:scale-95 flex items-center justify-center gap-2"
+            >
+              {gameState.players.length < 2 ? (
+                "Waiting for Crew..."
+              ) : (
+                <>
+                  <Play size={24} fill="currentColor" /> Set Sail
+                </>
+              )}
+            </button>
+          ) : (
+            <div className="w-full py-4 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 text-center font-bold">
+              Waiting for Captain...
+            </div>
+          )}
+        </div>
+        {/* Add this inside the Lobby return block, just before the final <GameLogo /> */}
+        {showLeaveConfirm && (
+          <div className="fixed inset-0 bg-black/90 z-200 flex items-center justify-center p-4">
+            <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl max-w-xs w-full text-center shadow-2xl">
+              <h3 className="text-xl font-bold text-white mb-2 uppercase tracking-wider">
+                Abandon Ship?
+              </h3>
+              <p className="text-slate-400 mb-6 text-sm">
+                {isHost
+                  ? "As Captain, leaving will disband the entire fleet (delete room)."
+                  : "You will leave this voyage and return to the menu."}
+              </p>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowLeaveConfirm(false)}
+                    className="flex-1 bg-slate-800 py-3 rounded-lg font-bold text-slate-300 hover:bg-slate-700 transition-colors"
+                  >
+                    Stay
+                  </button>
+                  <button
+                    onClick={handleLeave}
+                    className="flex-1 bg-red-600 py-3 rounded-lg font-bold text-white hover:bg-red-500 transition-colors"
+                  >
+                    Leave
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+        <GameLogo />
+      </div>
+    );
+  }
+
+  if (view === "game" && gameState) {
+    const pIdx = gameState.players.findIndex((p) => p.id === user.uid);
+    const me = gameState.players[pIdx];
+    const isMyTurn = gameState.turnIndex === pIdx;
+
+    // Calculate potential points
+    const currentPoints = calculatePoints(me.hand, me.tableau);
+
+    // --- ADDED LOGIC START ---
+    // 1. Calculate Thresholds
+    const winThreshold = GET_WIN_THRESHOLD(gameState.players.length);
+    const potentialTotalScore = me.score + currentPoints;
+
+    // 2. Determine if Force Stop is active
+    // (Reached winning score + has minimum points to stop + not in last chance)
+    const mustStopOrBet =
+      potentialTotalScore >= winThreshold &&
+      currentPoints >= STOP_THRESHOLD &&
+      gameState.status !== "last_chance";
+
+    // 3. Determine if standard Stop/Bet buttons should show
+    const canEndRound =
+      currentPoints >= STOP_THRESHOLD &&
+      isMyTurn &&
+      gameState.turnState === "ACTION_PHASE" &&
+      gameState.status !== "last_chance";
+    // --- ADDED LOGIC END ---
+
+    return (
+      <div className="fixed inset-0 bg-slate-950 text-white overflow-hidden flex flex-col font-sans select-none">
+        <FloatingBackground />
+        {/* ... rest of your render code ... */}
+
+        {/* GUIDE MODAL IN GAME */}
+        {showGuide && (
+          <HowToPlayModal
+            onClose={() => setShowGuide(false)}
+            winPoints={GET_WIN_THRESHOLD(gameState.players.length)}
+          />
+        )}
+
+        {feedback && (
+          <FeedbackOverlay
+            type={feedback.type}
+            message={feedback.message}
+            subtext={feedback.subtext}
+            icon={feedback.icon}
+          />
+        )}
+
+        {/* TOP BAR */}
+        <div className="h-14 bg-slate-900/80 border-b border-slate-800 flex items-center justify-between px-4 z-160 backdrop-blur-md shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-cyan-900/50 rounded flex items-center justify-center">
+              <Origami size={18} className="text-cyan-500" />
+            </div>
+            <div className="flex flex-col">
+              <span className="font-bold tracking-wider text-cyan-100 text-sm leading-none">
+                THE VOYAGE
+              </span>
+              <span className="text-[10px] text-cyan-500 font-mono">
+                ROUND {gameState.round}
+              </span>
+            </div>
+            <span className="bg-cyan-900/40 text-yellow-500 text-xs px-3 py-1 rounded-full border border-cyan-800/50 font-mono tracking-wider shadow-[0_0_10px_rgba(34,211,238,0.25)]">
+              Goal:{GET_WIN_THRESHOLD(gameState.players.length)}
+            </span>
+          </div>
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowGuide(true)}
+              className="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-cyan-400 transition-colors"
+              title="How to Play"
+            >
+              <BookOpen size={18} />
+            </button>
+            <button
+              onClick={() => setShowLogs(!showLogs)}
+              className={`p-2 rounded transition-colors ${
+                showLogs
+                  ? "bg-cyan-900 text-cyan-400"
+                  : "hover:bg-slate-800 text-slate-400"
+              }`}
+            >
+              <History size={18} />
+            </button>
+            <button
+              onClick={() => setShowLeaveConfirm(true)}
+              className="p-2 hover:bg-red-900/30 rounded text-red-400"
+            >
+              <LogOut size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* NEW: PERSISTENT LAST CHANCE BANNER                  */}
+        {/* -------------------------------------------------- */}
+        {gameState.status === "last_chance" && (
+          <div className="w-full bg-linear-to-r from-amber-900/90 via-orange-900/90 to-amber-900/90 border-b-4 border-amber-500 p-2 z-155 shrink-0 shadow-xl flex flex-col items-center justify-center animate-in slide-in-from-top-4 duration-500">
+            <div className="flex items-center gap-3 animate-pulse">
+              <AlertTriangle
+                className="text-amber-400"
+                size={24}
+                fill="currentColor"
+                fillOpacity={0.2}
+              />
+              <span className="text-amber-100 font-black tracking-[0.15em] uppercase text-sm md:text-xl drop-shadow-md">
+                LAST CHANCE CALLED BY{" "}
+                <span className="text-white underline decoration-amber-500 underline-offset-4">
+                  {
+                    gameState.players.find(
+                      (p) => p.id === gameState.bettingPlayerId,
+                    )?.name
+                  }
+                </span>
+              </span>
+              <AlertTriangle
+                className="text-amber-400"
+                size={24}
+                fill="currentColor"
+                fillOpacity={0.2}
+              />
+            </div>
+            <div className="text-[10px] md:text-xs text-amber-200/80 font-bold mt-1 uppercase tracking-widest">
+              Final Turn • Beat their score or lose points!
+            </div>
+          </div>
+        )}
+
+        {/* LOGS DRAWER */}
+        {showLogs && (
+          <div className="fixed top-16 right-4 w-64 max-h-60 bg-gray-900/95 border border-gray-700 rounded-xl z-155 overflow-y-auto p-2 shadow-2xl">
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 sticky top-0 bg-slate-900/95 py-2">
+              Captain's Log
+            </h4>
+            <div className="space-y-2">
+              {gameState.logs
+                .slice()
+                .reverse()
+                .map((log) => (
+                  <div
+                    key={log.id}
+                    className={`text-xs p-2 rounded border-l-2 ${
+                      log.type === "success"
+                        ? "border-emerald-500 bg-emerald-900/10"
+                        : log.type === "failure"
+                          ? "border-red-500 bg-red-900/10"
+                          : log.type === "warning"
+                            ? "border-amber-500 bg-amber-900/10"
+                            : "border-slate-500 bg-slate-800/30"
+                    }`}
+                  >
+                    {log.text}
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
+        {/* MAIN AREA */}
+        <div className="flex-1 flex flex-col relative z-10 overflow-hidden h-full">
+          {/* 1. OPPONENTS AREA */}
+          <div className="flex-none max-h-[35vh] overflow-x-auto p-2 border-b border-white/5 bg-slate-900/20">
+            {/* Changed flex-wrap to flex-nowrap to force a single row */}
+            <div className="flex flex-nowrap gap-2 items-start w-full">
+              {gameState.players.map((p, i) => {
+                if (p.id === user.uid) return null;
+                const isActive = gameState.turnIndex === i;
+
+                return (
+                  <div
+                    key={p.id}
+                    className={`relative p-2 rounded-xl transition-all duration-500 flex flex-col gap-2 flex-1 basis-0 min-w-0 ${
+                      isActive
+                        ? "bg-slate-800 border-2 border-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.3)] z-10"
+                        : "bg-slate-900/50 border border-slate-800 opacity-80"
+                    }`}
+                  >
+                    {isActive && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-cyan-500 text-black text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest z-20 whitespace-nowrap shadow-lg shadow-cyan-500/50">
+                        Active
+                      </div>
+                    )}
+
+                    {/* Top Row: Avatar & Name */}
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center font-bold text-xs border border-slate-600 shrink-0">
+                        {p.name.charAt(0)}
+                      </div>
+                      <div className="flex-1 min-w-0 flex flex-col justify-center">
+                        <div className="flex justify-between items-center w-full">
+                          <div className="text-xs font-bold truncate pr-1">
+                            {p.name}
+                          </div>
+                          <div className="text-[10px] text-yellow-500 font-bold shrink-0 bg-yellow-900/20 px-1 rounded">
+                            {p.score}pts
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Middle Row: Visual Hand (Card Backs) */}
+                    <div className="flex flex-wrap gap-0.5 min-h-[16px]">
+                      {p.hand.length > 0 ? (
+                        Array.from({ length: p.hand.length }).map((_, idx) => (
+                          <div
+                            key={idx}
+                            className="w-4 h-5 rounded-sm bg-slate-700 border border-slate-600 flex items-center justify-center shadow-sm"
+                            title="Card in hand"
+                          >
+                            <Origami size={8} className="text-slate-500" />
+                          </div>
+                        ))
+                      ) : (
+                        <span className="text-[9px] text-slate-600 italic">
+                          Empty Hand
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Bottom Row: Tableau (Played Cards) */}
+                    <div className="flex flex-wrap gap-0.5 min-h-[16px]">
+                      {p.tableau.map((c, idx) => (
+                        <CardDisplay key={idx} cardType={c.type} tiny />
+                      ))}
+                      {p.tableau.length === 0 && (
+                        <span className="text-[9px] text-slate-600 italic">
+                          No cards played
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Shark Target Overlay */}
+                    {sharkStealMode && p.hand.length > 0 && (
+                      <button
+                        onClick={() => handleSharkSteal(p.id)}
+                        className="absolute inset-0 bg-red-500/50 rounded-xl z-30 flex flex-col items-center justify-center animate-pulse zoom-in cursor-pointer hover:bg-red-600/90 transition-colors backdrop-blur-sm"
+                      >
+                        <Sword size={24} className="text-white mb-1" />
+                        <span className="font-black text-white text-sm uppercase tracking-widest drop-shadow-md">
+                          STEAL
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 2. CENTER BOARD: DECK & DISCARD (Flexible height, takes remaining space) */}
+          <div className="flex-1 flex flex-col items-center justify-center relative min-h-0 overflow-y-auto py-2">
+            {/* Draw Decision UI */}
+            {isMyTurn && gameState.turnState === "DRAW_DECISION" ? (
+              <div className="flex flex-col items-center gap-4 animate-in zoom-in duration-300">
+                <h3 className="text-lg font-bold text-white bg-black/50 px-4 py-1 rounded-full backdrop-blur">
+                  Choose 1 to Keep
+                </h3>
+                <div className="flex gap-4">
+                  {gameState.tempDraw.map((c, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleKeepCard(i)}
+                      className="transition-transform hover:scale-105 active:scale-95 focus:outline-none"
+                      title="Click to keep this card"
+                    >
+                      <CardDisplay cardType={c.type} highlight={true} />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              /* Standard Board */
+              <div className="flex gap-4 md:gap-8 items-center">
+                {/* Deck */}
+                <div
+                  onClick={() =>
+                    isMyTurn && gameState.turnState === "DRAW"
+                      ? handleDrawDeck()
+                      : null
+                  }
+                  className={`
+                  w-20 h-28 sm:w-24 sm:h-36 md:w-28 md:h-44 bg-slate-800 rounded-xl border-2 border-slate-600 flex flex-col items-center justify-center relative shadow-xl transition-all
+                  ${
+                    isMyTurn && gameState.turnState === "DRAW"
+                      ? "cursor-pointer hover:-translate-y-2 hover:border-cyan-400 hover:shadow-cyan-500/20 ring-4 ring-cyan-500/20"
+                      : "opacity-80"
+                  }
+                `}
+                >
+                  {/* Card Back Pattern */}
+                  <div className="absolute inset-2 border-2 border-dashed border-slate-700/50 rounded flex items-center justify-center">
+                    <Anchor className="text-slate-700" size={32} />
+                  </div>
+                  <div className="z-10 bg-slate-900 px-2 py-1 rounded text-xs font-bold text-slate-400 shadow">
+                    {gameState.deck.length} Left
+                  </div>
+                  {isMyTurn && gameState.turnState === "DRAW" && (
+                    <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-cyan-600 text-white text-[10px] font-bold px-2 py-1 rounded whitespace-nowrap animate-bounce">
+                      DRAW 2
+                    </div>
+                  )}
+                </div>
+
+                {/* Discard Pile */}
+                <div
+                  onClick={() =>
+                    isMyTurn &&
+                    gameState.turnState === "DRAW" &&
+                    gameState.discardPile.length > 0
+                      ? handleDrawDiscard()
+                      : null
+                  }
+                  className={`
+                  w-20 h-28 sm:w-24 sm:h-36 md:w-28 md:h-44 bg-black/20 rounded-xl border-2 border-dashed border-slate-700 flex items-center justify-center relative
+                  ${
+                    isMyTurn &&
+                    gameState.turnState === "DRAW" &&
+                    gameState.discardPile.length > 0
+                      ? "cursor-pointer hover:border-cyan-400 hover:bg-slate-800/50"
+                      : ""
+                  }
+                `}
+                >
+                  {gameState.discardPile.length > 0 ? (
+                    <div className="relative w-full h-full transform rotate-3">
+                      <CardDisplay
+                        cardType={
+                          gameState.discardPile[
+                            gameState.discardPile.length - 1
+                          ].type
+                        }
+                        disabled={!isMyTurn || gameState.turnState !== "DRAW"}
+                      />
+                      {isMyTurn && gameState.turnState === "DRAW" && (
+                        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-cyan-600 text-white text-[10px] font-bold px-2 py-1 rounded whitespace-nowrap animate-bounce">
+                          TAKE 1
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-slate-600 font-bold uppercase tracking-widest">
+                      Empty
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Status Text */}
+            <div className="absolute top-0 w-full text-center pointer-events-none p-2">
+              {!isMyTurn && gameState.status === "playing" && (
+                <div className="inline-block bg-slate-900/80 px-4 py-1 rounded-full text-slate-400 text-sm border border-slate-700 backdrop-blur-sm">
+                  Waiting for{" "}
+                  {gameState.players[gameState.turnIndex]?.name || "Player"}...
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 3. PLAYER HUD (Pinned to bottom, auto height) */}
+          <div className="flex-none bg-slate-900 border-t border-slate-800 p-3 pb-safe relative z-20 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+            {/* Action Bar (Above Cards) */}
+            <div className="flex flex-wrap justify-between items-end mb-3 gap-2">
+              <div className="flex gap-4 items-center">
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider text-yellow-500/80">
+                    Total Score
+                  </span>
+                  <span className="text-2xl font-black text-yellow-500 leading-none">
+                    {me.score}
+                  </span>
+                </div>
+                <div className="w-px bg-slate-700 h-8"></div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">
+                    Round Est.
+                  </span>
+                  <span className="text-2xl font-black text-white leading-none">
+                    {currentPoints}
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 items-center flex-wrap justify-end ml-auto">
+                {/* Duo Button */}
+                {selectedHandIndices.length === 2 &&
+                  isMyTurn &&
+                  gameState.turnState === "ACTION_PHASE" && (
+                    <button
+                      onClick={handlePlayDuo}
+                      className="bg-linear-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg animate-in slide-in-from-bottom-2 hover:scale-105 transition-all flex items-center gap-2"
+                    >
+                      <Sparkles size={16} /> Play Pair
+                    </button>
+                  )}
+
+                {/* WARNING: REACHED WINNING SCORE */}
+                {isMyTurn &&
+                  mustStopOrBet &&
+                  gameState.turnState === "ACTION_PHASE" && (
+                    <div className="flex items-center gap-2 bg-yellow-500/20 border border-yellow-500/50 px-3 py-1 rounded text-yellow-200 text-xs font-bold animate-pulse">
+                      <AlertTriangle size={14} />
+                      <span>
+                        Winning Score Reached! You must end the round.
+                      </span>
+                    </div>
+                  )}
+
+                {/* End Turn (Disabled if mustStopOrBet is true) */}
+                {isMyTurn &&
+                  gameState.turnState === "ACTION_PHASE" &&
+                  !mustStopOrBet && (
+                    <button
+                      onClick={handleEndTurn}
+                      className="bg-slate-700 hover:bg-slate-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg flex items-center gap-2 transition-colors animate-bounce"
+                    >
+                      End Turn <RotateCcw size={16} />
+                    </button>
+                  )}
+
+                {/* STOP / LAST CHANCE */}
+                {canEndRound && (
+                  <div className="flex gap-2 ml-4 pl-4 border-l border-slate-700">
+                    <button
+                      onClick={handleStop}
+                      className="bg-slate-100 hover:bg-white text-slate-900 px-4 py-2 rounded-lg font-black shadow-lg hover:shadow-white/20 transition-all active:scale-95"
+                    >
+                      STOP
+                    </button>
+                    <button
+                      onClick={handleLastChance}
+                      className="bg-linear-to-r from-amber-500 to-orange-600 hover:brightness-110 text-white px-4 py-2 rounded-lg font-black shadow-lg animate-pulse transition-all active:scale-95 border-2 border-white/20"
+                    >
+                      LAST CHANCE
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* CARD AREA */}
+            <div className="flex gap-4 h-auto min-h-[140px] items-stretch">
+              {/* My Tableau (Left) */}
+              <div className="w-28 flex-none flex flex-col gap-1 border-r border-slate-800 pr-2">
+                <span className="text-[10px] text-slate-500 uppercase font-bold text-center flex-none">
+                  Tableau
+                </span>
+                <div className="flex-1 overflow-y-auto custom-scrollbar max-h-[180px] p-1">
+                  <div className="grid grid-cols-2 gap-2">
+                    {me.tableau.map((c, i) => (
+                      <CardDisplay key={i} cardType={c.type} mini />
+                    ))}
+                  </div>
+                  {me.tableau.length === 0 && (
+                    <div className="h-full flex items-center justify-center text-[10px] text-slate-700 text-center">
+                      No Pairs
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* My Hand (Scrollable) */}
+              <div className="flex-1 overflow-x-auto pb-4 pt-8 flex items-center gap-2 px-2 custom-scrollbar">
+                {me.hand.map((c, i) => {
+                  const isSelected = selectedHandIndices.includes(i);
+                  return (
+                    <div
+                      key={i}
+                      className={`transition-all duration-200 transform origin-bottom ${
+                        isSelected
+                          ? "-translate-y-6 scale-105 z-10"
+                          : "hover:-translate-y-2 hover:z-10"
+                      }`}
+                    >
+                      <CardDisplay
+                        cardType={c.type}
+                        highlight={isSelected}
+                        onClick={() => {
+                          if (
+                            gameState.turnState !== "ACTION_PHASE" &&
+                            gameState.turnState !== "DRAW_DECISION"
+                          )
+                            return; // Only selectable in Action
+
+                          if (selectedHandIndices.includes(i)) {
+                            setSelectedHandIndices(
+                              selectedHandIndices.filter((idx) => idx !== i),
+                            );
+                          } else if (selectedHandIndices.length < 2) {
+                            setSelectedHandIndices([...selectedHandIndices, i]);
+                          }
+                        }}
+                      />
+                    </div>
+                  );
+                })}
+                {me.hand.length === 0 && (
+                  <div className="w-full text-center text-slate-600 font-bold italic">
+                    Hand Empty
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* MODALS */}
+
+        {/* CRAB MODAL - SALVAGE FROM DISCARD */}
+        {discardSearchMode && (
+          <div className="fixed inset-0 bg-slate-950/90 backdrop-grayscale z-300 flex items-center justify-center p-4 animate-in fade-in zoom-in duration-200">
+            <div className="bg-slate-900 border-2 border-red-500/50 rounded-3xl w-full max-w-2xl p-6 shadow-[0_0_50px_rgba(239,68,68,0.2)]">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-black text-white flex items-center gap-3">
+                  <Scissors className="text-red-400 animate-pulse" />
+                  SALVAGE DISCARD
+                </h3>
+                <button
+                  onClick={() => setDiscardSearchMode(false)}
+                  className="p-2 hover:bg-slate-800 rounded-full text-slate-400"
+                >
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-[50vh] overflow-y-auto p-4 bg-black/40 rounded-2xl mb-6 custom-scrollbar">
+                {gameState.discardPile.map((c, i) => (
+                  <div
+                    key={`${c.id}-${i}`}
+                    className="flex flex-col items-center gap-2"
+                  >
+                    <CardDisplay
+                      cardType={c.type}
+                      onClick={() => handleCrabPick(c)}
+                      small
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-center text-slate-400 text-sm font-bold animate-pulse">
+                Select 1 card to add to your hand
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* WIN / ROUND END SCREEN - SCROLLABLE FIX */}
+        {(gameState.status === "finished" ||
+          gameState.status === "round_end") && (
+          <div className="fixed inset-0 top-14 bg-slate-950/95 backdrop-blur-xl z-150 flex flex-col items-center p-4 animate-in fade-in duration-500 overflow-hidden">
+            {/* CONTAINER: Max Width + Flex Column for Layout */}
+            <div className="w-full max-w-lg h-full max-h-full flex flex-col relative">
+              {/* HEADER (Fixed Top) */}
+              <div className="flex-none flex flex-col items-center justify-center pt-8 pb-4 shrink-0">
+                {gameState.status === "finished" ? (
+                  <Trophy
+                    size={64}
+                    className="text-yellow-400 mb-4 animate-bounce"
+                  />
+                ) : (
+                  <FlagIcon status={gameState.status} />
+                )}
+
+                <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-widest drop-shadow-xl text-center leading-none">
+                  {gameState.status === "finished"
+                    ? "LEGEND OF THE SEA"
+                    : "ROUND COMPLETE"}
+                </h2>
+              </div>
+
+              {/* SCOREBOARD (Scrollable Middle) */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-2xl border border-white/10 p-4 mb-4 shadow-inner">
+                <div className="space-y-4">
+                  {[...gameState.players]
+                    .sort((a, b) => b.score - a.score)
+                    .map((p, i) => {
+                      // --- SCORE CALCULATION LOGIC ---
+                      // --- SCORE CALCULATION LOGIC FOR UI ---
+                      const getRoundPoints = () => {
+                        const allPlayers = gameState.players;
+                        const bettingId = gameState.bettingPlayerId;
+
+                        // Helper: SCB (Flat Color Count, No Multiplier)
+                        const getSCB = (targetP) => {
+                          const all = [...targetP.hand, ...targetP.tableau];
+                          const colorCounts = {};
+                          all.forEach((c) => {
+                            const def = CARD_TYPES[c.type];
+                            const color = def ? def.cardColor : null;
+                            if (color) {
+                              colorCounts[color] =
+                                (colorCounts[color] || 0) + 1;
+                            }
+                          });
+                          return Math.max(0, ...Object.values(colorCounts));
+                        };
+
+                        // 1. Normal Stop (No Bet active)
+                        if (!bettingId) {
+                          return calculatePoints(p.hand, p.tableau);
+                        }
+
+                        // 2. Last Chance Scoring Display
+                        const bettor = allPlayers.find(
+                          (pl) => pl.id === bettingId,
+                        );
+
+                        // Calculate Strengths (Normal Scores with Mermaid Mult)
+                        const bettorStrength = calculatePoints(
+                          bettor.hand,
+                          bettor.tableau,
+                          false,
+                        );
+
+                        let bettorWon = true;
+                        allPlayers.forEach((opp) => {
+                          if (opp.id !== bettingId) {
+                            const oppStrength = calculatePoints(
+                              opp.hand,
+                              opp.tableau,
+                              false,
+                            );
+                            if (oppStrength >= bettorStrength)
+                              bettorWon = false;
+                          }
+                        });
+
+                        const isBettor = p.id === bettingId;
+
+                        if (bettorWon) {
+                          // Bettor Wins:
+                          if (isBettor) return bettorStrength + getSCB(p); // Normal + SCB
+                          return getSCB(p); // Opponent gets SCB only
+                        } else {
+                          // Bettor Loses:
+                          if (isBettor) return getSCB(p); // Bettor gets SCB only
+                          return calculatePoints(p.hand, p.tableau, false); // Opponent gets Normal
+                        }
+                      };
+
+                      const roundPts = getRoundPoints();
+                      // -------------------------------
+
+                      return (
+                        <div
+                          key={p.id}
+                          className="border-b border-slate-700 pb-4 last:border-0 flex flex-col gap-2"
+                        >
+                          {/* Player Header Row */}
+                          <div className="flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                              <span className="font-mono text-slate-500 font-bold w-6">
+                                #{i + 1}
+                              </span>
+                              <span className="font-bold text-lg">
+                                {p.name}
+                              </span>
+                              {gameState.status === "finished" && i === 0 && (
+                                <Crown size={16} className="text-yellow-500" />
+                              )}
+                            </div>
+                            <div className="flex items-center gap-3">
+                              {p.ready ? (
+                                <span className="text-emerald-400 text-[10px] font-bold uppercase bg-emerald-900/30 px-2 py-1 rounded flex items-center gap-1">
+                                  <CheckCircle size={10} /> Ready
+                                </span>
+                              ) : (
+                                <span className="text-slate-500 text-[10px] font-bold uppercase bg-slate-900/30 px-2 py-1 rounded">
+                                  Not Ready
+                                </span>
+                              )}
+                              <div className="flex items-baseline gap-2">
+                                {roundPts > 0 && (
+                                  <span className="text-sm font-bold text-emerald-400 animate-pulse">
+                                    +{roundPts}
+                                  </span>
+                                )}
+                                <span className="text-2xl font-black text-cyan-400">
+                                  {p.score}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Cards Display Row */}
+                          <div className="bg-black/40 rounded-lg p-2 flex flex-col gap-2">
+                            {/* Tableau */}
+                            <div className="flex items-start gap-2">
+                              <span className="text-[9px] font-bold text-slate-500 uppercase w-12 shrink-0 pt-1">
+                                Played
+                              </span>
+                              <div className="flex flex-wrap gap-1">
+                                {p.tableau.length > 0 ? (
+                                  p.tableau.map((c, idx) => (
+                                    <CardDisplay
+                                      key={`tab-${idx}`}
+                                      cardType={c.type}
+                                      tiny
+                                    />
+                                  ))
+                                ) : (
+                                  <span className="text-[9px] text-slate-600 italic pt-1">
+                                    None
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {/* Hand */}
+                            <div className="flex items-start gap-2 border-t border-white/5 pt-2">
+                              <span className="text-[9px] font-bold text-slate-500 uppercase w-12 shrink-0 pt-1">
+                                Hand
+                              </span>
+                              <div className="flex flex-wrap gap-1">
+                                {p.hand.length > 0 ? (
+                                  p.hand.map((c, idx) => (
+                                    <CardDisplay
+                                      key={`hand-${idx}`}
+                                      cardType={c.type}
+                                      tiny
+                                    />
+                                  ))
+                                ) : (
+                                  <span className="text-[9px] text-slate-600 italic pt-1">
+                                    None
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+
+              {/* FOOTER ACTIONS (Fixed Bottom of Container) */}
+              <div className="flex-none flex flex-col gap-3 pb-8">
+                {gameState.hostId === user.uid ? (
+                  <div className="flex flex-col gap-3">
+                    <button
+                      onClick={() =>
+                        startRound(gameState.status === "round_end")
+                      }
+                      disabled={!gameState.players.every((p) => p.ready)}
+                      className="bg-white hover:bg-cyan-50 text-cyan-900 px-10 py-4 rounded-full font-black text-xl shadow-xl hover:scale-105 transition-all flex items-center gap-2 justify-center disabled:opacity-50 disabled:grayscale disabled:scale-100 disabled:cursor-not-allowed"
+                    >
+                      {!gameState.players.every((p) => p.ready)
+                        ? "WAITING FOR READY..."
+                        : gameState.status === "finished"
+                          ? "NEW GAME"
+                          : "NEXT ROUND"}
+                      <Play fill="currentColor" size={20} />
+                    </button>
+                    <button
+                      onClick={returnToLobby}
+                      className="text-slate-400 hover:text-white text-sm font-bold uppercase tracking-widest hover:underline text-center"
+                    >
+                      Return to Lobby
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-2">
+                    <button
+                      onClick={toggleReady}
+                      className={`w-full py-4 rounded-full font-bold text-lg shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${
+                        gameState.players.find((p) => p.id === user.uid)?.ready
+                          ? "bg-slate-700 text-emerald-400 hover:bg-slate-600"
+                          : "bg-emerald-600 hover:bg-emerald-500 text-white"
+                      }`}
+                    >
+                      {gameState.players.find((p) => p.id === user.uid)?.ready
+                        ? "READY! (Wait for Captain)"
+                        : "MARK READY"}
+                    </button>
+                    <div className="text-slate-400 text-xs font-bold animate-pulse mt-2">
+                      {gameState.status === "finished"
+                        ? "Waiting for host..."
+                        : "Waiting for next round..."}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showLeaveConfirm && (
+          <div className="fixed inset-0 z-200 bg-black/80 flex items-center justify-center p-4">
+            <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl max-w-xs w-full text-center">
+              <h3 className="text-xl font-bold text-white mb-2">
+                Abandon Ship?
+              </h3>
+              <p className="text-slate-400 mb-6 text-sm">
+                You will leave the current game.
+              </p>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowLeaveConfirm(false)}
+                    className="flex-1 bg-slate-800 py-2 rounded font-bold text-slate-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleLeave}
+                    className="flex-1 bg-red-600 py-2 rounded font-bold text-white"
+                  >
+                    Leave
+                  </button>
+                </div>
+                {gameState.hostId === user.uid && (
+                  <button
+                    onClick={returnToLobby}
+                    className="w-full bg-slate-700 hover:bg-slate-600 py-2 rounded font-bold text-cyan-400 mt-2 text-sm"
+                  >
+                    Return All to Lobby
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        <GameLogo />
+      </div>
+    );
+  }
+
+  return null;
+}
+
+const FlagIcon = ({ status }) => {
+  return <Anchor size={64} className="text-cyan-500 mb-6" />;
+};

@@ -42,6 +42,7 @@ import {
   FileText, // Added for report icon
   Copy,
   Loader,
+  StepBack,
 } from "lucide-react";
 
 // --- Firebase Config & Init ---
@@ -954,7 +955,7 @@ export default function AngryVirus() {
           </p>
         </div>
         <div className="h-8"></div>
-        <a href="https://rawfidkshuvo.github.io/gamehub/">
+        <a href={import.meta.env.BASE_URL}>
           <div className="flex items-center justify-center gap-3 mb-2">
             <div className="text-center pb-12 animate-pulse">
               <div className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900/50 rounded-full border border-indigo-500/20 text-indigo-300 font-bold tracking-widest text-sm uppercase backdrop-blur-sm">
@@ -996,6 +997,18 @@ export default function AngryVirus() {
     return (
       <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
         <FloatingBackground />
+        {/* --- START OF BACK BUTTON --- */}
+        <nav className="absolute top-0 left-0 w-full p-4 z-50">
+          <a
+            href={import.meta.env.BASE_URL}
+            className="flex items-center gap-2 text-green-800 rounded-lg font-bold shadow-md hover:text-green-400 transition-colors w-fit animate-pulse"
+          >
+            {/* Arrow Icon */}
+            <StepBack />
+            <span>Back to Gamehub</span>
+          </a>
+        </nav>
+        {/* --- END OF BACK BUTTON --- */}
         <div className="z-10 text-center mb-8 md:mb-10 animate-in fade-in zoom-in duration-700">
           <Biohazard
             size={64}
@@ -1060,8 +1073,8 @@ export default function AngryVirus() {
           <br />
           Developed by <strong>RAWFID K SHUVO</strong>. Visit{" "}
           <a
-            href="https://rawfidkshuvo.github.io/gamehub/"
-            target="_blank"
+            href={import.meta.env.BASE_URL}
+            //target="_blank"
             rel="noopener noreferrer"
             className="text-green-500 underline hover:text-green-600"
           >

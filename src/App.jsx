@@ -72,7 +72,7 @@ const firebaseConfig = {
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
@@ -80,29 +80,27 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // ---------------------------------------------------------------------------
-// TRACKING HELPERS (NEW)
+// TRACKING HELPERS
 // ---------------------------------------------------------------------------
 
-// 1. Session ID: Generated once per browser session to group user clicks
+// 1. Session ID
 const SESSION_ID =
   sessionStorage.getItem("gh_session_v1") ||
   Math.random().toString(36).substring(2, 12);
 sessionStorage.setItem("gh_session_v1", SESSION_ID);
 
-// 2. Location Cache: Stores data fetched by the component so the log function can use it
+// 2. Location Cache
 let globalLocationData = { country: null, city: null };
 
-// 3. Device Parser: Cleans up the messy User Agent string
+// 3. Device Parser
 const getDeviceInfo = () => {
   const ua = navigator.userAgent;
   let device = "Desktop";
   let os = "Unknown";
 
-  // Detect Device
   if (/Mobi|Android/i.test(ua)) device = "Mobile";
   else if (/iPad|Tablet/i.test(ua)) device = "Tablet";
 
-  // Detect OS
   if (ua.includes("Win")) os = "Windows";
   else if (ua.includes("Mac")) os = "Mac";
   else if (ua.includes("Linux")) os = "Linux";
@@ -113,19 +111,30 @@ const getDeviceInfo = () => {
 };
 
 // ---------------------------------------------------------------------------
-// HELPER: Robust Logging (UPDATED)
+// HELPER: Robust Logging (Async/Await version)
 // ---------------------------------------------------------------------------
-const logGameClick = (game) => {
-  // 1. Update global click counter
-  const statsRef = doc(db, "game_stats", `game_${game.id}`);
-  updateDoc(statsRef, { clicks: increment(1) }).catch(async (err) => {
-    if (err.code === "not-found") await setDoc(statsRef, { clicks: 1 });
-  });
+const logGameClick = async (game) => {
+  const tasks = [];
 
-  // 2. Create detailed activity log
+  // --- Task 1: Update global click counter ---
+  const statsRef = doc(db, "game_stats", `game_${game.id}`);
+  
+  const counterPromise = updateDoc(statsRef, { clicks: increment(1) })
+    .catch(async (err) => {
+      if (err.code === "not-found") {
+        await setDoc(statsRef, { clicks: 1 });
+      } else {
+        console.error("Failed to update click counter:", err);
+      }
+    });
+    
+  tasks.push(counterPromise);
+
+  // --- Task 2: Create detailed activity log ---
   try {
     const logsRef = collection(db, "game_click_logs");
     const userId = auth.currentUser ? auth.currentUser.uid : "unknown";
+    
     const primaryCategory =
       game.categories && game.categories.length > 0
         ? game.categories[0]
@@ -133,34 +142,30 @@ const logGameClick = (game) => {
 
     const deviceInfo = getDeviceInfo();
 
-    addDoc(logsRef, {
-      // --- Identity ---
+    const logPromise = addDoc(logsRef, {
       userId: userId,
-      sessionId: SESSION_ID, // Groups this session
-
-      // --- Game Info ---
+      sessionId: SESSION_ID, 
       gameId: game.id,
       gameTitle: game.title,
       category: primaryCategory,
-
-      // --- Location (From global cache) ---
       country: globalLocationData.country || "Unknown",
       city: globalLocationData.city || "Unknown",
-
-      // --- Device Info ---
       deviceType: deviceInfo.device,
       os: deviceInfo.os,
-      // We keep full agent just in case parsing fails
-      device: navigator.userAgent, 
-
-      // --- Context ---
+      device: navigator.userAgent,
       timestamp: serverTimestamp(),
       pageLocation: window.location.pathname,
       referrer: document.referrer || "Direct",
     });
+
+    tasks.push(logPromise);
+
   } catch (err) {
-    console.error("Log failed", err);
+    console.error("Error preparing log data:", err);
   }
+
+  // Wait for all database operations to finish
+  await Promise.allSettled(tasks);
 };
 
 // ---------------------------------------------------------------------------
@@ -170,8 +175,7 @@ const INITIAL_GAMES = [
   {
     id: 1,
     title: "Conspiracy",
-    description:
-      "In the gilded halls of power, whispers are deadlier than daggers. A secret cabal moves in the shadows. Will you expose the puppeteers or become one?",
+    description: "In the gilded halls of power, whispers are deadlier than daggers. A secret cabal moves in the shadows.",
     icon: <Eye className="w-12 h-12 text-white" />,
     color: "from-purple-600 to-indigo-900",
     shadow: "shadow-purple-500/50",
@@ -186,8 +190,7 @@ const INITIAL_GAMES = [
   {
     id: 2,
     title: "Investigation",
-    description:
-      "A crime has shattered the peace, and the killer walks among you. Sift through a labyrinth of lies and fragmented clues before the trail goes cold.",
+    description: "A crime has shattered the peace. Sift through a labyrinth of lies and fragmented clues before the trail goes cold.",
     icon: <HatGlasses className="w-12 h-12 text-white" />,
     color: "from-green-600 to-cyan-800",
     shadow: "shadow-green-500/50",
@@ -197,13 +200,12 @@ const INITIAL_GAMES = [
     hasBots: false,
     complexity: "Hard",
     duration: "20-40m",
-    link: "https://rawfidkshuvo.github.io/investigation-game/",
+    link: "./investigation/",
   },
   {
     id: 3,
     title: "Police Hunt",
-    description:
-      "Sirens wail as the city goes into lockdown. A fugitive is on the run. Coordinate the dragnet to trap the target, or embrace the adrenaline of the chase.",
+    description: "Sirens wail as the city goes into lockdown. Coordinate the dragnet to trap the target.",
     icon: <Siren className="w-12 h-12 text-white" />,
     color: "from-red-700 to-blue-900",
     shadow: "shadow-red-500/50",
@@ -213,13 +215,12 @@ const INITIAL_GAMES = [
     hasBots: true,
     complexity: "Easy",
     duration: "5-15m",
-    link: "https://rawfidkshuvo.github.io/thief-police-game/",
+    link: "./police-hunt/",
   },
   {
     id: 4,
     title: "Emperor",
-    description:
-      "Navigate the cutthroat politics of the court and command armies to seize the seven kingdoms. There is no second place—only the crown or the grave.",
+    description: "Navigate the cutthroat politics of the court and command armies to seize the seven kingdoms.",
     icon: <Crown className="w-12 h-12 text-white" />,
     color: "from-yellow-500 to-amber-700",
     shadow: "shadow-amber-500/50",
@@ -229,13 +230,12 @@ const INITIAL_GAMES = [
     hasBots: false,
     complexity: "Hard",
     duration: "15-20m",
-    link: "https://rawfidkshuvo.github.io/emperor-game/",
+    link: "./emperor/",
   },
   {
     id: 5,
     title: "Pirates",
-    description:
-      "Hoist the black flag. Bluff your way out of a tight spot, fight for every doubloon, and plunder your rivals. Remember: dead men tell no tales.",
+    description: "Hoist the black flag. Bluff your way out of a tight spot, fight for every doubloon, and plunder your rivals.",
     icon: <Ship className="w-12 h-12 text-white" />,
     color: "from-red-600 to-orange-800",
     shadow: "shadow-orange-500/50",
@@ -245,13 +245,12 @@ const INITIAL_GAMES = [
     hasBots: false,
     complexity: "Medium",
     duration: "15-20m",
-    link: "https://rawfidkshuvo.github.io/pirates-game/",
+    link: "./pirates/",
   },
   {
     id: 6,
     title: "Fruit Seller",
-    description:
-      "The bazaar is alive with commerce. Use cunning psychology to outwit your rivals, corner the market on exotic wares, and walk away with the heaviest purse.",
+    description: "The bazaar is alive with commerce. Use cunning psychology to outwit your rivals and corner the market.",
     icon: <Citrus className="w-12 h-12 text-white" />,
     color: "from-orange-500 to-red-600",
     shadow: "shadow-orange-500/50",
@@ -261,13 +260,12 @@ const INITIAL_GAMES = [
     hasBots: true,
     complexity: "Easy",
     duration: "5-10m",
-    link: "https://rawfidkshuvo.github.io/fruit-seller-game/",
+    link: "./fruit-seller/",
   },
   {
     id: 7,
     title: "Ghost Dice",
-    description:
-      "Step into a spectral tavern where souls are currency. Bid on the unknown, challenge the liars, and keep your wits about you in this game of chance.",
+    description: "Step into a spectral tavern where souls are currency. Bid on the unknown and challenge the liars.",
     icon: <Dices className="w-12 h-12 text-white" />,
     color: "from-indigo-500 to-zinc-700",
     shadow: "shadow-indigo-500/50",
@@ -277,13 +275,12 @@ const INITIAL_GAMES = [
     hasBots: false,
     complexity: "Medium",
     duration: "10-35m",
-    link: "https://rawfidkshuvo.github.io/ghost-dice-game/",
+    link: "./ghost-dice/",
   },
   {
     id: 8,
     title: "Protocol: Sabotage",
-    description:
-      "The system is compromised, and moles are digging in. Identify the saboteurs before the network collapses, or watch your team's hard work dissolve.",
+    description: "The system is compromised. Identify the saboteurs before the network collapses.",
     icon: <Server className="w-12 h-12 text-white" />,
     color: "from-cyan-600 to-blue-800",
     shadow: "shadow-cyan-500/50",
@@ -293,13 +290,12 @@ const INITIAL_GAMES = [
     hasBots: false,
     complexity: "Medium",
     duration: "20-45m",
-    link: "https://rawfidkshuvo.github.io/protocol-game/",
+    link: "./protocol/",
   },
   {
     id: 9,
     title: "Equilibrium",
-    description:
-      "Forge a world of vibrant biomes and wildlife. Draft terrain tokens, build vertically to shape the landscape, and create specific habitats to attract animals in this strategic tile-placement game.",
+    description: "Forge a world of vibrant biomes and wildlife. Draft terrain tokens and build vertically to shape the landscape.",
     icon: <Hexagon className="w-12 h-12 text-white" />,
     color: "from-emerald-600 to-yellow-950",
     shadow: "shadow-emerald-500/50",
@@ -309,13 +305,12 @@ const INITIAL_GAMES = [
     hasBots: false,
     complexity: "Hard",
     duration: "40-60m",
-    link: "https://rawfidkshuvo.github.io/equilibrium-game/",
+    link: "./equilibrium/",
   },
   {
     id: 10,
     title: "Neon Draft",
-    description:
-      "Siphon the best code fragments to build the ultimate cyber-rig. Connect the nodes and optimize your throughput before the connection is severed.",
+    description: "Siphon the best code fragments to build the ultimate cyber-rig. Connect the nodes and optimize throughput.",
     icon: <Layers className="w-12 h-12 text-white" />,
     color: "from-cyan-400 to-purple-600",
     shadow: "shadow-cyan-500/50",
@@ -325,13 +320,12 @@ const INITIAL_GAMES = [
     hasBots: false,
     complexity: "Hard",
     duration: "10-20m",
-    link: "https://rawfidkshuvo.github.io/neon-draft-game/",
+    link: "./neon-draft/",
   },
   {
     id: 12,
     title: "Contraband",
-    description:
-      "The Inspector has eyes like a hawk. Lie to their face and smuggle your illicit goods, or pay the heavy price for your deceit.",
+    description: "The Inspector has eyes like a hawk. Lie to their face and smuggle your illicit goods.",
     icon: <Package className="w-12 h-12 text-white" />,
     color: "from-emerald-500 to-green-800",
     shadow: "shadow-emerald-500/50",
@@ -341,13 +335,12 @@ const INITIAL_GAMES = [
     hasBots: false,
     complexity: "Medium",
     duration: "25-45m",
-    link: "https://rawfidkshuvo.github.io/contraband-game/",
+    link: "./contraband/",
   },
   {
     id: 15,
     title: "Guild of Shadows",
-    description:
-      "Assemble a team of thieves, assassins, and merchants. Steal gold, protect your assets, and race to 15 gold in this strategic engine-building game.",
+    description: "Assemble a team of thieves, assassins, and merchants. Steal gold, protect your assets, and race to 15 gold.",
     icon: <Ghost className="w-12 h-12 text-white" />,
     color: "from-zinc-900 to-purple-900",
     shadow: "shadow-purple-900/50",
@@ -357,14 +350,13 @@ const INITIAL_GAMES = [
     hasBots: false,
     complexity: "Hard",
     duration: "10-20m",
-    link: "https://rawfidkshuvo.github.io/guild-of-shadows-game/",
+    link: "./guild-of-shadows/",
     isNew: true,
   },
   {
     id: 17,
     title: "Masquerade Protocol",
-    description:
-      "You are a rogue AI attending a digital gala. Trade data packets, hack your rivals, and activate your Glitch ability to seize control.",
+    description: "You are a rogue AI attending a digital gala. Trade data packets, hack your rivals, and activate your Glitch.",
     icon: <Cpu className="w-12 h-12 text-white" />,
     color: "from-fuchsia-600 to-cyan-700",
     shadow: "shadow-fuchsia-500/50",
@@ -374,14 +366,13 @@ const INITIAL_GAMES = [
     hasBots: false,
     complexity: "Medium",
     duration: "20-40m",
-    link: "https://rawfidkshuvo.github.io/masquerade-protocol-game/",
+    link: "./masquerade-protocol/",
     isNew: true,
   },
   {
     id: 18,
     title: "Paper Oceans",
-    description:
-      "Craft your hand in this colorful set-collection game. Draft cards, play duo effects, and push your luck. Will you stop safely or bet it all?",
+    description: "Craft your hand in this colorful set-collection game. Draft cards, play duo effects, and push your luck.",
     icon: <Origami className="w-12 h-12 text-white" />,
     color: "from-blue-500 to-cyan-400",
     shadow: "shadow-cyan-500/50",
@@ -391,14 +382,13 @@ const INITIAL_GAMES = [
     hasBots: false,
     complexity: "Medium",
     duration: "15-20m",
-    link: "https://rawfidkshuvo.github.io/paper-ocean-game/",
+    link: "./paper-oceans/",
     isNew: true,
   },
   {
     id: 19,
     title: "Royal Menagerie",
-    description:
-      "The Queen's court is a masquerade of lies. Offer 'gifts' to your rivals—a noble Dog, or a repulsive Rat? Deceive your way to safety.",
+    description: "The Queen's court is a masquerade of lies. Offer 'gifts' to your rivals—a noble Dog, or a repulsive Rat?",
     icon: <PawPrint className="w-12 h-12 text-white" />,
     color: "from-purple-600 to-pink-900",
     shadow: "shadow-purple-500/50",
@@ -408,14 +398,13 @@ const INITIAL_GAMES = [
     hasBots: false,
     complexity: "Easy",
     duration: "15-25m",
-    link: "https://rawfidkshuvo.github.io/royal-menagerie-game/",
+    link: "./royal-menagerie/",
     isNew: true,
   },
   {
     id: 20,
     title: "Fructose Fury",
-    description:
-      "Pluck sweet victories from the deck, but beware the rot of greed. One duplicate fruit is all it takes to turn your harvest into compost.",
+    description: "Pluck sweet victories from the deck, but beware the rot of greed. One duplicate fruit is all it takes.",
     icon: <Banana className="w-12 h-12 text-white" />,
     color: "from-yellow-500 to-orange-600",
     shadow: "shadow-yellow-500/50",
@@ -425,14 +414,13 @@ const INITIAL_GAMES = [
     hasBots: false,
     complexity: "Easy",
     duration: "10-20m",
-    link: "https://rawfidkshuvo.github.io/fructose-fury-game/",
+    link: "./fructose-fury/",
     isNew: true,
   },
   {
     id: 21,
     title: "Angry Virus",
-    description:
-      "A contagious game of calculated risks. Pass the infection or bite the bullet? Collect consecutive viruses to reduce their impact.",
+    description: "A contagious game of calculated risks. Pass the infection or bite the bullet?",
     icon: <Biohazard className="w-12 h-12 text-white" />,
     color: "from-green-600 to-lime-800",
     shadow: "shadow-lime-500/50",
@@ -442,14 +430,13 @@ const INITIAL_GAMES = [
     hasBots: false,
     complexity: "Medium",
     duration: "15-20m",
-    link: "https://rawfidkshuvo.github.io/angry-virus-game/",
+    link: "./angry-virus/",
     isNew: true,
   },
   {
     id: 22,
     title: "Last of Us",
-    description:
-      "A strategic shedding game. Use even-numbered Antidotes to cage the odd-numbered Zombies. Maintain the balance or be quarantined.",
+    description: "A strategic shedding game. Use even-numbered Antidotes to cage the odd-numbered Zombies.",
     icon: <Skull className="w-12 h-12 text-white" />,
     color: "from-red-700 to-lime-900",
     shadow: "shadow-red-900/50",
@@ -459,14 +446,13 @@ const INITIAL_GAMES = [
     hasBots: false,
     complexity: "Hard",
     duration: "10-20m",
-    link: "https://rawfidkshuvo.github.io/last-of-us-game/",
+    link: "./last-of-us/",
     isNew: true,
   },
   {
     id: 23,
     title: "Together",
-    description:
-      "Two minds, one silent purpose. Synchronize your strategies without a single word to complete 8 distinct patterns. Synergy is your only weapon.",
+    description: "Two minds, one silent purpose. Synchronize your strategies without a single word to complete patterns.",
     icon: <Handshake className="w-12 h-12 text-white" />,
     color: "from-pink-600 to-yellow-500",
     shadow: "shadow-pink-500/50",
@@ -476,13 +462,12 @@ const INITIAL_GAMES = [
     hasBots: false,
     complexity: "Medium",
     duration: "20-40m",
-    link: "https://rawfidkshuvo.github.io/together-game/",
+    link: "./together/",
   },
   {
     id: 24,
     title: "Spectrum",
-    description:
-      "A tactical duel of numerical frequencies. Navigate the shifting colors to win tricks and calibrate your score to the perfect equilibrium of 25.",
+    description: "A tactical duel of numerical frequencies. Navigate the shifting colors to win tricks and calibrate your score.",
     icon: <Target className="w-12 h-12 text-white" />,
     color: "from-fuchsia-600 to-indigo-950",
     shadow: "shadow-fuchsia-500/50",
@@ -492,7 +477,7 @@ const INITIAL_GAMES = [
     hasBots: false,
     complexity: "Hard",
     duration: "20-30m",
-    link: "https://rawfidkshuvo.github.io/spectrum-game/",
+    link: "./spectrum/",
   },
 ];
 
@@ -620,7 +605,7 @@ const NewReleaseSlider = ({ games, onGameClick }) => {
 
     const combined = [...featuredGames, ...newGames, ...upcomingGames];
     const uniqueGames = Array.from(
-      new Map(combined.map((game) => [game.id, game])).values()
+      new Map(combined.map((game) => [game.id, game])).values(),
     );
 
     if (uniqueGames.length > 0) return uniqueGames;
@@ -651,12 +636,10 @@ const NewReleaseSlider = ({ games, onGameClick }) => {
   const currentGame = heroGames[safeIndex];
   if (!currentGame) return null;
 
+  // Function to call the parent handler
   const handleHeroClick = (e) => {
     e.preventDefault();
-    if (currentGame.isUpcoming || currentGame.maintenance) return;
     onGameClick(currentGame);
-    window.open(currentGame.link, "_blank");
-    logGameClick(currentGame);
   };
 
   let badgeText = "Featured";
@@ -691,7 +674,7 @@ const NewReleaseSlider = ({ games, onGameClick }) => {
         <button
           onClick={() =>
             handleManualSlide(
-              (safeIndex - 1 + heroGames.length) % heroGames.length
+              (safeIndex - 1 + heroGames.length) % heroGames.length,
             )
           }
           className="hidden md:block absolute left-4 p-2 rounded-full bg-slate-800/50 hover:bg-slate-700 text-white z-20"
@@ -787,19 +770,13 @@ const GameCard = ({
   onToggleFavorite,
   onGameClick,
 }) => {
+  // Function to call the parent handler
   const handleClick = (e) => {
     e.preventDefault();
     if (isUpcoming || game.maintenance) return;
-
     onGameClick(game);
-    const newWin = window.open("", "_blank");
-    logGameClick(game);
-    if (newWin) {
-      newWin.location.href = game.link;
-    } else {
-      window.location.href = game.link;
-    }
   };
+
   const handleFavorite = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -808,7 +785,6 @@ const GameCard = ({
   return (
     <a
       href={isUpcoming || game.maintenance ? undefined : game.link}
-      target="_blank"
       rel="noopener noreferrer"
       onClick={handleClick}
       className={`group relative block h-full animate-in fade-in zoom-in duration-500 ${
@@ -902,20 +878,6 @@ const GameCard = ({
                   {cat}
                 </span>
               ))}
-            <span className="px-2 py-1 bg-slate-800 text-indigo-300 text-[10px] uppercase font-bold rounded flex items-center gap-1">
-              <Clock size={10} /> {game.duration}
-            </span>
-            <span
-              className={`px-2 py-1 bg-slate-800 text-[10px] uppercase font-bold rounded flex items-center gap-1 ${
-                game.complexity === "Hard"
-                  ? "text-red-400"
-                  : game.complexity === "Medium"
-                  ? "text-yellow-400"
-                  : "text-green-400"
-              }`}
-            >
-              <Zap size={10} /> {game.complexity}
-            </span>
           </div>
         </div>
 
@@ -925,14 +887,6 @@ const GameCard = ({
               <Users className="w-3 h-3" />
               {game.minPlayers}-{game.maxPlayers}
             </span>
-            <div className="ml-2 flex items-center gap-2">
-              {game.hasBots && (
-                <div className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-medium flex items-center gap-1">
-                  <Bot className="w-3 h-3" />
-                  +Bot
-                </div>
-              )}
-            </div>
           </div>
 
           {!isUpcoming && (
@@ -1016,7 +970,7 @@ const WebsiteQrModal = ({ isOpen, onClose }) => {
 
   const currentUrl = window.location.href;
   const qrImage = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
-    currentUrl
+    currentUrl,
   )}&bgcolor=ffffff`;
 
   return (
@@ -1054,6 +1008,7 @@ const WebsiteQrModal = ({ isOpen, onClose }) => {
     </div>
   );
 };
+
 // --- MAIN COMPONENT ---
 const GameHub = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -1068,30 +1023,27 @@ const GameHub = () => {
   const [clickStats, setClickStats] = useState({});
   const [isQrOpen, setIsQrOpen] = useState(false);
   const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [systemMessage, setSystemMessage] = useState(""); // Global Announcement
+  const [systemMessage, setSystemMessage] = useState("");
   const [sortBy, setSortBy] = useState("popular");
+  const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
-    // --- NEW: Fetch User Location on Load ---
+    // --- Fetch User Location on Load ---
     const fetchLocation = async () => {
       try {
         const response = await fetch("https://ipwho.is/");
         const data = await response.json();
-        // Update the global variable so logGameClick can access it
         if (data.success) {
           globalLocationData = {
             country: data.country,
             city: data.city,
           };
-          //console.log("📍 Location locked:", data.country);
         }
       } catch (error) {
         console.error("Location fetch failed:", error);
       }
     };
     fetchLocation();
-
-    // --- End New Code ---
 
     const storedFavs = localStorage.getItem("gamehub_favorites");
     if (storedFavs) {
@@ -1111,9 +1063,9 @@ const GameHub = () => {
           const data = doc.data();
           setGameOverrides(data);
           setMaintenanceMode(data.maintenanceMode || false);
-          setSystemMessage(data.systemMessage || ""); // Read announcement
+          setSystemMessage(data.systemMessage || "");
         }
-      }
+      },
     );
 
     const unsubStats = onSnapshot(collection(db, "game_stats"), (snapshot) => {
@@ -1146,15 +1098,6 @@ const GameHub = () => {
     localStorage.setItem("gamehub_favorites", JSON.stringify([...newFavs]));
   };
 
-  const handleGamePlay = (game) => {
-    const newHistory = [
-      game.id,
-      ...recentlyPlayed.filter((id) => id !== game.id),
-    ].slice(0, 5);
-    setRecentlyPlayed(newHistory);
-    localStorage.setItem("gamehub_history", JSON.stringify(newHistory));
-  };
-
   const processedGames = useMemo(() => {
     return INITIAL_GAMES.map((game) => {
       const override = gameOverrides[game.id] || {};
@@ -1179,7 +1122,7 @@ const GameHub = () => {
     ...new Set(
       processedGames
         .filter((g) => g.visible && !g.isUpcoming)
-        .flatMap((g) => g.categories)
+        .flatMap((g) => g.categories),
     ),
   ];
 
@@ -1196,7 +1139,7 @@ const GameHub = () => {
         const matchesSearch =
           game.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
           game.categories.some((c) =>
-            c.toLowerCase().includes(searchTerm.toLowerCase())
+            c.toLowerCase().includes(searchTerm.toLowerCase()),
           );
 
         const matchesCategory =
@@ -1213,12 +1156,28 @@ const GameHub = () => {
         const matchesDuration =
           selectedDuration === "All" ||
           (selectedDuration === "Short"
-            ? ["15-20m", "10-20m", "5-10m", "10-35m", "5-15m", "15-25m",].includes(game.duration)
+            ? [
+                "15-20m",
+                "10-20m",
+                "5-10m",
+                "10-35m",
+                "5-15m",
+                "15-25m",
+              ].includes(game.duration)
             : selectedDuration === "Medium"
-            ? ["25-45m", "10-35m", "20-40m", "20-45m", "15-25m", "20-30m",].includes(game.duration)
-            : selectedDuration === "Long"
-            ? ["25-45m", "20-40m", "20-45m", "40-60m",].includes(game.duration)
-            : true);
+              ? [
+                  "25-45m",
+                  "10-35m",
+                  "20-40m",
+                  "20-45m",
+                  "15-25m",
+                  "20-30m",
+                ].includes(game.duration)
+              : selectedDuration === "Long"
+                ? ["25-45m", "20-40m", "20-45m", "40-60m"].includes(
+                    game.duration,
+                  )
+                : true);
 
         const isPlayable = !game.isUpcoming;
         if (selectedCategory === "Favorites") {
@@ -1238,15 +1197,12 @@ const GameHub = () => {
           return isPlayable && game.visible;
         }
       })
-      // --- UPDATED SORTING LOGIC START ---
       .sort((a, b) => {
         if (sortBy === "alphabetical") {
           return a.title.localeCompare(b.title);
         }
-        // Default: Popularity
         return (b.popularity || 0) - (a.popularity || 0);
       });
-      // --- UPDATED SORTING LOGIC END ---
   }, [
     searchTerm,
     selectedCategory,
@@ -1261,7 +1217,7 @@ const GameHub = () => {
 
   const upcomingGames = useMemo(
     () => processedGames.filter((g) => g.visible && g.isUpcoming),
-    [processedGames]
+    [processedGames],
   );
 
   const popularGames = useMemo(() => {
@@ -1277,13 +1233,32 @@ const GameHub = () => {
       .filter(Boolean);
   }, [recentlyPlayed, processedGames]);
 
+  // --- MASTER CLICK HANDLER ---
+  // This function controls the loading screen, logging, and navigation
+  const handleGameLaunch = async (game) => {
+    if (game.maintenance || game.isUpcoming) return;
+
+    // 1. Show Loading Screen
+    setIsNavigating(true);
+
+    // 2. Update History
+    const newHistory = [
+      game.id,
+      ...recentlyPlayed.filter((id) => id !== game.id),
+    ].slice(0, 5);
+    setRecentlyPlayed(newHistory);
+    localStorage.setItem("gamehub_history", JSON.stringify(newHistory));
+
+    // 3. Log Analytics (Wait for it!)
+    await logGameClick(game);
+
+    // 4. Navigate
+    window.location.href = game.link;
+  };
+
   const handleRandomSelect = (game) => {
     setIsRandomModalOpen(false);
-    handleGamePlay(game);
-    const newWin = window.open("", "_blank");
-    logGameClick(game);
-    if (newWin) newWin.location.href = game.link;
-    else window.location.href = game.link;
+    handleGameLaunch(game);
   };
 
   const resetFilters = () => {
@@ -1298,7 +1273,6 @@ const GameHub = () => {
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500 selection:text-white relative flex flex-col">
       <FloatingBackground games={processedGames} />
 
-      {/* GLOBAL ANNOUNCEMENT BANNER */}
       <AnnouncementBanner message={systemMessage} />
 
       <style>{`
@@ -1343,7 +1317,7 @@ const GameHub = () => {
           <MaintenanceContent />
         ) : (
           <>
-            {/* --- RECENTLY PLAYED (MOVED HERE) --- */}
+            {/* --- RECENTLY PLAYED --- */}
             {!isFiltering && historyGames.length > 0 && (
               <div className="w-full max-w-5xl mx-auto mb-8 animate-in slide-in-from-top-4 min-w-0">
                 <div className="flex items-center gap-2 mb-3 text-slate-400 text-sm font-bold uppercase tracking-wider">
@@ -1354,7 +1328,7 @@ const GameHub = () => {
                     <div
                       key={game.id}
                       onClick={() =>
-                        !game.maintenance && handleRandomSelect(game)
+                        !game.maintenance && handleGameLaunch(game)
                       }
                       className={`shrink-0 group flex items-center gap-3 p-3 rounded-xl bg-slate-900 border border-slate-800 transition-all pr-6 ${
                         game.maintenance
@@ -1388,7 +1362,7 @@ const GameHub = () => {
             {!isFiltering && (
               <NewReleaseSlider
                 games={processedGames}
-                onGameClick={handleGamePlay}
+                onGameClick={handleGameLaunch}
               />
             )}
 
@@ -1409,9 +1383,13 @@ const GameHub = () => {
                   />
                 </div>
 
-                {/* FAVORITES BUTTON (Now an icon button next to Pick for Me) */}
+                {/* FAVORITES BUTTON */}
                 <button
-                  onClick={() => setSelectedCategory(selectedCategory === "Favorites" ? "All" : "Favorites")}
+                  onClick={() =>
+                    setSelectedCategory(
+                      selectedCategory === "Favorites" ? "All" : "Favorites",
+                    )
+                  }
                   title="View Favorites"
                   className={`px-5 rounded-xl font-bold shadow-lg transition-all flex items-center justify-center shrink-0 border ${
                     selectedCategory === "Favorites"
@@ -1419,7 +1397,12 @@ const GameHub = () => {
                       : "bg-slate-900 border-slate-800 text-slate-400 hover:text-red-500 hover:border-red-500/50"
                   }`}
                 >
-                  <Heart size={24} className={selectedCategory === "Favorites" ? "fill-white" : ""} />
+                  <Heart
+                    size={24}
+                    className={
+                      selectedCategory === "Favorites" ? "fill-white" : ""
+                    }
+                  />
                 </button>
 
                 {/* PICK FOR ME BUTTON */}
@@ -1434,8 +1417,6 @@ const GameHub = () => {
 
               {/* --- DROPDOWNS ROW --- */}
               <div className="flex flex-wrap gap-3 items-center">
-                
-                {/* PLAYER COUNT DROPDOWN */}
                 <div className="relative flex-1 min-w-[140px] md:min-w-[160px] md:flex-none">
                   <select
                     value={playerCount}
@@ -1444,29 +1425,35 @@ const GameHub = () => {
                   >
                     <option value="0">Players</option>
                     {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                      <option key={num} value={num}>{num} {num === 1 ? "Player" : "Players"}</option>
+                      <option key={num} value={num}>
+                        {num} {num === 1 ? "Player" : "Players"}
+                      </option>
                     ))}
                   </select>
                   <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
                 </div>
 
-                {/* CATEGORY DROPDOWN */}
                 <div className="relative flex-1 min-w-[140px] md:min-w-[160px] md:flex-none">
                   <select
-                    value={selectedCategory === "Favorites" ? "All" : selectedCategory}
+                    value={
+                      selectedCategory === "Favorites"
+                        ? "All"
+                        : selectedCategory
+                    }
                     onChange={(e) => setSelectedCategory(e.target.value)}
                     className="appearance-none w-full bg-slate-900 border border-slate-700 text-slate-300 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block pl-9 pr-10 py-2.5 cursor-pointer hover:bg-slate-800 transition-colors"
                   >
                     {categories.map((cat) => (
-                      <option key={cat} value={cat}>{cat === "All" ? "Categories" : cat}</option>
+                      <option key={cat} value={cat}>
+                        {cat === "All" ? "Categories" : cat}
+                      </option>
                     ))}
                   </select>
                   <Layers className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
                 </div>
 
-                {/* COMPLEXITY DROPDOWN */}
                 <div className="relative flex-1 min-w-[140px] md:min-w-[160px] md:flex-none">
                   <select
                     value={selectedComplexity}
@@ -1482,7 +1469,6 @@ const GameHub = () => {
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
                 </div>
 
-                {/* DURATION DROPDOWN */}
                 <div className="relative flex-1 min-w-[140px] md:min-w-[160px] md:flex-none">
                   <select
                     value={selectedDuration}
@@ -1498,7 +1484,6 @@ const GameHub = () => {
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
                 </div>
 
-                {/* CLEAR FILTERS (Now permanently rendered but styled conditionally) */}
                 <button
                   onClick={resetFilters}
                   disabled={!isFiltering}
@@ -1509,45 +1494,17 @@ const GameHub = () => {
                   }`}
                   title="Clear Filters"
                 >
-                  <Trash2 size={18}/>
+                  <Trash2 size={18} />
                 </button>
               </div>
             </div>
 
-            {/* TRENDING SECTION */}
-            {/* {!isFiltering && popularGames.length > 0 && (
-              <section className="mb-16 animate-in slide-in-from-bottom-4 duration-700 delay-200">
-                <div className="flex items-center gap-2 mb-6">
-                  <div className="p-2 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                    <TrendingUp className="w-5 h-5 text-blue-400" />
-                  </div>
-                  <h2 className="text-2xl font-bold text-white tracking-wide">
-                    Trending Now
-                  </h2>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {popularGames.map((game) => (
-                    <GameCard
-                      key={game.id}
-                      game={{ ...game, isPopular: true }}
-                      isFavorite={favorites.has(game.id)}
-                      onToggleFavorite={handleToggleFavorite}
-                      onGameClick={handleGamePlay}
-                    />
-                  ))}
-                </div>
-              </section>
-            )} */}
-
             {/* MAIN GAMES GRID HEADER */}
             <div className="flex items-center justify-between gap-3 mb-6">
-              
-              {/* Title Section */}
               <div className="flex items-center gap-2 min-w-0">
                 <div className="p-2 bg-slate-800 rounded-lg border border-slate-700 shrink-0">
                   <Gamepad2 className="w-5 h-5 text-slate-400" />
                 </div>
-                {/* Fixed to text-2xl to match 'Upcoming Releases' exactly */}
                 <h2 className="text-2xl font-bold text-white tracking-wide truncate">
                   {isFiltering
                     ? `Results (${filteredGames.length})`
@@ -1555,7 +1512,6 @@ const GameHub = () => {
                 </h2>
               </div>
 
-              {/* Sort Toggle */}
               <div className="bg-slate-900 p-1 rounded-lg border border-slate-800 flex items-center shrink-0">
                 <button
                   onClick={() => setSortBy("popular")}
@@ -1565,7 +1521,7 @@ const GameHub = () => {
                       : "text-slate-400 hover:text-white hover:bg-slate-800"
                   }`}
                 >
-                  <Star size={14} /> 
+                  <Star size={14} />
                   <span className="hidden sm:inline">Popular</span>
                   <span className="sm:hidden">Hot</span>
                 </button>
@@ -1595,7 +1551,7 @@ const GameHub = () => {
                     isUpcoming={game.isUpcoming}
                     isFavorite={favorites.has(game.id)}
                     onToggleFavorite={handleToggleFavorite}
-                    onGameClick={handleGamePlay}
+                    onGameClick={handleGameLaunch}
                   />
                 ))
               ) : (
@@ -1666,6 +1622,17 @@ const GameHub = () => {
           </p>
         </footer>
       </div>
+
+      {/* --- LOADING OVERLAY --- */}
+      {isNavigating && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-4 p-6 bg-slate rounded-xl shadow-2xl">
+            {/* Simple Tailwind Spinner */}
+            <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-indigo-800 font-semibold">Opening Game...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
