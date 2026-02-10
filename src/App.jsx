@@ -1028,6 +1028,15 @@ const GameHub = () => {
   const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
+    setIsNavigating(false);
+    const handlePageShow = (event) => {
+      if (event.persisted) setIsNavigating(false);
+    };
+    window.addEventListener("pageshow", handlePageShow);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, []);
+
+  useEffect(() => {
     // --- Fetch User Location on Load ---
     const fetchLocation = async () => {
       try {
