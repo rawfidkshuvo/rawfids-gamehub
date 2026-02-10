@@ -1503,11 +1503,11 @@ export default function ThiefPoliceGame() {
                   key={p.id}
                   onClick={() => (canSelect ? handlePoliceGuess(p.id) : null)}
                   className={`
-                                relative p-4 rounded-xl border-2 flex flex-col items-center justify-center aspect-3/4 transition-all backdrop-blur-sm
+                                relative p-4 rounded-xl border-2 flex flex-col items-center justify-center aspect-3/4 transition-all backdrop-blur-sm bg-slate-800/80
                                 ${
                                   isMe
                                     ? "bg-slate-800/90 shadow-[0_0_20px_rgba(6,182,212,0.4)] border-green-400 ring-2 ring-cyan-400/30 transform scale-105 z-10"
-                                    : "bg-slate-800/80 border-slate-700"
+                                    : ""
                                 }
                                 ${
                                   canSelect
