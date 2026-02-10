@@ -878,6 +878,20 @@ const GameCard = ({
                   {cat}
                 </span>
               ))}
+              <span className="px-2 py-1 bg-slate-800 text-indigo-300 text-[10px] uppercase font-bold rounded flex items-center gap-1">
+              <Clock size={10} /> {game.duration}
+            </span>
+            <span
+              className={`px-2 py-1 bg-slate-800 text-[10px] uppercase font-bold rounded flex items-center gap-1 ${
+                game.complexity === "Hard"
+                  ? "text-red-400"
+                  : game.complexity === "Medium"
+                  ? "text-yellow-400"
+                  : "text-green-400"
+              }`}
+            >
+              <Zap size={10} /> {game.complexity}
+            </span>
           </div>
         </div>
 
@@ -887,6 +901,14 @@ const GameCard = ({
               <Users className="w-3 h-3" />
               {game.minPlayers}-{game.maxPlayers}
             </span>
+            <div className="ml-2 flex items-center gap-2">
+              {game.hasBots && (
+                <div className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-medium flex items-center gap-1">
+                  <Bot className="w-3 h-3" />
+                  +Bot
+                </div>
+              )}
+            </div>
           </div>
 
           {!isUpcoming && (
