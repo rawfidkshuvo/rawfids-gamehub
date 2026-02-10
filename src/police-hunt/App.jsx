@@ -964,7 +964,11 @@ export default function ThiefPoliceGame() {
 
     if (targetPlayer.currentRole === requiredRole) {
       success = true;
-      resultMsg = `Success! Police caught the ${ROLES[requiredRole].name}.`;
+      resultMsg = {
+        type: "success",
+        title: "SUCCESS!",
+        body: `Police caught the ${ROLES[requiredRole].name}, ${targetPlayer.name}.`,
+      };
       updatedPlayers = updatedPlayers.map((p) => {
         let score = 0;
         if (p.currentRole === "KING") score = 10;
@@ -976,7 +980,11 @@ export default function ThiefPoliceGame() {
     } else {
       success = false;
       const actualRoleName = ROLES[targetPlayer.currentRole].name;
-      resultMsg = `Failed! Police accused ${targetPlayer.name} (${actualRoleName}).`;
+      resultMsg = {
+        type: "fail",
+        title: "FAILED!",
+        body: `Police wrongly accused ${targetPlayer.name} as ${ROLES[requiredRole].name}`,
+      };
       updatedPlayers = updatedPlayers.map((p) => {
         let score = 0;
         if (p.currentRole === "KING") score = 10;
@@ -1449,8 +1457,18 @@ export default function ThiefPoliceGame() {
               </>
             ) : (
               <div className="bg-slate-800/90 backdrop-blur px-6 py-4 rounded-xl border border-slate-600 shadow-xl w-full">
-                <div className="text-lg font-bold mb-1 text-center text-white">
-                  {gameState.lastRoundResult}
+                <div>
+                  <span
+                    className={`text-lg font-bold mb-1 text-center ${
+                      gameState.lastRoundResult.type === "success"
+                        ? "text-green-500"
+                        : "text-red-500"
+                    }`}
+                  >
+                    {gameState.lastRoundResult.title}
+                  </span>
+                  <br />
+                  {gameState.lastRoundResult.body}
                 </div>
                 {gameState.status !== "finished" && (
                   <div className="mt-4">
@@ -1507,7 +1525,7 @@ export default function ThiefPoliceGame() {
                                 ${
                                   isMe
                                     ? "bg-slate-800/90 shadow-[0_0_20px_rgba(6,182,212,0.4)] border-green-400 ring-2 ring-cyan-400/30 transform scale-105 z-10"
-                                    : ""
+                                    : "border-cyan-700"
                                 }
                                 ${
                                   canSelect
