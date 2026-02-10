@@ -1104,7 +1104,7 @@ export default function FruitSellerGame() {
         {/* --- END OF BACK BUTTON --- */}
 
         <div className="flex-1 flex flex-col items-center justify-center w-full z-10 px-4">
-          <div className="text-center mb-10 animate-in fade-in zoom-in duration-700 w-full">
+          <div className="z-10 text-center mb-10">
             <Citrus
               size={64}
               className="text-orange-500 mx-auto mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(249,115,22,0.5)]"

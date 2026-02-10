@@ -1009,7 +1009,7 @@ export default function AngryVirus() {
           </a>
         </nav>
         {/* --- END OF BACK BUTTON --- */}
-        <div className="z-10 text-center mb-8 md:mb-10 animate-in fade-in zoom-in duration-700">
+        <div className="z-10 text-center mb-10">
           <Biohazard
             size={64}
             className="text-green-500 mx-auto mb-4 animate-bounce md:w-20 md:h-20"

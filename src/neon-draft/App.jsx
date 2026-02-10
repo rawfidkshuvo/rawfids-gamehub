@@ -1585,7 +1585,7 @@ export default function NeonDraftGame() {
         {/* --- END OF BACK BUTTON --- */}
         {showRules && <RulesModal onClose={() => setShowRules(false)} />}
 
-        <div className="z-10 text-center mb-10 animate-in fade-in zoom-in duration-700">
+        <div className="z-10 text-center mb-10">
           <Layers
             size={64}
             className="text-cyan-400 mx-auto mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]"

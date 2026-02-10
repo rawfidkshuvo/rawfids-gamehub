@@ -1829,7 +1829,7 @@ export default function GuildOfShadows() {
         </nav>
         {/* --- END OF BACK BUTTON --- */}
 
-        <div className="z-10 text-center mb-8 animate-in fade-in zoom-in duration-700">
+        <div className="z-10 text-center mb-10">
           <Ghost
             size={64}
             className="text-purple-500 mx-auto mb-4 animate-bounce drop-shadow-lg"

@@ -1179,7 +1179,7 @@ export default function RoyalMenagerie() {
         </nav>
         {/* --- END OF BACK BUTTON --- */}
         {showGuide && <GameGuideModal onClose={() => setShowGuide(false)} />}
-        <div className="z-10 text-center mb-10 animate-in fade-in zoom-in duration-700">
+        <div className="z-10 text-center mb-10">
           <PawPrint
             size={80}
             className="text-purple-500 mx-auto mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(168,85,247,0.5)]"

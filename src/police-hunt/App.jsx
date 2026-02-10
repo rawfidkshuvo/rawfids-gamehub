@@ -1097,7 +1097,7 @@ export default function ThiefPoliceGame() {
         {/* --- END OF BACK BUTTON --- */}
         {showGuide && <GameGuideModal onClose={() => setShowGuide(false)} />}
 
-        <div className="z-10 mb-10 text-center animate-in fade-in zoom-in duration-700">
+        <div className="z-10 mb-10 text-center">
           <Siren
             size={64}
             className="text-red-700 mx-auto mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]"

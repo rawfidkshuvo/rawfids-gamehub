@@ -1131,7 +1131,7 @@ export default function LastOfUs() {
           </a>
         </nav>
         {/* --- END OF BACK BUTTON --- */}
-        <div className="z-10 text-center mb-8 animate-in fade-in zoom-in duration-700 w-full px-4">
+        <div className="z-10 text-center mb-10">
           <div className="flex justify-center gap-4 mb-4">
             <Skull size={50} className="text-red-600 animate-bounce" />
             <Syringe

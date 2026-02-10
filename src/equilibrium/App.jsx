@@ -2910,7 +2910,7 @@ export default function Equilibrium() {
         </nav>
         {/* --- END OF BACK BUTTON --- */}
         {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
-        <div className="z-10 text-center mb-10 fade-in zoom-in duration-700">
+        <div className="z-10 text-center mb-10">
           <Hexagon
             size={64}
             className="text-emerald-400 mx-auto mb-4 animate-spin-slow"

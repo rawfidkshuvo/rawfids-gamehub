@@ -1147,7 +1147,7 @@ export default function GhostDiceGame() {
         {/* --- END OF BACK BUTTON --- */}
         {showRules && <RulesModal onClose={() => setShowRules(false)} />}
 
-        <div className="z-10 text-center mb-10 animate-in fade-in zoom-in duration-700">
+        <div className="z-10 text-center mb-10">
           <Dices
             size={64}
             className="text-indigo-400 mx-auto mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(129,140,248,0.5)]"

@@ -1539,7 +1539,7 @@ export default function FructoseFury() {
         </nav>
         {/* --- END OF BACK BUTTON --- */}
 
-        <div className="z-10 text-center mb-10 animate-in fade-in zoom-in duration-700 relative">
+        <div className="z-10 text-center mb-10">
           <div className="flex justify-center gap-2 mb-4 animate-bounce">
             <Banana size={48} className="text-yellow-400" />
             <Cherry size={48} className="text-red-500" />

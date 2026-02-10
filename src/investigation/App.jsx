@@ -1616,7 +1616,7 @@ export default function InvestigationGame() {
         {showTutorial && (
           <TutorialModal onClose={() => setShowTutorial(false)} />
         )}
-        <div className="z-10 text-center mb-10 animate-in fade-in zoom-in duration-700">
+        <div className="z-10 text-center mb-10">
           <HatGlasses
             size={64}
             className="text-green-500 mx-auto mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]"

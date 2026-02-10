@@ -1811,7 +1811,7 @@ export default function PaperOceans() {
           />
         )}
 
-        <div className="z-10 text-center mb-10 animate-in fade-in zoom-in duration-700">
+        <div className="z-10 text-center mb-10">
           <Origami
             size={64}
             className="text-cyan-400 mx-auto mb-4 animate-bounce"

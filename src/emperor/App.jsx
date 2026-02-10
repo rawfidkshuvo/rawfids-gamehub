@@ -1577,7 +1577,7 @@ export default function EmperorGame() {
 
         {showGuide && <GameGuideModal onClose={() => setShowGuide(false)} />}
 
-        <div className="z-10 text-center mb-10 animate-in fade-in zoom-in duration-700">
+        <div className="z-10 text-center mb-10">
           <Crown
             size={64}
             className="text-yellow-500 mx-auto mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]"

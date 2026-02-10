@@ -2227,7 +2227,7 @@ export default function PiratesGame() {
         </nav>
         {/* --- END OF BACK BUTTON --- */}
         {showGuide && <GameGuideModal onClose={() => setShowGuide(false)} />}
-        <div className="z-10 text-center mb-10 animate-in fade-in zoom-in duration-700">
+        <div className="z-10 text-center mb-10">
           <Ship
             size={64}
             className="text-red-500 mx-auto mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(239,68,68,0.5)]"
