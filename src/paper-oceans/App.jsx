@@ -1974,9 +1974,6 @@ export default function PaperOceans() {
               </div>
             </div>
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2 text-sm text-gray-400">
-                <User size={16} /> {gameState.players.length}/2
-              </div>
               <button
                 onClick={() => setShowLeaveConfirm(true)} // This triggers the modal
                 className="p-2 bg-red-900/50 hover:bg-red-900 rounded text-red-300"

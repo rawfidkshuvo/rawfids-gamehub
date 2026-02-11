@@ -1614,7 +1614,7 @@ export default function SpectrumGame() {
               }`}
             >
               {gameState.players.length < 3
-                ? "Awaiting Data (3-4 Required)"
+                ? "Awaiting Data (3+ Required)"
                 : "Commence Protocol"}
             </button>
           ) : (

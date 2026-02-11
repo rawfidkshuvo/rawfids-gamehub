@@ -1237,7 +1237,7 @@ export default function ThiefPoliceGame() {
             </div>
             <button
               onClick={() => setShowLeaveConfirm(true)}
-              className="bg-slate-700 p-2 rounded hover:bg-red-900/50 hover:text-red-400 transition-colors"
+              className="bg-slate-700 p-2 rounded hover:bg-red-900/50 text-red-500 transition-colors"
               title="Leave Room"
             >
               <LogOut size={20} />
