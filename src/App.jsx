@@ -835,7 +835,7 @@ const GameCard = ({
             )}
             {!game.maintenance && game.isPopular && !isUpcoming && (
               <span className="bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-lg flex items-center gap-1 shadow-blue-500/50">
-                <Crown size={10} /> POPULAR
+                <Star size={10} /> POPULAR
               </span>
             )}
             {isUpcoming && (
@@ -1554,7 +1554,7 @@ const GameHub = () => {
                 >
                   <Star size={14} />
                   <span className="hidden sm:inline">Popular</span>
-                  <span className="sm:hidden">Hot</span>
+                  <span className="sm:hidden">Popular</span>
                 </button>
                 <button
                   onClick={() => setSortBy("alphabetical")}
