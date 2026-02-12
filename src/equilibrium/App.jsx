@@ -87,7 +87,10 @@ import {
   Panda,
   Origami,
   ChartNoAxesGantt,
+  RotateCcw,
 } from "lucide-react";
+
+import CoverImage from "./assets/harmony_cover.png";
 
 // ---------------------------------------------------------------------------
 // CONFIGURATION
@@ -1963,13 +1966,72 @@ const AnimalDetailModal = ({ animal, onClose }) => (
   </div>
 );
 
+// --- NEW COMPONENT: WALLPAPER SPLASH SCREEN ---
+const SplashScreen = ({ onStart }) => {
+  const [hasSession, setHasSession] = useState(false);
+
+  useEffect(() => {
+    // Check if we have a saved room ID
+    const saved = localStorage.getItem("equilibrium_roomId");
+    setHasSession(!!saved);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans">
+      {/* Background Image */}
+      <div 
+        className="absolute inset-0 z-0 bg-cover bg-center opacity-80"
+        style={{ backgroundImage: `url(${CoverImage})` }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+        
+        {/* Big Logo Title */}
+        
+
+        {/* Pulsing Action Button */}
+        <button
+          onClick={onStart}
+          className="group relative px-12 py-5 bg-emerald-600/20 hover:bg-emerald-600/40 border border-emerald-500/50 hover:border-emerald-400 text-emerald-300 font-black text-2xl tracking-widest rounded-none transform transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] backdrop-blur-md overflow-hidden"
+        >
+          {/* Animated Scanline overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-400/10 to-transparent translate-y-[-100%] animate-[scan_2s_infinite_linear]" />
+          
+          <span className="relative z-10 flex items-center gap-3 animate-pulse">
+            {hasSession ? (
+              <>
+                <RotateCcw className="animate-spin-slow" /> RESUME SESSION
+              </>
+            ) : (
+              <>
+                <Hexagon /> JACK IN
+              </>
+            )}
+          </span>
+        </button>
+      </div>
+
+      {/* CSS for scanline animation if not in tailwind config */}
+      <style>{`
+        @keyframes scan {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(200%); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
 // ---------------------------------------------------------------------------
 // MAIN COMPONENT
 // ---------------------------------------------------------------------------
 
 export default function Equilibrium() {
   const [user, setUser] = useState(null);
-  const [view, setView] = useState("menu");
+  const [view, setView] = useState("splash");
   const [playerName, setPlayerName] = useState("");
   const [roomCode, setRoomCode] = useState("");
   const [roomId, setRoomId] = useState("");
@@ -2089,13 +2151,29 @@ export default function Equilibrium() {
     );
   };
 
-  // --- RESTORE SESSION ---
-  useEffect(() => {
+
+  // 3. NEW FUNCTION: Handle Splash Button Click
+  const handleSplashStart = () => {
     const savedRoomId = localStorage.getItem("equilibrium_roomId");
+    
     if (savedRoomId) {
+      // Resume: Set the room ID, which triggers the existing logic to connect
       setRoomId(savedRoomId);
+      // We switch to 'menu' briefly; if the connection works, 
+      // the existing listener will auto-switch to 'lobby' or 'game'
+      setView("menu"); 
+    } else {
+      // New Game: Just go to menu
+      setView("menu");
     }
-  }, []);
+  };
+  // --- RESTORE SESSION ---
+  // useEffect(() => {
+  //   const savedRoomId = localStorage.getItem("equilibrium_roomId");
+  //   if (savedRoomId) {
+  //     setRoomId(savedRoomId);
+  //   }
+  // }, []);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -2889,6 +2967,10 @@ export default function Equilibrium() {
         </div>
       </div>
     );
+  }
+
+  if (view === "splash") {
+    return <SplashScreen onStart={handleSplashStart} />;
   }
 
   if (view === "menu")
