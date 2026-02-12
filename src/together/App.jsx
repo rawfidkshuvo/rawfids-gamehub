@@ -68,7 +68,6 @@ const db = getFirestore(app);
 
 const APP_ID = typeof __app_id !== "undefined" ? __app_id : "together-game";
 const GAME_ID = "23";
-const TG_ROOM_KEY = "together_game_roomId";
 
 // --- Constants ---
 
@@ -1204,7 +1203,7 @@ const SplashScreen = ({ onStart }) => {
     setMounted(true);
 
     // 2. Check session
-    const saved = localStorage.getItem("TG_ROOM_KEY");
+    const saved = localStorage.getItem("together_game_roomId");
     setHasSession(!!saved);
 
     // 3. Timer: Wait 2 seconds before showing the button
@@ -1217,10 +1216,9 @@ const SplashScreen = ({ onStart }) => {
 
   return (
     <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
-      
       {/* Background Image Container */}
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <div 
+        <div
           className={`w-full h-full bg-cover bg-center transition-transform duration-[2000ms] ease-out ${
             mounted ? "scale-100" : "scale-130"
           }`}
@@ -1232,14 +1230,14 @@ const SplashScreen = ({ onStart }) => {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-        
         {/* Big Logo Title (Kept exactly as requested) */}
-        
 
         {/* Pulsing Action Button with Slide-In Logic */}
-        <div 
+        <div
           className={`transform transition-all duration-1000 ease-out ${
-            showButton ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
+            showButton
+              ? "translate-y-0 opacity-100"
+              : "translate-y-20 opacity-0"
           }`}
         >
           <button
@@ -1248,7 +1246,7 @@ const SplashScreen = ({ onStart }) => {
           >
             {/* Animated Scanline overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-pink-400/10 to-transparent translate-y-[-100%] animate-[scan_2s_infinite_linear]" />
-            
+
             <span className="relative z-10 flex items-center gap-3 animate-pulse">
               {hasSession ? (
                 <>
@@ -1262,7 +1260,6 @@ const SplashScreen = ({ onStart }) => {
             </span>
           </button>
         </div>
-
       </div>
 
       {/* CSS for scanline animation */}
@@ -1284,9 +1281,7 @@ export default function TogetherGame() {
 
   const [roomCodeInput, setRoomCodeInput] = useState("");
   // Initialize roomId from localStorage if available to persist session
-  const [roomId, setRoomId] = useState(
-    () => localStorage.getItem(TG_ROOM_KEY) || "",
-  );
+  const [roomId, setRoomId] = useState("");
   const [gameState, setGameState] = useState(null);
   const [error, setError] = useState("");
   const [isMaintenance, setIsMaintenance] = useState(false);
@@ -1331,9 +1326,10 @@ export default function TogetherGame() {
 
   // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("TG_ROOM_KEY");
+    const savedRoomId = localStorage.getItem("together_game_roomId");
 
     if (savedRoomId) {
+      setLoading(true);
       // Resume: Set the room ID, which triggers the existing logic to connect
       setRoomId(savedRoomId);
       // We switch to 'menu' briefly; if the connection works,
@@ -1364,7 +1360,7 @@ export default function TogetherGame() {
           const data = snap.data();
           if (!data.players.some((p) => p.id === user.uid)) {
             setRoomId("");
-            localStorage.removeItem(TG_ROOM_KEY);
+            localStorage.removeItem("together_game_roomId");
             setView("menu");
             setError("You were removed.");
             return;
@@ -1382,7 +1378,7 @@ export default function TogetherGame() {
           }
         } else {
           setRoomId("");
-          localStorage.removeItem(TG_ROOM_KEY);
+          localStorage.removeItem("together_game_roomId");
           setView("menu");
           setError("Room ended.");
         }
@@ -1428,7 +1424,7 @@ export default function TogetherGame() {
       initialData,
     );
     setRoomId(newId);
-    localStorage.setItem(TG_ROOM_KEY, newId);
+    localStorage.setItem("together_game_roomId", newId);
     setView("lobby");
     setLoading(false);
   };
@@ -1472,7 +1468,7 @@ export default function TogetherGame() {
     ];
     await updateDoc(ref, { players: newPlayers });
     setRoomId(roomCodeInput);
-    localStorage.setItem(TG_ROOM_KEY, roomCodeInput);
+    localStorage.setItem("together_game_roomId", roomCodeInput);
     setLoading(false);
   };
 
@@ -1642,7 +1638,7 @@ export default function TogetherGame() {
       console.error("Error leaving room", e);
     }
     setRoomId("");
-    localStorage.removeItem(TG_ROOM_KEY);
+    localStorage.removeItem("together_game_roomId");
     setView("menu");
     setGameState(null);
     setShowLeaveConfirm(false);

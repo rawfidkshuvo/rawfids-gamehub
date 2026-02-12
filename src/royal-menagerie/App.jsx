@@ -599,10 +599,9 @@ const SplashScreen = ({ onStart }) => {
 
   return (
     <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
-      
       {/* Background Image Container */}
       <div className="absolute inset-0 z-0 overflow-hidden">
-        <div 
+        <div
           className={`w-full h-full bg-cover bg-center transition-transform duration-[2000ms] ease-out ${
             mounted ? "scale-100" : "scale-130"
           }`}
@@ -614,14 +613,14 @@ const SplashScreen = ({ onStart }) => {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-        
         {/* Big Logo Title (Kept exactly as requested) */}
-        
 
         {/* Pulsing Action Button with Slide-In Logic */}
-        <div 
+        <div
           className={`transform transition-all duration-1000 ease-out ${
-            showButton ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
+            showButton
+              ? "translate-y-0 opacity-100"
+              : "translate-y-20 opacity-0"
           }`}
         >
           <button
@@ -630,7 +629,7 @@ const SplashScreen = ({ onStart }) => {
           >
             {/* Animated Scanline overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-400/10 to-transparent translate-y-[-100%] animate-[scan_2s_infinite_linear]" />
-            
+
             <span className="relative z-10 flex items-center gap-3 animate-pulse">
               {hasSession ? (
                 <>
@@ -644,7 +643,6 @@ const SplashScreen = ({ onStart }) => {
             </span>
           </button>
         </div>
-
       </div>
 
       {/* CSS for scanline animation */}
@@ -664,9 +662,7 @@ export default function RoyalMenagerie() {
   const [view, setView] = useState("splash");
 
   // Initialize roomId from localStorage if available
-  const [roomId, setRoomId] = useState(
-    () => localStorage.getItem("royal_menagerie_roomId") || "",
-  );
+  const [roomId, setRoomId] = useState("");
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [gameState, setGameState] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -716,6 +712,7 @@ export default function RoyalMenagerie() {
     const savedRoomId = localStorage.getItem("royal_menagerie_roomId");
 
     if (savedRoomId) {
+      setLoading(true);
       // Resume: Set the room ID, which triggers the existing logic to connect
       setRoomId(savedRoomId);
       // We switch to 'menu' briefly; if the connection works,
@@ -1261,7 +1258,7 @@ export default function RoyalMenagerie() {
   }
 
   // --- Views ---
-   // 4. CHANGE: Add Splash Screen Render Condition
+  // 4. CHANGE: Add Splash Screen Render Condition
   if (view === "splash") {
     return <SplashScreen onStart={handleSplashStart} />;
   }

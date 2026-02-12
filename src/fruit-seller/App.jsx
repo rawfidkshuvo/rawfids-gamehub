@@ -718,9 +718,7 @@ export default function FruitSellerGame() {
   const [user, setUser] = useState(null);
   const [view, setView] = useState("splash");
   // Initialize state from local storage to persist session on refresh
-  const [roomId, setRoomId] = useState(
-    () => localStorage.getItem("fs_roomId") || null,
-  );
+  const [roomId, setRoomId] = useState("");
 
   const [gameState, setGameState] = useState(null);
   const [roomCodeInput, setRoomCodeInput] = useState("");
