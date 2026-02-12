@@ -48,7 +48,9 @@ import {
   Loader,
   Handshake,
   Copy,
+  Play,
 } from "lucide-react";
+import CoverImage from "./assets/together_cover.png";
 
 // --- Firebase Config ---
 const firebaseConfig = {
@@ -1191,11 +1193,94 @@ const GoalCard = ({
   </div>
 );
 
+// --- UPDATED SPLASH SCREEN (Zoom Effect + Button Timer) ---
+const SplashScreen = ({ onStart }) => {
+  const [hasSession, setHasSession] = useState(false);
+  const [showButton, setShowButton] = useState(false);
+  const [mounted, setMounted] = useState(false); // New state for image animation
+
+  useEffect(() => {
+    // 1. Trigger image zoom-out animation immediately
+    setMounted(true);
+
+    // 2. Check session
+    const saved = localStorage.getItem("TG_ROOM_KEY");
+    setHasSession(!!saved);
+
+    // 3. Timer: Wait 2 seconds before showing the button
+    const timer = setTimeout(() => {
+      setShowButton(true);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+      
+      {/* Background Image Container */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <div 
+          className={`w-full h-full bg-cover bg-center transition-transform duration-[2000ms] ease-out ${
+            mounted ? "scale-100" : "scale-130"
+          }`}
+          style={{ backgroundImage: `url(${CoverImage})` }}
+        />
+        {/* Dark Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+        
+        {/* Big Logo Title (Kept exactly as requested) */}
+        
+
+        {/* Pulsing Action Button with Slide-In Logic */}
+        <div 
+          className={`transform transition-all duration-1000 ease-out ${
+            showButton ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
+          }`}
+        >
+          <button
+            onClick={onStart}
+            className="group relative px-12 py-5 bg-pink-600/20 hover:bg-pink-600/40 border border-pink-500/50 hover:border-pink-400 text-pink-300 font-black text-2xl tracking-widest rounded-none transform transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] backdrop-blur-md overflow-hidden"
+          >
+            {/* Animated Scanline overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-pink-400/10 to-transparent translate-y-[-100%] animate-[scan_2s_infinite_linear]" />
+            
+            <span className="relative z-10 flex items-center gap-3 animate-pulse">
+              {hasSession ? (
+                <>
+                  <RotateCcw className="animate-spin-slow" /> RESUME
+                </>
+              ) : (
+                <>
+                  <Play /> PLAY
+                </>
+              )}
+            </span>
+          </button>
+        </div>
+
+      </div>
+
+      {/* CSS for scanline animation */}
+      <style>{`
+        @keyframes scan {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(200%); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
 // --- Main Game Component ---
 
 export default function TogetherGame() {
   const [user, setUser] = useState(null);
-  const [view, setView] = useState("menu");
+  const [view, setView] = useState("splash");
 
   const [roomCodeInput, setRoomCodeInput] = useState("");
   // Initialize roomId from localStorage if available to persist session
@@ -1243,6 +1328,22 @@ export default function TogetherGame() {
     initAuth();
     onAuthStateChanged(auth, setUser);
   }, []);
+
+  // 3. NEW FUNCTION: Handle Splash Button Click
+  const handleSplashStart = () => {
+    const savedRoomId = localStorage.getItem("TG_ROOM_KEY");
+
+    if (savedRoomId) {
+      // Resume: Set the room ID, which triggers the existing logic to connect
+      setRoomId(savedRoomId);
+      // We switch to 'menu' briefly; if the connection works,
+      // the existing listener will auto-switch to 'lobby' or 'game'
+      setView("menu");
+    } else {
+      // New Game: Just go to menu
+      setView("menu");
+    }
+  };
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, "game_hub_settings", "config"), (doc) => {
@@ -1930,6 +2031,11 @@ export default function TogetherGame() {
         </div>
       </div>
     );
+  }
+
+  // 4. CHANGE: Add Splash Screen Render Condition
+  if (view === "splash") {
+    return <SplashScreen onStart={handleSplashStart} />;
   }
 
   if (view === "menu") {

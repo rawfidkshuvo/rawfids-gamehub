@@ -50,7 +50,9 @@ import {
   Trash2, // Added Trash2 icon
   Copy,
   Loader,
+  Play,
 } from "lucide-react";
+import CoverImage from "./assets/royal_cover.png";
 
 // --- Firebase Config & Init ---
 const firebaseConfig = {
@@ -573,10 +575,93 @@ const LogViewer = ({ logs, onClose }) => (
   </div>
 );
 
+// --- UPDATED SPLASH SCREEN (Zoom Effect + Button Timer) ---
+const SplashScreen = ({ onStart }) => {
+  const [hasSession, setHasSession] = useState(false);
+  const [showButton, setShowButton] = useState(false);
+  const [mounted, setMounted] = useState(false); // New state for image animation
+
+  useEffect(() => {
+    // 1. Trigger image zoom-out animation immediately
+    setMounted(true);
+
+    // 2. Check session
+    const saved = localStorage.getItem("royal_menagerie_roomId");
+    setHasSession(!!saved);
+
+    // 3. Timer: Wait 2 seconds before showing the button
+    const timer = setTimeout(() => {
+      setShowButton(true);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+      
+      {/* Background Image Container */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <div 
+          className={`w-full h-full bg-cover bg-center transition-transform duration-[2000ms] ease-out ${
+            mounted ? "scale-100" : "scale-130"
+          }`}
+          style={{ backgroundImage: `url(${CoverImage})` }}
+        />
+        {/* Dark Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+        
+        {/* Big Logo Title (Kept exactly as requested) */}
+        
+
+        {/* Pulsing Action Button with Slide-In Logic */}
+        <div 
+          className={`transform transition-all duration-1000 ease-out ${
+            showButton ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
+          }`}
+        >
+          <button
+            onClick={onStart}
+            className="group relative px-12 py-5 bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/50 hover:border-purple-400 text-purple-300 font-black text-2xl tracking-widest rounded-none transform transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] backdrop-blur-md overflow-hidden"
+          >
+            {/* Animated Scanline overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-400/10 to-transparent translate-y-[-100%] animate-[scan_2s_infinite_linear]" />
+            
+            <span className="relative z-10 flex items-center gap-3 animate-pulse">
+              {hasSession ? (
+                <>
+                  <RotateCcw className="animate-spin-slow" /> RESUME
+                </>
+              ) : (
+                <>
+                  <Play /> PLAY
+                </>
+              )}
+            </span>
+          </button>
+        </div>
+
+      </div>
+
+      {/* CSS for scanline animation */}
+      <style>{`
+        @keyframes scan {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(200%); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
 // --- Main Component ---
 export default function RoyalMenagerie() {
   const [user, setUser] = useState(null);
-  const [view, setView] = useState("menu");
+  const [view, setView] = useState("splash");
 
   // Initialize roomId from localStorage if available
   const [roomId, setRoomId] = useState(
@@ -625,6 +710,22 @@ export default function RoyalMenagerie() {
     initAuth();
     onAuthStateChanged(auth, setUser);
   }, []);
+
+  // 3. NEW FUNCTION: Handle Splash Button Click
+  const handleSplashStart = () => {
+    const savedRoomId = localStorage.getItem("royal_menagerie_roomId");
+
+    if (savedRoomId) {
+      // Resume: Set the room ID, which triggers the existing logic to connect
+      setRoomId(savedRoomId);
+      // We switch to 'menu' briefly; if the connection works,
+      // the existing listener will auto-switch to 'lobby' or 'game'
+      setView("menu");
+    } else {
+      // New Game: Just go to menu
+      setView("menu");
+    }
+  };
 
   useEffect(() => {
     const unsub = onSnapshot(doc(db, "game_hub_settings", "config"), (doc) => {
@@ -1160,6 +1261,10 @@ export default function RoyalMenagerie() {
   }
 
   // --- Views ---
+   // 4. CHANGE: Add Splash Screen Render Condition
+  if (view === "splash") {
+    return <SplashScreen onStart={handleSplashStart} />;
+  }
 
   if (view === "menu") {
     return (
@@ -1169,8 +1274,8 @@ export default function RoyalMenagerie() {
         <nav className="absolute top-0 left-0 w-full p-4 z-50">
           <a
             href={import.meta.env.BASE_URL}
-            className="flex items-center gap-2 text-pink-800 rounded-lg 
-			font-bold shadow-md hover:text-pink-400 transition-colors w-fit animate-pulse"
+            className="flex items-center gap-2 text-purple-800 rounded-lg 
+			font-bold shadow-md hover:text-purple-400 transition-colors w-fit animate-pulse"
           >
             {/* Arrow Icon */}
             <StepBack />
@@ -1243,7 +1348,7 @@ export default function RoyalMenagerie() {
             href={import.meta.env.BASE_URL}
             //target="_blank"
             rel="noopener noreferrer"
-            className="text-pink-500 underline hover:text-pink-600"
+            className="text-purple-500 underline hover:text-purple-600"
           >
             GAMEHUB
           </a>{" "}

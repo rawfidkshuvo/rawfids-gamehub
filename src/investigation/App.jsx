@@ -46,7 +46,9 @@ import {
   HatGlasses,
   Copy,
   Loader,
+  Play,
 } from "lucide-react";
+import CoverImage from "./assets/investigation_cover.png";
 
 // --- Firebase Init ---
 const firebaseConfig = {
@@ -900,10 +902,93 @@ const RoleCard = ({ role }) => {
   );
 };
 
+// --- UPDATED SPLASH SCREEN (Zoom Effect + Button Timer) ---
+const SplashScreen = ({ onStart }) => {
+  const [hasSession, setHasSession] = useState(false);
+  const [showButton, setShowButton] = useState(false);
+  const [mounted, setMounted] = useState(false); // New state for image animation
+
+  useEffect(() => {
+    // 1. Trigger image zoom-out animation immediately
+    setMounted(true);
+
+    // 2. Check session
+    const saved = localStorage.getItem("investigation_roomId");
+    setHasSession(!!saved);
+
+    // 3. Timer: Wait 2 seconds before showing the button
+    const timer = setTimeout(() => {
+      setShowButton(true);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+      
+      {/* Background Image Container */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <div 
+          className={`w-full h-full bg-cover bg-center transition-transform duration-[2000ms] ease-out ${
+            mounted ? "scale-100" : "scale-130"
+          }`}
+          style={{ backgroundImage: `url(${CoverImage})` }}
+        />
+        {/* Dark Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+        
+        {/* Big Logo Title (Kept exactly as requested) */}
+        
+
+        {/* Pulsing Action Button with Slide-In Logic */}
+        <div 
+          className={`transform transition-all duration-1000 ease-out ${
+            showButton ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
+          }`}
+        >
+          <button
+            onClick={onStart}
+            className="group relative px-12 py-5 bg-green-600/20 hover:bg-green-600/40 border border-green-500/50 hover:border-green-400 text-green-300 font-black text-2xl tracking-widest rounded-none transform transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] backdrop-blur-md overflow-hidden"
+          >
+            {/* Animated Scanline overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-green-400/10 to-transparent translate-y-[-100%] animate-[scan_2s_infinite_linear]" />
+            
+            <span className="relative z-10 flex items-center gap-3 animate-pulse">
+              {hasSession ? (
+                <>
+                  <RotateCcw className="animate-spin-slow" /> RESUME
+                </>
+              ) : (
+                <>
+                  <Play /> PLAY
+                </>
+              )}
+            </span>
+          </button>
+        </div>
+
+      </div>
+
+      {/* CSS for scanline animation */}
+      <style>{`
+        @keyframes scan {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(200%); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
 // --- Main Component ---
 export default function InvestigationGame() {
   const [user, setUser] = useState(null);
-  const [view, setView] = useState("menu");
+  const [view, setView] = useState("splash");
 
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [roomId, setRoomId] = useState(null);
@@ -937,13 +1022,29 @@ export default function InvestigationGame() {
     if (playerName) localStorage.setItem("gameHub_playerName", playerName);
   }, [playerName]);
 
-  useEffect(() => {
+  // 3. NEW FUNCTION: Handle Splash Button Click
+  const handleSplashStart = () => {
     const savedRoomId = localStorage.getItem("investigation_roomId");
+
     if (savedRoomId) {
+      // Resume: Set the room ID, which triggers the existing logic to connect
       setRoomId(savedRoomId);
-      setRoomCodeInput(savedRoomId);
+      // We switch to 'menu' briefly; if the connection works,
+      // the existing listener will auto-switch to 'lobby' or 'game'
+      setView("menu");
+    } else {
+      // New Game: Just go to menu
+      setView("menu");
     }
-  }, []);
+  };
+
+  // useEffect(() => {
+  //   const savedRoomId = localStorage.getItem("investigation_roomId");
+  //   if (savedRoomId) {
+  //     setRoomId(savedRoomId);
+  //     setRoomCodeInput(savedRoomId);
+  //   }
+  // }, []);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -1512,35 +1613,7 @@ export default function InvestigationGame() {
     );
   };
 
-  if (isMaintenance) {
-    return (
-      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-white p-4 text-center">
-        <InvestigationLogoBig />
-        <div className="bg-orange-500/10 p-8 rounded-2xl border border-orange-500/30">
-          <Hammer
-            size={64}
-            className="text-orange-500 mx-auto mb-4 animate-bounce"
-          />
-          <h1 className="text-3xl font-bold mb-2">Under Maintenance</h1>
-          <p className="text-gray-400">
-            Crime scene sealed. Forensics team is sweeping the area.
-          </p>
-        </div>
-        <div className="h-8"></div>
-        <a href="https://rawfidkshuvo.github.io/gamehub/">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <div className="text-center pb-12 animate-pulse">
-              <div className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900/50 rounded-full border border-indigo-500/20 text-indigo-300 font-bold tracking-widest text-sm uppercase backdrop-blur-sm">
-                <Sparkles size={16} /> Visit Gamehub...Try our other releases...{" "}
-                <Sparkles size={16} />
-              </div>
-            </div>
-          </div>
-        </a>
-        <InvestigationLogo />
-      </div>
-    );
-  }
+  
 
   if (isMaintenance) {
     return (
@@ -1593,6 +1666,11 @@ export default function InvestigationGame() {
         </div>
       </div>
     );
+  }
+
+  // 4. CHANGE: Add Splash Screen Render Condition
+  if (view === "splash") {
+    return <SplashScreen onStart={handleSplashStart} />;
   }
 
   if (view === "menu") {

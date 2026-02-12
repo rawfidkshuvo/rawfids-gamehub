@@ -51,6 +51,7 @@ import {
   Loader,
   Sparkles,
   Hammer,
+  Play,
 } from "lucide-react";
 import CoverImage from "./assets/neon_cover.png";
 
@@ -857,54 +858,79 @@ const Card = ({ typeId, onClick, selected, small, disabled }) => {
   );
 };
 
-// --- NEW COMPONENT: WALLPAPER SPLASH SCREEN ---
+// --- UPDATED SPLASH SCREEN (Zoom Effect + Button Timer) ---
 const SplashScreen = ({ onStart }) => {
   const [hasSession, setHasSession] = useState(false);
+  const [showButton, setShowButton] = useState(false);
+  const [mounted, setMounted] = useState(false); // New state for image animation
 
   useEffect(() => {
-    // Check if we have a saved room ID
+    // 1. Trigger image zoom-out animation immediately
+    setMounted(true);
+
+    // 2. Check session
     const saved = localStorage.getItem("neondraft_roomId");
     setHasSession(!!saved);
+
+    // 3. Timer: Wait 2 seconds before showing the button
+    const timer = setTimeout(() => {
+      setShowButton(true);
+    }, 2000);
+
+    return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans">
-      {/* Background Image */}
-      <div
-        className="absolute inset-0 z-0 bg-cover bg-center opacity-80"
-        style={{ backgroundImage: `url(${CoverImage})` }}
-      >
+    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+      
+      {/* Background Image Container */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <div 
+          className={`w-full h-full bg-cover bg-center transition-transform duration-[2000ms] ease-out ${
+            mounted ? "scale-100" : "scale-130"
+          }`}
+          style={{ backgroundImage: `url(${CoverImage})` }}
+        />
+        {/* Dark Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
       </div>
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-        {/* Big Logo Title */}
+        
+        {/* Big Logo Title (Kept exactly as requested) */}
         
 
-        {/* Pulsing Action Button */}
-        <button
-          onClick={onStart}
-          className="group relative px-12 py-5 bg-cyan-600/20 hover:bg-cyan-600/40 border border-cyan-500/50 hover:border-cyan-400 text-cyan-300 font-black text-2xl tracking-widest rounded-none transform transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] backdrop-blur-md overflow-hidden"
+        {/* Pulsing Action Button with Slide-In Logic */}
+        <div 
+          className={`transform transition-all duration-1000 ease-out ${
+            showButton ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0"
+          }`}
         >
-          {/* Animated Scanline overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-400/10 to-transparent translate-y-[-100%] animate-[scan_2s_infinite_linear]" />
+          <button
+            onClick={onStart}
+            className="group relative px-12 py-5 bg-cyan-600/20 hover:bg-cyan-600/40 border border-cyan-500/50 hover:border-cyan-400 text-cyan-300 font-black text-2xl tracking-widest rounded-none transform transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] backdrop-blur-md overflow-hidden"
+          >
+            {/* Animated Scanline overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-cyan-400/10 to-transparent translate-y-[-100%] animate-[scan_2s_infinite_linear]" />
+            
+            <span className="relative z-10 flex items-center gap-3 animate-pulse">
+              {hasSession ? (
+                <>
+                  <RotateCcw className="animate-spin-slow" /> RESUME
+                </>
+              ) : (
+                <>
+                  <Play /> PLAY
+                </>
+              )}
+            </span>
+          </button>
+        </div>
 
-          <span className="relative z-10 flex items-center gap-3 animate-pulse">
-            {hasSession ? (
-              <>
-                <RotateCcw className="animate-spin-slow" /> RESUME SESSION
-              </>
-            ) : (
-              <>
-                <Power /> JACK IN
-              </>
-            )}
-          </span>
-        </button>
       </div>
 
-      {/* CSS for scanline animation if not in tailwind config */}
+      {/* CSS for scanline animation */}
       <style>{`
         @keyframes scan {
           0% { transform: translateY(-100%); }
