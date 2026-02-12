@@ -512,35 +512,55 @@ const GameOverScreen = ({ winnerName, onReturnToLobby, isHost }) => (
   </div>
 );
 
-// --- UPDATED SPLASH SCREEN (Zoom Effect + Button Timer) ---
+// --- UPDATED SPLASH SCREEN (With Loading Indicator) ---
 const SplashScreen = ({ onStart }) => {
   const [hasSession, setHasSession] = useState(false);
+  
+  // State 1: Image is downloaded and ready to show
+  const [isLoaded, setIsLoaded] = useState(false);
+  // State 2: Button is ready to slide in (after zoom)
   const [showButton, setShowButton] = useState(false);
-  const [mounted, setMounted] = useState(false); // New state for image animation
 
   useEffect(() => {
-    // 1. Trigger image zoom-out animation immediately
-    setMounted(true);
-
-    // 2. Check session
-    const saved = localStorage.getItem("ghost_dice_roomId");
+    // 1. Check Session immediately
+    const saved = localStorage.getItem("ghost_dice_roomId"); 
     setHasSession(!!saved);
 
-    // 3. Timer: Wait 2 seconds before showing the button
-    const timer = setTimeout(() => {
-      setShowButton(true);
-    }, 2000);
+    // 2. Preload the image
+    const img = new Image();
+    img.src = CoverImage;
 
-    return () => clearTimeout(timer);
+    img.onload = () => {
+      // Image is downloaded. Start the show.
+      setIsLoaded(true);
+
+      // Start the 2-second timer for the button *after* image loads
+      setTimeout(() => {
+        setShowButton(true);
+      }, 2000);
+    };
   }, []);
 
   return (
     <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+      
+      {/* --- NEW: LOADING INDICATOR --- */}
+      {/* This shows only while the image is NOT loaded yet */}
+      {!isLoaded && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-50 text-indigo-500/50">
+          <Loader size={48} className="animate-spin mb-4" />
+          <div className="font-mono text-xs tracking-[0.3em] animate-pulse">
+            INITIALIZING SYSTEM...
+          </div>
+        </div>
+      )}
+
       {/* Background Image Container */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
+      {/* Opacity 0 -> 100 ensures a smooth fade-in once loaded */}
+      <div className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-1000 ${isLoaded ? "opacity-100" : "opacity-0"}`}>
         <div
           className={`w-full h-full bg-cover bg-center transition-transform duration-[2000ms] ease-out ${
-            mounted ? "scale-100" : "scale-130"
+            isLoaded ? "scale-100" : "scale-130" 
           }`}
           style={{ backgroundImage: `url(${CoverImage})` }}
         />
@@ -550,14 +570,13 @@ const SplashScreen = ({ onStart }) => {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-        {/* Big Logo Title (Kept exactly as requested) */}
-
-        {/* Pulsing Action Button with Slide-In Logic */}
+        
+        {/* Pulsing Action Button */}
         <div
           className={`transform transition-all duration-1000 ease-out ${
             showButton
-              ? "translate-y-0 opacity-100"
-              : "translate-y-20 opacity-0"
+              ? "translate-y-0 opacity-100"    
+              : "translate-y-32 opacity-0"     
           }`}
         >
           <button
@@ -582,7 +601,6 @@ const SplashScreen = ({ onStart }) => {
         </div>
       </div>
 
-      {/* CSS for scanline animation */}
       <style>{`
         @keyframes scan {
           0% { transform: translateY(-100%); }
@@ -666,7 +684,7 @@ export default function GhostDiceGame() {
           const data = snap.data();
           if (!data.players.some((p) => p.id === user.uid)) {
             setRoomId("");
-            localStorage.removeItem(ghost_dice_roomId); // Clean up
+            localStorage.removeItem("ghost_dice_roomId"); // Clean up
             setView("menu");
             setError("Connection Terminated.");
             return;
@@ -694,7 +712,7 @@ export default function GhostDiceGame() {
           }
         } else {
           setRoomId("");
-          localStorage.removeItem(ghost_dice_roomId); // Clean up
+          localStorage.removeItem("ghost_dice_roomId"); // Clean up
           setView("menu");
           setError("Room vanished into the ether.");
         }
@@ -753,7 +771,7 @@ export default function GhostDiceGame() {
         initialData,
       );
       setRoomId(newId);
-      localStorage.setItem(ghost_dice_roomId, newId); // Save Session
+      localStorage.setItem("ghost_dice_roomId", newId); // Save Session
       setView("lobby");
     } catch (e) {
       setError("Network error.");
@@ -794,7 +812,7 @@ export default function GhostDiceGame() {
         });
       }
       setRoomId(roomCodeInput);
-      localStorage.setItem(ghost_dice_roomId, roomCodeInput); // Save Session
+      localStorage.setItem("ghost_dice_roomId", roomCodeInput); // Save Session
     } catch (e) {
       setError(e.message);
     }
@@ -819,7 +837,7 @@ export default function GhostDiceGame() {
     }
 
     setRoomId("");
-    localStorage.removeItem(ghost_dice_roomId); // Clean up
+    localStorage.removeItem("ghost_dice_roomId"); // Clean up
     setView("menu");
     setShowLeaveConfirm(false);
   };

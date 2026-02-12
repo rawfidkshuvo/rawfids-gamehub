@@ -718,35 +718,55 @@ const GameGuideModal = ({ onClose }) => (
   </div>
 );
 
-// --- UPDATED SPLASH SCREEN (Zoom Effect + Button Timer) ---
+// --- UPDATED SPLASH SCREEN (With Loading Indicator) ---
 const SplashScreen = ({ onStart }) => {
   const [hasSession, setHasSession] = useState(false);
+  
+  // State 1: Image is downloaded and ready to show
+  const [isLoaded, setIsLoaded] = useState(false);
+  // State 2: Button is ready to slide in (after zoom)
   const [showButton, setShowButton] = useState(false);
-  const [mounted, setMounted] = useState(false); // New state for image animation
 
   useEffect(() => {
-    // 1. Trigger image zoom-out animation immediately
-    setMounted(true);
-
-    // 2. Check session
-    const saved = localStorage.getItem("fructose_room_id");
+    // 1. Check Session immediately
+    const saved = localStorage.getItem("fructose_room_id"); 
     setHasSession(!!saved);
 
-    // 3. Timer: Wait 2 seconds before showing the button
-    const timer = setTimeout(() => {
-      setShowButton(true);
-    }, 2000);
+    // 2. Preload the image
+    const img = new Image();
+    img.src = CoverImage;
 
-    return () => clearTimeout(timer);
+    img.onload = () => {
+      // Image is downloaded. Start the show.
+      setIsLoaded(true);
+
+      // Start the 2-second timer for the button *after* image loads
+      setTimeout(() => {
+        setShowButton(true);
+      }, 2000);
+    };
   }, []);
 
   return (
     <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+      
+      {/* --- NEW: LOADING INDICATOR --- */}
+      {/* This shows only while the image is NOT loaded yet */}
+      {!isLoaded && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-50 text-yellow-500/50">
+          <Loader size={48} className="animate-spin mb-4" />
+          <div className="font-mono text-xs tracking-[0.3em] animate-pulse">
+            INITIALIZING SYSTEM...
+          </div>
+        </div>
+      )}
+
       {/* Background Image Container */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
+      {/* Opacity 0 -> 100 ensures a smooth fade-in once loaded */}
+      <div className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-1000 ${isLoaded ? "opacity-100" : "opacity-0"}`}>
         <div
           className={`w-full h-full bg-cover bg-center transition-transform duration-[2000ms] ease-out ${
-            mounted ? "scale-100" : "scale-130"
+            isLoaded ? "scale-100" : "scale-130" 
           }`}
           style={{ backgroundImage: `url(${CoverImage})` }}
         />
@@ -756,14 +776,13 @@ const SplashScreen = ({ onStart }) => {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-        {/* Big Logo Title (Kept exactly as requested) */}
-
-        {/* Pulsing Action Button with Slide-In Logic */}
+        
+        {/* Pulsing Action Button */}
         <div
           className={`transform transition-all duration-1000 ease-out ${
             showButton
-              ? "translate-y-0 opacity-100"
-              : "translate-y-20 opacity-0"
+              ? "translate-y-0 opacity-100"    
+              : "translate-y-32 opacity-0"     
           }`}
         >
           <button
@@ -788,7 +807,6 @@ const SplashScreen = ({ onStart }) => {
         </div>
       </div>
 
-      {/* CSS for scanline animation */}
       <style>{`
         @keyframes scan {
           0% { transform: translateY(-100%); }
@@ -870,13 +888,13 @@ export default function FructoseFury() {
   }, [gameState?.status]);
 
   // 2. Save Room ID when it changes
-  useEffect(() => {
-    if (roomId) {
-      localStorage.setItem("fructose_room_id", roomId);
-    } else {
-      localStorage.removeItem("fructose_room_id");
-    }
-  }, [roomId]);
+  // useEffect(() => {
+  //   if (roomId) {
+  //     localStorage.setItem("fructose_room_id", roomId);
+  //   } else {
+  //     localStorage.removeItem("fructose_room_id");
+  //   }
+  // }, [roomId]);
 
   // --- Auth & Maintenance ---
   useEffect(() => {
@@ -1020,6 +1038,7 @@ export default function FructoseFury() {
       doc(db, "artifacts", APP_ID, "public", "data", "rooms", newId),
       initialData,
     );
+    localStorage.setItem("fructose_room_id", newId);
     setRoomId(newId);
     setRoomCodeInput(newId);
     setLoading(false);
@@ -1071,6 +1090,8 @@ export default function FructoseFury() {
         }),
       });
     }
+    // ADD THIS LINE:
+    localStorage.setItem("fructose_room_id", roomCodeInput);
     setRoomId(roomCodeInput);
     setLoading(false);
   };
