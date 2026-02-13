@@ -1100,7 +1100,7 @@ const SplashScreen = ({ onStart }) => {
       >
         <div
           className={`w-full h-full bg-cover bg-center transition-transform duration-[2000ms] ease-out ${
-            isLoaded ? "scale-100" : "scale-130"
+            isLoaded ? "scale-100" : "scale-140"
           }`}
           style={{ backgroundImage: `url(${CoverImage})` }}
         />
@@ -1148,7 +1148,9 @@ const SplashScreen = ({ onStart }) => {
 
 // --- MAIN COMPONENT ---
 const GameHub = () => {
-  const [showSplash, setShowSplash] = useState(true);
+  const [showSplash, setShowSplash] = useState(() => {
+    return !sessionStorage.getItem("gh_splash_done");
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [playerCount, setPlayerCount] = useState(0);
@@ -1416,11 +1418,18 @@ const GameHub = () => {
     setSelectedDuration("All");
   };
 
-  // --- ADD THIS BLOCK HERE ---
+  // --- RENDER SPLASH ---
   if (showSplash) {
-    return <SplashScreen onStart={() => setShowSplash(false)} />;
+    return (
+      <SplashScreen 
+        onStart={() => {
+          // CHANGED: Mark splash as done in session storage
+          sessionStorage.setItem("gh_splash_done", "true");
+          setShowSplash(false);
+        }} 
+      />
+    );
   }
-  // ---------------------------
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500 selection:text-white relative flex flex-col">
