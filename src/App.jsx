@@ -1167,6 +1167,9 @@ const GameHub = () => {
   const [sortBy, setSortBy] = useState("popular");
   const [isNavigating, setIsNavigating] = useState(false);
 
+  // 1. Use a Ref to store location (PERSISTS across re-renders and Fast Refresh)
+  const locationRef = useRef({ country: "Unknown", city: "Unknown" });
+
   useEffect(() => {
     setIsNavigating(false);
     const handlePageShow = (event) => {
@@ -1177,21 +1180,48 @@ const GameHub = () => {
   }, []);
 
   useEffect(() => {
-    // --- Fetch User Location on Load ---
     const fetchLocation = async () => {
+      // If we already have data (from a previous render), don't fetch again
+      if (
+        globalLocationData.country &&
+        globalLocationData.country !== "Unknown"
+      ) {
+        locationRef.current = globalLocationData;
+        return;
+      }
+
       try {
-        const response = await fetch("https://ipwho.is/");
+        // Primary API
+        let response = await fetch("https://ipwho.is/");
+
+        // Backup API if primary fails
+        if (!response.ok) {
+          response = await fetch("https://ipapi.co/json/");
+        }
+
         const data = await response.json();
-        if (data.success) {
-          globalLocationData = {
-            country: data.country,
-            city: data.city,
+
+        if (data.success || data.city) {
+          const loc = {
+            country: data.country || data.country_name || "Unknown",
+            city: data.city || "Unknown",
           };
+
+          // 1. Update the Ref (for React)
+          locationRef.current = loc;
+
+          // 2. Update the Global Variable (for your logGameClick function)
+          globalLocationData = loc;
+
+          console.log("Location initialized:", loc);
         }
       } catch (error) {
-        console.error("Location fetch failed:", error);
+        console.warn(
+          "Location fetch failed (likely AdBlock or Rate Limit). Defaulting to Unknown.",
+        );
       }
     };
+
     fetchLocation();
 
     const storedFavs = localStorage.getItem("gamehub_favorites");
@@ -1421,12 +1451,12 @@ const GameHub = () => {
   // --- RENDER SPLASH ---
   if (showSplash) {
     return (
-      <SplashScreen 
+      <SplashScreen
         onStart={() => {
           // CHANGED: Mark splash as done in session storage
           sessionStorage.setItem("gh_splash_done", "true");
           setShowSplash(false);
-        }} 
+        }}
       />
     );
   }
