@@ -72,7 +72,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const APP_ID = typeof __app_id !== "undefined" ? __app_id : "spectrum-game";
-const GAME_ID = "24";
+const GAME_ID = "16";
 
 // --- Game Constants ---
 const SUITS = {

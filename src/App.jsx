@@ -457,7 +457,7 @@ const INITIAL_GAMES = [
     isNew: true,
   },
   {
-    id: 21,
+    id: 11,
     title: "Angry Virus",
     description:
       "A contagious game of calculated risks. Pass the infection or bite the bullet?",
@@ -474,7 +474,7 @@ const INITIAL_GAMES = [
     isNew: true,
   },
   {
-    id: 22,
+    id: 13,
     title: "Last of Us",
     description:
       "A strategic shedding game. Use even-numbered Antidotes to cage the odd-numbered Zombies.",
@@ -491,7 +491,7 @@ const INITIAL_GAMES = [
     isNew: true,
   },
   {
-    id: 23,
+    id: 14,
     title: "Together",
     description:
       "Two minds, one silent purpose. Synchronize your strategies without a single word to complete patterns.",
@@ -507,7 +507,7 @@ const INITIAL_GAMES = [
     link: "./together/",
   },
   {
-    id: 24,
+    id: 16,
     title: "Spectrum",
     description:
       "A tactical duel of numerical frequencies. Navigate the shifting colors to win tricks and calibrate your score.",

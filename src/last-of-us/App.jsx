@@ -64,7 +64,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const APP_ID = typeof __app_id !== "undefined" ? __app_id : "last-of-us-game";
-const GAME_ID = "22";
+const GAME_ID = "13";
 
 // --- Constants ---
 const CARD_DISTRIBUTION = {

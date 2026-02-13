@@ -67,7 +67,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const APP_ID = typeof __app_id !== "undefined" ? __app_id : "together-game";
-const GAME_ID = "23";
+const GAME_ID = "14";
 
 // --- Constants ---
 

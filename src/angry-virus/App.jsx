@@ -60,7 +60,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const APP_ID = typeof __app_id !== "undefined" ? __app_id : "angry-virus";
-const GAME_ID = "21";
+const GAME_ID = "11";
 
 // --- Constants ---
 const DECK_START = 3;
