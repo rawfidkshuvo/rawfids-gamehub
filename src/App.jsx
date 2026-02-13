@@ -61,7 +61,11 @@ import {
   Star,
   ChevronDown,
   Hexagon,
+  Loader,
+  Play,
+  RotateCcw,
 } from "lucide-react";
+import CoverImage from "./assets/gamehub_cover.png";
 
 // ---------------------------------------------------------------------------
 // FIREBASE CONFIGURATION
@@ -118,23 +122,24 @@ const logGameClick = async (game) => {
 
   // --- Task 1: Update global click counter ---
   const statsRef = doc(db, "game_stats", `game_${game.id}`);
-  
-  const counterPromise = updateDoc(statsRef, { clicks: increment(1) })
-    .catch(async (err) => {
+
+  const counterPromise = updateDoc(statsRef, { clicks: increment(1) }).catch(
+    async (err) => {
       if (err.code === "not-found") {
         await setDoc(statsRef, { clicks: 1 });
       } else {
         console.error("Failed to update click counter:", err);
       }
-    });
-    
+    },
+  );
+
   tasks.push(counterPromise);
 
   // --- Task 2: Create detailed activity log ---
   try {
     const logsRef = collection(db, "game_click_logs");
     const userId = auth.currentUser ? auth.currentUser.uid : "unknown";
-    
+
     const primaryCategory =
       game.categories && game.categories.length > 0
         ? game.categories[0]
@@ -144,7 +149,7 @@ const logGameClick = async (game) => {
 
     const logPromise = addDoc(logsRef, {
       userId: userId,
-      sessionId: SESSION_ID, 
+      sessionId: SESSION_ID,
       gameId: game.id,
       gameTitle: game.title,
       category: primaryCategory,
@@ -159,7 +164,6 @@ const logGameClick = async (game) => {
     });
 
     tasks.push(logPromise);
-
   } catch (err) {
     console.error("Error preparing log data:", err);
   }
@@ -175,7 +179,8 @@ const INITIAL_GAMES = [
   {
     id: 1,
     title: "Conspiracy",
-    description: "In the gilded halls of power, whispers are deadlier than daggers. A secret cabal moves in the shadows.",
+    description:
+      "In the gilded halls of power, whispers are deadlier than daggers. A secret cabal moves in the shadows.",
     icon: <Eye className="w-12 h-12 text-white" />,
     color: "from-purple-600 to-indigo-900",
     shadow: "shadow-purple-500/50",
@@ -190,7 +195,8 @@ const INITIAL_GAMES = [
   {
     id: 2,
     title: "Investigation",
-    description: "A crime has shattered the peace. Sift through a labyrinth of lies and fragmented clues before the trail goes cold.",
+    description:
+      "A crime has shattered the peace. Sift through a labyrinth of lies and fragmented clues before the trail goes cold.",
     icon: <HatGlasses className="w-12 h-12 text-white" />,
     color: "from-green-600 to-cyan-800",
     shadow: "shadow-green-500/50",
@@ -205,7 +211,8 @@ const INITIAL_GAMES = [
   {
     id: 3,
     title: "Police Hunt",
-    description: "Sirens wail as the city goes into lockdown. Coordinate the dragnet to trap the target.",
+    description:
+      "Sirens wail as the city goes into lockdown. Coordinate the dragnet to trap the target.",
     icon: <Siren className="w-12 h-12 text-white" />,
     color: "from-red-700 to-blue-900",
     shadow: "shadow-red-500/50",
@@ -220,7 +227,8 @@ const INITIAL_GAMES = [
   {
     id: 4,
     title: "Emperor",
-    description: "Navigate the cutthroat politics of the court and command armies to seize the seven kingdoms.",
+    description:
+      "Navigate the cutthroat politics of the court and command armies to seize the seven kingdoms.",
     icon: <Crown className="w-12 h-12 text-white" />,
     color: "from-yellow-500 to-amber-700",
     shadow: "shadow-amber-500/50",
@@ -235,7 +243,8 @@ const INITIAL_GAMES = [
   {
     id: 5,
     title: "Pirates",
-    description: "Hoist the black flag. Bluff your way out of a tight spot, fight for every doubloon, and plunder your rivals.",
+    description:
+      "Hoist the black flag. Bluff your way out of a tight spot, fight for every doubloon, and plunder your rivals.",
     icon: <Ship className="w-12 h-12 text-white" />,
     color: "from-red-600 to-orange-800",
     shadow: "shadow-orange-500/50",
@@ -250,7 +259,8 @@ const INITIAL_GAMES = [
   {
     id: 6,
     title: "Fruit Seller",
-    description: "The bazaar is alive with commerce. Use cunning psychology to outwit your rivals and corner the market.",
+    description:
+      "The bazaar is alive with commerce. Use cunning psychology to outwit your rivals and corner the market.",
     icon: <Citrus className="w-12 h-12 text-white" />,
     color: "from-orange-500 to-red-600",
     shadow: "shadow-orange-500/50",
@@ -265,7 +275,8 @@ const INITIAL_GAMES = [
   {
     id: 7,
     title: "Ghost Dice",
-    description: "Step into a spectral tavern where souls are currency. Bid on the unknown and challenge the liars.",
+    description:
+      "Step into a spectral tavern where souls are currency. Bid on the unknown and challenge the liars.",
     icon: <Dices className="w-12 h-12 text-white" />,
     color: "from-indigo-500 to-zinc-700",
     shadow: "shadow-indigo-500/50",
@@ -280,7 +291,8 @@ const INITIAL_GAMES = [
   {
     id: 8,
     title: "Protocol: Sabotage",
-    description: "The system is compromised. Identify the saboteurs before the network collapses.",
+    description:
+      "The system is compromised. Identify the saboteurs before the network collapses.",
     icon: <Server className="w-12 h-12 text-white" />,
     color: "from-cyan-600 to-blue-800",
     shadow: "shadow-cyan-500/50",
@@ -295,7 +307,8 @@ const INITIAL_GAMES = [
   {
     id: 9,
     title: "Equilibrium",
-    description: "Forge a world of vibrant biomes and wildlife. Draft terrain tokens and build vertically to shape the landscape.",
+    description:
+      "Forge a world of vibrant biomes and wildlife. Draft terrain tokens and build vertically to shape the landscape.",
     icon: <Hexagon className="w-12 h-12 text-white" />,
     color: "from-emerald-600 to-yellow-950",
     shadow: "shadow-emerald-500/50",
@@ -310,7 +323,8 @@ const INITIAL_GAMES = [
   {
     id: 10,
     title: "Neon Draft",
-    description: "Siphon the best code fragments to build the ultimate cyber-rig. Connect the nodes and optimize throughput.",
+    description:
+      "Siphon the best code fragments to build the ultimate cyber-rig. Connect the nodes and optimize throughput.",
     icon: <Layers className="w-12 h-12 text-white" />,
     color: "from-cyan-400 to-purple-600",
     shadow: "shadow-cyan-500/50",
@@ -325,7 +339,8 @@ const INITIAL_GAMES = [
   {
     id: 12,
     title: "Contraband",
-    description: "The Inspector has eyes like a hawk. Lie to their face and smuggle your illicit goods.",
+    description:
+      "The Inspector has eyes like a hawk. Lie to their face and smuggle your illicit goods.",
     icon: <Package className="w-12 h-12 text-white" />,
     color: "from-emerald-500 to-green-800",
     shadow: "shadow-emerald-500/50",
@@ -340,7 +355,8 @@ const INITIAL_GAMES = [
   {
     id: 15,
     title: "Guild of Shadows",
-    description: "Assemble a team of thieves, assassins, and merchants. Steal gold, protect your assets, and race to 15 gold.",
+    description:
+      "Assemble a team of thieves, assassins, and merchants. Steal gold, protect your assets, and race to 15 gold.",
     icon: <Ghost className="w-12 h-12 text-white" />,
     color: "from-zinc-900 to-purple-900",
     shadow: "shadow-purple-900/50",
@@ -356,7 +372,8 @@ const INITIAL_GAMES = [
   {
     id: 17,
     title: "Masquerade Protocol",
-    description: "You are a rogue AI attending a digital gala. Trade data packets, hack your rivals, and activate your Glitch.",
+    description:
+      "You are a rogue AI attending a digital gala. Trade data packets, hack your rivals, and activate your Glitch.",
     icon: <Cpu className="w-12 h-12 text-white" />,
     color: "from-fuchsia-600 to-cyan-700",
     shadow: "shadow-fuchsia-500/50",
@@ -372,7 +389,8 @@ const INITIAL_GAMES = [
   {
     id: 18,
     title: "Paper Oceans",
-    description: "Craft your hand in this colorful set-collection game. Draft cards, play duo effects, and push your luck.",
+    description:
+      "Craft your hand in this colorful set-collection game. Draft cards, play duo effects, and push your luck.",
     icon: <Origami className="w-12 h-12 text-white" />,
     color: "from-blue-500 to-cyan-400",
     shadow: "shadow-cyan-500/50",
@@ -388,7 +406,8 @@ const INITIAL_GAMES = [
   {
     id: 19,
     title: "Royal Menagerie",
-    description: "The Queen's court is a masquerade of lies. Offer 'gifts' to your rivals—a noble Dog, or a repulsive Rat?",
+    description:
+      "The Queen's court is a masquerade of lies. Offer 'gifts' to your rivals—a noble Dog, or a repulsive Rat?",
     icon: <PawPrint className="w-12 h-12 text-white" />,
     color: "from-purple-600 to-pink-900",
     shadow: "shadow-purple-500/50",
@@ -404,7 +423,8 @@ const INITIAL_GAMES = [
   {
     id: 20,
     title: "Fructose Fury",
-    description: "Pluck sweet victories from the deck, but beware the rot of greed. One duplicate fruit is all it takes.",
+    description:
+      "Pluck sweet victories from the deck, but beware the rot of greed. One duplicate fruit is all it takes.",
     icon: <Banana className="w-12 h-12 text-white" />,
     color: "from-yellow-500 to-orange-600",
     shadow: "shadow-yellow-500/50",
@@ -420,7 +440,8 @@ const INITIAL_GAMES = [
   {
     id: 21,
     title: "Angry Virus",
-    description: "A contagious game of calculated risks. Pass the infection or bite the bullet?",
+    description:
+      "A contagious game of calculated risks. Pass the infection or bite the bullet?",
     icon: <Biohazard className="w-12 h-12 text-white" />,
     color: "from-green-600 to-lime-800",
     shadow: "shadow-lime-500/50",
@@ -436,7 +457,8 @@ const INITIAL_GAMES = [
   {
     id: 22,
     title: "Last of Us",
-    description: "A strategic shedding game. Use even-numbered Antidotes to cage the odd-numbered Zombies.",
+    description:
+      "A strategic shedding game. Use even-numbered Antidotes to cage the odd-numbered Zombies.",
     icon: <Skull className="w-12 h-12 text-white" />,
     color: "from-red-700 to-lime-900",
     shadow: "shadow-red-900/50",
@@ -452,7 +474,8 @@ const INITIAL_GAMES = [
   {
     id: 23,
     title: "Together",
-    description: "Two minds, one silent purpose. Synchronize your strategies without a single word to complete patterns.",
+    description:
+      "Two minds, one silent purpose. Synchronize your strategies without a single word to complete patterns.",
     icon: <Handshake className="w-12 h-12 text-white" />,
     color: "from-pink-600 to-yellow-500",
     shadow: "shadow-pink-500/50",
@@ -467,7 +490,8 @@ const INITIAL_GAMES = [
   {
     id: 24,
     title: "Spectrum",
-    description: "A tactical duel of numerical frequencies. Navigate the shifting colors to win tricks and calibrate your score.",
+    description:
+      "A tactical duel of numerical frequencies. Navigate the shifting colors to win tricks and calibrate your score.",
     icon: <Target className="w-12 h-12 text-white" />,
     color: "from-fuchsia-600 to-indigo-950",
     shadow: "shadow-fuchsia-500/50",
@@ -878,7 +902,7 @@ const GameCard = ({
                   {cat}
                 </span>
               ))}
-              <span className="px-2 py-1 bg-slate-800 text-indigo-300 text-[10px] uppercase font-bold rounded flex items-center gap-1">
+            <span className="px-2 py-1 bg-slate-800 text-indigo-300 text-[10px] uppercase font-bold rounded flex items-center gap-1">
               <Clock size={10} /> {game.duration}
             </span>
             <span
@@ -886,8 +910,8 @@ const GameCard = ({
                 game.complexity === "Hard"
                   ? "text-red-400"
                   : game.complexity === "Medium"
-                  ? "text-yellow-400"
-                  : "text-green-400"
+                    ? "text-yellow-400"
+                    : "text-green-400"
               }`}
             >
               <Zap size={10} /> {game.complexity}
@@ -1031,8 +1055,100 @@ const WebsiteQrModal = ({ isOpen, onClose }) => {
   );
 };
 
+// ---------------------------------------------------------------------------
+// SPLASH SCREEN COMPONENT
+// ---------------------------------------------------------------------------
+const SplashScreen = ({ onStart }) => {
+  // State 1: Image is downloaded and ready to show
+  const [isLoaded, setIsLoaded] = useState(false);
+  // State 2: Button is ready to slide in (after zoom)
+  const [showButton, setShowButton] = useState(false);
+
+  useEffect(() => {
+    // Preload the image
+    const img = new Image();
+    img.src = CoverImage;
+
+    img.onload = () => {
+      // Image is downloaded. Start the show.
+      setIsLoaded(true);
+
+      // Start the 2-second timer for the button *after* image loads
+      setTimeout(() => {
+        setShowButton(true);
+      }, 2000);
+    };
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+      {/* --- LOADING INDICATOR --- */}
+      {!isLoaded && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-50 text-indigo-500/50">
+          <Loader size={48} className="animate-spin mb-4" />
+          <div className="font-mono text-xs tracking-[0.3em] animate-pulse">
+            INITIALIZING AWESOMENESS...
+          </div>
+        </div>
+      )}
+
+      {/* Background Image Container */}
+      <div
+        className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-1000 ${
+          isLoaded ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        <div
+          className={`w-full h-full bg-cover bg-center transition-transform duration-[2000ms] ease-out ${
+            isLoaded ? "scale-100" : "scale-130"
+          }`}
+          style={{ backgroundImage: `url(${CoverImage})` }}
+        />
+        {/* Dark Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+        {/* Pulsing Action Button */}
+        <div
+          className={`transform transition-all duration-1000 ease-out ${
+            showButton
+              ? "translate-y-0 opacity-100"
+              : "translate-y-32 opacity-0"
+          }`}
+        >
+          <button
+            onClick={onStart}
+            className="group relative px-12 py-5 bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/50 hover:border-indigo-400 text-indigo-300 font-black text-2xl tracking-widest rounded-none transform transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] backdrop-blur-md overflow-hidden"
+          >
+            {/* Animated Scanline overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-400/10 to-transparent translate-y-[-100%] animate-[scan_2s_infinite_linear]" />
+
+            <span className="relative z-10 flex items-center gap-3 animate-pulse">
+              ENTER GAMEHUB
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <div className="absolute bottom-4 text-slate-500 text-xs text-center z-10">
+        Developed by <strong>RAWFID K SHUVO</strong>
+      </div>
+
+      <style>{`
+        @keyframes scan {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(200%); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
 // --- MAIN COMPONENT ---
 const GameHub = () => {
+  const [showSplash, setShowSplash] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [playerCount, setPlayerCount] = useState(0);
@@ -1299,6 +1415,12 @@ const GameHub = () => {
     setSelectedComplexity("All");
     setSelectedDuration("All");
   };
+
+  // --- ADD THIS BLOCK HERE ---
+  if (showSplash) {
+    return <SplashScreen onStart={() => setShowSplash(false)} />;
+  }
+  // ---------------------------
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500 selection:text-white relative flex flex-col">
