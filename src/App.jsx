@@ -99,19 +99,37 @@ let globalLocationData = { country: null, city: null };
 // 3. Device Parser
 const getDeviceInfo = () => {
   const ua = navigator.userAgent;
+
   let device = "Desktop";
   let os = "Unknown";
+  let browser = "Unknown";
 
-  if (/Mobi|Android/i.test(ua)) device = "Mobile";
-  else if (/iPad|Tablet/i.test(ua)) device = "Tablet";
+  // ---- Device Type ----
+  if (/tablet|ipad/i.test(ua)) device = "Tablet";
+  else if (/mobi|android/i.test(ua)) device = "Mobile";
 
-  if (ua.includes("Win")) os = "Windows";
-  else if (ua.includes("Mac")) os = "Mac";
-  else if (ua.includes("Linux")) os = "Linux";
-  else if (ua.includes("Android")) os = "Android";
-  else if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS";
+  // ---- OS ----
+  if (/windows nt/i.test(ua)) os = "Windows";
+  else if (/android/i.test(ua)) os = "Android";
+  else if (/iphone|ipad|ipod/i.test(ua)) os = "iOS";
+  else if (/mac os x/i.test(ua)) os = "MacOS";
+  else if (/linux/i.test(ua)) os = "Linux";
 
-  return { device, os, fullAgent: ua };
+  // ---- Browser ----
+  if (/brave/i.test(ua)) browser = "Brave";
+  else if (/edg/i.test(ua)) browser = "Edge";
+  else if (/vivaldi/i.test(ua)) browser = "Vivaldi";
+  else if (/opr|opera/i.test(ua)) browser = "Opera";
+  else if (/firefox|fxios/i.test(ua)) browser = "Firefox";
+  else if (/chrome|crios/i.test(ua)) browser = "Chrome";
+  else if (/safari/i.test(ua)) browser = "Safari";
+
+  return {
+    device,
+    os,
+    browser,
+    fullAgent: ua,
+  };
 };
 
 // ---------------------------------------------------------------------------
@@ -157,7 +175,8 @@ const logGameClick = async (game) => {
       city: globalLocationData.city || "Unknown",
       deviceType: deviceInfo.device,
       os: deviceInfo.os,
-      device: navigator.userAgent,
+      browser: deviceInfo.browser,
+      userAgent: deviceInfo.fullAgent,
       timestamp: serverTimestamp(),
       pageLocation: window.location.pathname,
       referrer: document.referrer || "Direct",
@@ -1181,48 +1200,62 @@ const GameHub = () => {
 
   useEffect(() => {
     const fetchLocation = async () => {
-      // If we already have data (from a previous render), don't fetch again
       if (
-        globalLocationData.country &&
+        globalLocationData?.country &&
         globalLocationData.country !== "Unknown"
       ) {
         locationRef.current = globalLocationData;
         return;
       }
 
+      const providers = [
+        "https://ipwho.is/?fields=success,country,city",
+        "https://ipinfo.io/json",
+        "http://ip-api.com/json/",
+      ];
+
       try {
-        // Primary API
-        let response = await fetch("https://ipwho.is/");
+        for (const url of providers) {
+          try {
+            const res = await fetch(url);
+            const data = await res.json();
 
-        // Backup API if primary fails
-        if (!response.ok) {
-          response = await fetch("https://ipapi.co/json/");
+            const loc = {
+              country:
+                data.country ||
+                data.country_name ||
+                data.countryCode ||
+                "Unknown",
+              city: data.city || "Unknown",
+            };
+
+            if (loc.country !== "Unknown") {
+              locationRef.current = loc;
+              globalLocationData = loc;
+              localStorage.setItem("geo", JSON.stringify(loc));
+              console.log("Location initialized:", loc);
+              return;
+            }
+          } catch (e) {}
         }
 
-        const data = await response.json();
-
-        if (data.success || data.city) {
-          const loc = {
-            country: data.country || data.country_name || "Unknown",
-            city: data.city || "Unknown",
-          };
-
-          // 1. Update the Ref (for React)
-          locationRef.current = loc;
-
-          // 2. Update the Global Variable (for your logGameClick function)
-          globalLocationData = loc;
-
-          console.log("Location initialized:", loc);
-        }
-      } catch (error) {
-        console.warn(
-          "Location fetch failed (likely AdBlock or Rate Limit). Defaulting to Unknown.",
-        );
+        throw new Error("All providers failed");
+      } catch {
+        const fallback = { country: "Unknown", city: "Unknown" };
+        locationRef.current = fallback;
+        globalLocationData = fallback;
+        console.warn("Location fetch failed. Using Unknown.");
       }
     };
 
-    fetchLocation();
+    const cached = localStorage.getItem("geo");
+    if (cached) {
+      const loc = JSON.parse(cached);
+      locationRef.current = loc;
+      globalLocationData = loc;
+    } else {
+      fetchLocation();
+    }
 
     const storedFavs = localStorage.getItem("gamehub_favorites");
     if (storedFavs) {
