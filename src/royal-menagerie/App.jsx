@@ -169,7 +169,7 @@ const GameGuideModal = ({ onClose }) => (
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 text-gray-300">
-        <div className="bg-linear-to-r from-purple-900/30 to-pink-900/30 p-4 md:p-6 rounded-2xl border border-purple-700/30">
+        <div className="bg-linear-to-r from-pink-900/30 to-pink-900/30 p-4 md:p-6 rounded-2xl border border-pink-700/30">
           <h3 className="text-xl md:text-2xl font-bold text-white mb-3 flex items-center gap-3">
             <Trophy className="text-yellow-400" size={24} /> The Objective
           </h3>
@@ -189,7 +189,7 @@ const GameGuideModal = ({ onClose }) => (
 
         <div>
           <h3 className="text-xl md:text-2xl font-bold text-white mb-6 flex items-center gap-3">
-            <MessageSquare className="text-purple-400" size={24} /> Gameplay
+            <MessageSquare className="text-pink-400" size={24} /> Gameplay
           </h3>
           <div className="space-y-4 border-l-2 border-gray-700 ml-4 pl-4">
             <div>
@@ -221,7 +221,7 @@ const GameGuideModal = ({ onClose }) => (
       <div className="p-4 bg-gray-800 border-t border-gray-700 text-center sticky bottom-0">
         <button
           onClick={onClose}
-          className="bg-purple-600 hover:bg-purple-500 text-white px-10 py-3 rounded-xl font-bold text-lg shadow-xl"
+          className="bg-pink-600 hover:bg-pink-500 text-white px-10 py-3 rounded-xl font-bold text-lg shadow-xl"
         >
           Enter the Court
         </button>
@@ -285,9 +285,7 @@ const FeedbackOverlay = ({ type, message, subtext, icon: Icon }) => (
       }
       ${type === "failure" ? "bg-red-900/90 border-red-500 text-red-100" : ""}
       ${
-        type === "neutral"
-          ? "bg-purple-900/90 border-purple-500 text-purple-100"
-          : ""
+        type === "neutral" ? "bg-pink-900/90 border-pink-500 text-pink-100" : ""
       }
     `}
     >
@@ -355,7 +353,7 @@ const FloatingBackground = ({ isShaking }) => (
 const Logo = () => (
   <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10">
     <PawPrint size={12} className="text-purple-500" />
-    <span className="text-[10px] font-black tracking-widest text-purple-500 uppercase">
+    <span className="text-[10px] font-black tracking-widest text-pink-500 uppercase">
       ROYAL MENAGERIE
     </span>
   </div>
@@ -364,7 +362,7 @@ const Logo = () => (
 const LogoBig = () => (
   <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10">
     <PawPrint size={20} className="text-purple-500" />
-    <span className="text-[20px] font-black tracking-widest text-purple-500 uppercase">
+    <span className="text-[20px] font-black tracking-widest text-pink-500 uppercase">
       ROYAL MENAGERIE
     </span>
   </div>
@@ -372,14 +370,14 @@ const LogoBig = () => (
 
 const InfoModal = ({ title, text, onClose, type = "info", card = null }) => (
   <div className="fixed inset-0 bg-black/90 z-150 flex items-center justify-center p-4 animate-in fade-in">
-    <div className="bg-gray-800 border-2 border-purple-600 rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
+    <div className="bg-gray-800 border-2 border-pink-600 rounded-xl p-6 w-full max-w-sm shadow-2xl relative">
       <div className="flex flex-col items-center text-center gap-4">
         {type === "error" ? (
           <AlertTriangle className="text-red-500 w-12 h-12" />
         ) : type === "loss" ? (
           <Skull className="text-red-500 w-12 h-12 animate-bounce" />
         ) : (
-          <Info className="text-purple-400 w-12 h-12" />
+          <Info className="text-pink-400 w-12 h-12" />
         )}
         <h3 className="text-2xl font-bold text-white">{title}</h3>
         <p className="text-gray-300 text-lg">{text}</p>
@@ -393,7 +391,7 @@ const InfoModal = ({ title, text, onClose, type = "info", card = null }) => (
         )}
         <button
           onClick={onClose}
-          className="w-full py-3 rounded-lg font-bold text-white bg-purple-600 hover:bg-purple-500 transition-colors"
+          className="w-full py-3 rounded-lg font-bold text-white bg-pink-600 hover:bg-pink-500 transition-colors"
         >
           {type === "loss" ? "Accept Fate" : "Understood"}
         </button>
@@ -421,8 +419,8 @@ const InteractionModal = ({ turnState, players, currentUserId }) => {
 
   return (
     <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-80 pointer-events-none animate-in fade-in zoom-in">
-      <div className="bg-gray-900/90 border-2 border-purple-500/50 backdrop-blur-md p-4 rounded-2xl shadow-[0_0_30px_rgba(168,85,247,0.3)] flex flex-col items-center gap-3 w-64 md:w-80">
-        <div className="flex items-center gap-2 text-purple-300 text-xs font-bold uppercase tracking-widest">
+      <div className="bg-gray-900/90 border-2 border-pink-500/50 backdrop-blur-md p-4 rounded-2xl shadow-[0_0_30px_rgba(168,85,247,0.3)] flex flex-col items-center gap-3 w-64 md:w-80">
+        <div className="flex items-center gap-2 text-pink-300 text-xs font-bold uppercase tracking-widest">
           <Eye size={14} className="animate-pulse" /> Live Interaction
         </div>
 
@@ -437,8 +435,8 @@ const InteractionModal = ({ turnState, players, currentUserId }) => {
           </div>
 
           <div className="flex flex-col items-center px-2">
-            <ArrowRight className="text-purple-500 animate-pulse" />
-            <span className="text-[10px] text-purple-400 font-bold mt-1">
+            <ArrowRight className="text-pink-500 animate-pulse" />
+            <span className="text-[10px] text-pink-400 font-bold mt-1">
               OFFERS
             </span>
           </div>
@@ -484,7 +482,7 @@ const CardDisplay = ({
     return (
       <div
         onClick={onClick}
-        className={`relative rounded-xl border-2 border-purple-800 bg-purple-950 shadow-lg flex items-center justify-center
+        className={`relative rounded-xl border-2 border-pink-800 bg-pink-950 shadow-lg flex items-center justify-center
             ${small ? "w-12 h-16" : "w-24 h-36 md:w-32 md:h-48"} 
             ${
               disabled
@@ -492,7 +490,7 @@ const CardDisplay = ({
                 : "cursor-pointer hover:scale-105 transition-transform"
             }`}
       >
-        <Cat className="text-purple-700 opacity-20" size={small ? 16 : 48} />
+        <Cat className="text-pink-700 opacity-20" size={small ? 16 : 48} />
       </div>
     );
   }
@@ -578,7 +576,7 @@ const LogViewer = ({ logs, onClose }) => (
 // --- UPDATED SPLASH SCREEN (With Loading Indicator) ---
 const SplashScreen = ({ onStart }) => {
   const [hasSession, setHasSession] = useState(false);
-  
+
   // State 1: Image is downloaded and ready to show
   const [isLoaded, setIsLoaded] = useState(false);
   // State 2: Button is ready to slide in (after zoom)
@@ -586,7 +584,7 @@ const SplashScreen = ({ onStart }) => {
 
   useEffect(() => {
     // 1. Check Session immediately
-    const saved = localStorage.getItem("royal_menagerie_roomId"); 
+    const saved = localStorage.getItem("royal_menagerie_roomId");
     setHasSession(!!saved);
 
     // 2. Preload the image
@@ -606,7 +604,6 @@ const SplashScreen = ({ onStart }) => {
 
   return (
     <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
-      
       {/* --- NEW: LOADING INDICATOR --- */}
       {/* This shows only while the image is NOT loaded yet */}
       {!isLoaded && (
@@ -620,10 +617,12 @@ const SplashScreen = ({ onStart }) => {
 
       {/* Background Image Container */}
       {/* Opacity 0 -> 100 ensures a smooth fade-in once loaded */}
-      <div className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-1000 ${isLoaded ? "opacity-100" : "opacity-0"}`}>
+      <div
+        className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-1000 ${isLoaded ? "opacity-100" : "opacity-0"}`}
+      >
         <div
           className={`w-full h-full bg-cover bg-center transition-transform duration-[2000ms] ease-out ${
-            isLoaded ? "scale-100" : "scale-130" 
+            isLoaded ? "scale-100" : "scale-130"
           }`}
           style={{ backgroundImage: `url(${CoverImage})` }}
         />
@@ -633,13 +632,12 @@ const SplashScreen = ({ onStart }) => {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-        
         {/* Pulsing Action Button */}
         <div
           className={`transform transition-all duration-1000 ease-out ${
             showButton
-              ? "translate-y-0 opacity-100"    
-              : "translate-y-32 opacity-0"     
+              ? "translate-y-0 opacity-100"
+              : "translate-y-32 opacity-0"
           }`}
         >
           <button
@@ -662,6 +660,11 @@ const SplashScreen = ({ onStart }) => {
             </span>
           </button>
         </div>
+      </div>
+      <div className="absolute bottom-4 text-slate-600 text-xs text-center">
+        Inspired by Cockroach Poker. A tribute game.
+        <br />
+        Developed by <strong>RAWFID K SHUVO</strong>.
       </div>
 
       <style>{`
@@ -1254,7 +1257,7 @@ export default function RoyalMenagerie() {
 
   if (!user)
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-purple-500 animate-pulse">
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-pink-500 animate-pulse">
         Openning cages...
       </div>
     );
@@ -1265,7 +1268,7 @@ export default function RoyalMenagerie() {
       <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4">
         <FloatingBackground />
         <div className="bg-zinc-900/80 backdrop-blur p-8 rounded-2xl border border-zinc-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
-          <Loader size={48} className="text-purple-500 animate-spin" />
+          <Loader size={48} className="text-pink-500 animate-spin" />
           <div className="text-center">
             <h2 className="text-xl font-bold">Reconnecting...</h2>
             <p className="text-zinc-400 text-sm">Resuming your session</p>
@@ -1289,8 +1292,8 @@ export default function RoyalMenagerie() {
         <nav className="absolute top-0 left-0 w-full p-4 z-50">
           <a
             href={import.meta.env.BASE_URL}
-            className="flex items-center gap-2 text-purple-800 rounded-lg 
-			font-bold shadow-md hover:text-purple-400 transition-colors w-fit animate-pulse"
+            className="flex items-center gap-2 text-pink-800 rounded-lg 
+			font-bold shadow-md hover:text-pink-400 transition-colors w-fit animate-pulse"
           >
             {/* Arrow Icon */}
             <StepBack />
@@ -1312,14 +1315,14 @@ export default function RoyalMenagerie() {
           </p>
         </div>
 
-        <div className="bg-gray-900/80 backdrop-blur border border-purple-500/30 p-8 rounded-2xl w-full max-w-md shadow-2xl z-10">
+        <div className="bg-gray-900/80 backdrop-blur border border-pink-500/30 p-8 rounded-2xl w-full max-w-md shadow-2xl z-10">
           {error && (
             <div className="bg-red-900/50 text-red-200 p-2 mb-4 rounded text-center text-sm border border-red-800">
               {error}
             </div>
           )}
           <input
-            className="w-full bg-black/50 border border-gray-600 p-3 rounded mb-4 text-white placeholder-gray-500 focus:border-purple-500 outline-none transition-colors"
+            className="w-full bg-black/50 border border-gray-600 p-3 rounded mb-4 text-white placeholder-gray-500 focus:border-pink-500 outline-none transition-colors"
             placeholder="Your Title (Name)"
             value={playerName}
             onChange={(e) => setPlayerName(e.target.value)}
@@ -1328,14 +1331,14 @@ export default function RoyalMenagerie() {
           <button
             onClick={createRoom}
             disabled={loading}
-            className="w-full bg-linear-to-r from-purple-700 to-purple-600 hover:from-purple-600 hover:to-purple-500 p-4 rounded font-bold mb-4 flex items-center justify-center gap-2 border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] transition-all"
+            className="w-full bg-linear-to-r from-pink-700 to-pink-600 hover:from-pink-600 hover:to-pink-500 p-4 rounded font-bold mb-4 flex items-center justify-center gap-2 border border-pink-500/30 shadow-[0_0_15px_rgba(168,85,247,0.2)] transition-all"
           >
             <Crown size={20} /> Establish Court
           </button>
 
           <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <input
-              className="w-full sm:flex-1 bg-black/50 border border-gray-600 p-3 rounded text-white placeholder-gray-500 uppercase font-mono tracking-wider focus:border-purple-500 outline-none"
+              className="w-full sm:flex-1 bg-black/50 border border-gray-600 p-3 rounded text-white placeholder-gray-500 uppercase font-mono tracking-wider focus:border-pink-500 outline-none"
               placeholder="CODE"
               value={roomCodeInput}
               onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
@@ -1354,20 +1357,6 @@ export default function RoyalMenagerie() {
           >
             <BookOpen size={16} /> Royal Guide
           </button>
-        </div>
-        <div className="absolute bottom-4 text-slate-600 text-xs text-center">
-          Inspired by Cockroach Poker. A tribute game.
-          <br />
-          Developed by <strong>RAWFID K SHUVO</strong>. Visit{" "}
-          <a
-            href={import.meta.env.BASE_URL}
-            //target="_blank"
-            rel="noopener noreferrer"
-            className="text-purple-500 underline hover:text-purple-600"
-          >
-            GAMEHUB
-          </a>{" "}
-          for more games.
         </div>
       </div>
     );
@@ -1391,11 +1380,11 @@ export default function RoyalMenagerie() {
             inGame={false}
           />
         )}
-        <div className="z-10 w-full max-w-lg bg-gray-900/90 backdrop-blur p-8 rounded-2xl border border-purple-900/50 shadow-2xl mb-4">
+        <div className="z-10 w-full max-w-lg bg-gray-900/90 backdrop-blur p-8 rounded-2xl border border-pink-900/50 shadow-2xl mb-4">
           <div className="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
             {/* Grouping Title and Copy Button together on the left */}
             <div>
-              <h2 className="text-lg md:text-xl text-purple-400 font-bold uppercase">
+              <h2 className="text-lg md:text-xl text-pink-400 font-bold uppercase">
                 Court Room
               </h2>
 
@@ -1421,7 +1410,7 @@ export default function RoyalMenagerie() {
 
                   {/* 3. The Copied Popup */}
                   {isCopied && (
-                    <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-purple-500 text-black text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">
+                    <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-pink-500 text-black text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">
                       Copied!
                     </div>
                   )}
@@ -1444,7 +1433,7 @@ export default function RoyalMenagerie() {
               >
                 <span
                   className={`font-bold flex items-center gap-2 ${
-                    p.id === user.uid ? "text-purple-400" : "text-gray-300"
+                    p.id === user.uid ? "text-pink-400" : "text-gray-300"
                   }`}
                 >
                   {p.id === gameState.hostId && (
@@ -1485,7 +1474,7 @@ export default function RoyalMenagerie() {
                 : "Start the Masquerade"}
             </button>
           ) : (
-            <div className="text-center text-purple-400/60 animate-pulse font-serif italic">
+            <div className="text-center text-pink-400/60 animate-pulse font-serif italic">
               The Host is preparing the deck...
             </div>
           )}
@@ -1549,7 +1538,7 @@ export default function RoyalMenagerie() {
 
         {/* Top Bar */}
         <div className="h-14 bg-gray-900/80 border-b border-gray-800 flex items-center justify-between px-4 z-160 backdrop-blur-md sticky top-0">
-          <span className="font-serif text-purple-500 font-bold tracking-wider">
+          <span className="font-serif text-pink-500 font-bold tracking-wider">
             ROYAL MENAGERIE
           </span>
           <div className="flex gap-2">
@@ -1563,7 +1552,7 @@ export default function RoyalMenagerie() {
               onClick={() => setShowLogs(!showLogs)}
               className={`p-2 rounded-full ${
                 showLogs
-                  ? "bg-purple-900 text-purple-400"
+                  ? "bg-pink-900 text-pink-400"
                   : "text-gray-400 hover:bg-gray-800"
               }`}
             >
@@ -1823,7 +1812,7 @@ export default function RoyalMenagerie() {
                                                                 ${
                                                                   declaredAnimal ===
                                                                   k
-                                                                    ? "bg-purple-600 border-purple-400 text-white scale-105 shadow-lg"
+                                                                    ? "bg-pink-600 border-pink-400 text-white scale-105 shadow-lg"
                                                                     : "bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700"
                                                                 }
                                                                `}
@@ -1909,7 +1898,7 @@ export default function RoyalMenagerie() {
                                                                 ${
                                                                   declaredAnimal ===
                                                                   k
-                                                                    ? "bg-purple-600 border-purple-400 text-white scale-105 shadow-lg"
+                                                                    ? "bg-pink-600 border-pink-400 text-white scale-105 shadow-lg"
                                                                     : "bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700"
                                                                 }
                                                                `}
@@ -1953,7 +1942,7 @@ export default function RoyalMenagerie() {
                 </h3>
                 <p className="text-center text-gray-300 mb-6 text-lg">
                   "This is a{" "}
-                  <strong className="text-purple-400 text-xl uppercase">
+                  <strong className="text-pink-400 text-xl uppercase">
                     {ANIMALS[gameState.turnState.declaredType].name}
                   </strong>
                   ."
@@ -1993,11 +1982,11 @@ export default function RoyalMenagerie() {
           )}
 
           {/* Action Area (Bottom Sheet) - Now just the Hand */}
-          <div className="w-full max-w-4xl bg-gray-900/95 p-4 rounded-t-3xl border-t border-purple-900/50 backdrop-blur-md">
+          <div className="w-full max-w-4xl bg-gray-900/95 p-4 rounded-t-3xl border-t border-pink-900/50 backdrop-blur-md">
             {myPlayer && (
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 mb-2">
-                  <User className="text-purple-400" size={16} />
+                  <User className="text-pink-400" size={16} />
                   <span className="font-bold text-gray-300">My Hand</span>
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">

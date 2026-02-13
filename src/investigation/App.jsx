@@ -905,7 +905,7 @@ const RoleCard = ({ role }) => {
 // --- UPDATED SPLASH SCREEN (With Loading Indicator) ---
 const SplashScreen = ({ onStart }) => {
   const [hasSession, setHasSession] = useState(false);
-  
+
   // State 1: Image is downloaded and ready to show
   const [isLoaded, setIsLoaded] = useState(false);
   // State 2: Button is ready to slide in (after zoom)
@@ -913,7 +913,7 @@ const SplashScreen = ({ onStart }) => {
 
   useEffect(() => {
     // 1. Check Session immediately
-    const saved = localStorage.getItem("investigation_roomId"); 
+    const saved = localStorage.getItem("investigation_roomId");
     setHasSession(!!saved);
 
     // 2. Preload the image
@@ -933,7 +933,6 @@ const SplashScreen = ({ onStart }) => {
 
   return (
     <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
-      
       {/* --- NEW: LOADING INDICATOR --- */}
       {/* This shows only while the image is NOT loaded yet */}
       {!isLoaded && (
@@ -947,10 +946,12 @@ const SplashScreen = ({ onStart }) => {
 
       {/* Background Image Container */}
       {/* Opacity 0 -> 100 ensures a smooth fade-in once loaded */}
-      <div className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-1000 ${isLoaded ? "opacity-100" : "opacity-0"}`}>
+      <div
+        className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-1000 ${isLoaded ? "opacity-100" : "opacity-0"}`}
+      >
         <div
           className={`w-full h-full bg-cover bg-center transition-transform duration-[2000ms] ease-out ${
-            isLoaded ? "scale-100" : "scale-130" 
+            isLoaded ? "scale-100" : "scale-130"
           }`}
           style={{ backgroundImage: `url(${CoverImage})` }}
         />
@@ -960,13 +961,12 @@ const SplashScreen = ({ onStart }) => {
 
       {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-        
         {/* Pulsing Action Button */}
         <div
           className={`transform transition-all duration-1000 ease-out ${
             showButton
-              ? "translate-y-0 opacity-100"    
-              : "translate-y-32 opacity-0"     
+              ? "translate-y-0 opacity-100"
+              : "translate-y-32 opacity-0"
           }`}
         >
           <button
@@ -989,6 +989,11 @@ const SplashScreen = ({ onStart }) => {
             </span>
           </button>
         </div>
+      </div>
+      <div className="absolute bottom-4 text-slate-600 text-xs text-center">
+        Inspired by Deception: Murder in Hongkong. A tribute game.
+        <br />
+        Developed by <strong>RAWFID K SHUVO</strong>.
       </div>
 
       <style>{`
@@ -1761,20 +1766,6 @@ export default function InvestigationGame() {
           >
             <BookOpen size={16} /> Penal Codes
           </button>
-        </div>
-        <div className="absolute bottom-4 text-slate-600 text-xs text-center">
-          Inspired by Deception: Murder in Hongkong. A tribute game.
-          <br />
-          Developed by <strong>RAWFID K SHUVO</strong>. Visit{" "}
-          <a
-            href={import.meta.env.BASE_URL}
-            //target="_blank"
-            rel="noopener noreferrer"
-            className="text-emerald-500 underline hover:text-emerald-600"
-          >
-            GAMEHUB
-          </a>{" "}
-          for more games.
         </div>
       </div>
     );
