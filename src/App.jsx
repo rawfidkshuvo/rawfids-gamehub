@@ -1296,10 +1296,11 @@ const GameHub = () => {
               country:
                 data.country ||
                 data.country_name ||
+                data.countryName ||
                 data.countryCode ||
                 data.country_code ||
                 "Unknown",
-              city: data.city || "Unknown",
+              city: data.city || data.region || data.regionName || "Unknown",
             };
 
             if (loc.country !== "Unknown") {
