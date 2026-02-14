@@ -2032,13 +2032,7 @@ export default function NeonDraftGame() {
                     return (
                       <div
                         key={i}
-                        className={`w-6 h-6 rounded-md border border-slate-600 flex items-center justify-center ${
-                          info?.color
-                            ? info.color
-                                .replace("text", "bg")
-                                .replace("400", "900")
-                            : "bg-slate-800"
-                        } bg-opacity-30`}
+                        className={`w-6 h-6 rounded-md ${info.color} border border-${info.color} flex items-center justify-center  bg-opacity-30`}
                       >
                         <Icon size={12} className={info?.color} />
                       </div>
