@@ -158,6 +158,10 @@ const logGameClick = async (game) => {
     const logsRef = collection(db, "game_click_logs");
     const userId = auth.currentUser ? auth.currentUser.uid : "unknown";
 
+    // Retrieve name from storage (defaults to "Anonymous" if missing)
+    const storedName =
+      localStorage.getItem("gameHub_playerName") || "Anonymous";
+
     const primaryCategory =
       game.categories && game.categories.length > 0
         ? game.categories[0]
@@ -167,6 +171,7 @@ const logGameClick = async (game) => {
 
     const logPromise = addDoc(logsRef, {
       userId: userId,
+      playerName: storedName, // <--- ADDED THIS FIELD
       sessionId: SESSION_ID,
       gameId: game.id,
       gameTitle: game.title,
@@ -1080,8 +1085,18 @@ const WebsiteQrModal = ({ isOpen, onClose }) => {
 const SplashScreen = ({ onStart }) => {
   // State 1: Image is downloaded and ready to show
   const [isLoaded, setIsLoaded] = useState(false);
-  // State 2: Button is ready to slide in (after zoom)
-  const [showButton, setShowButton] = useState(false);
+  // State 2: Animation Triggers
+  const [showInput, setShowInput] = useState(false); // Slides in first
+  const [showButton, setShowButton] = useState(false); // Slides in second
+
+  // State 3: Player Name Logic
+  const [playerName, setPlayerName] = useState(() => {
+    return localStorage.getItem("gameHub_playerName") || "";
+  });
+  const [hasStoredName, setHasStoredName] = useState(() => {
+    return !!localStorage.getItem("gameHub_playerName");
+  });
+  const [inputError, setInputError] = useState(false);
 
   useEffect(() => {
     // Preload the image
@@ -1092,12 +1107,34 @@ const SplashScreen = ({ onStart }) => {
       // Image is downloaded. Start the show.
       setIsLoaded(true);
 
-      // Start the 2-second timer for the button *after* image loads
+      // 1. Show Input/Message after 2 seconds
+      setTimeout(() => {
+        setShowInput(true);
+      }, 2000);
+
+      // Start the 2-second timer for the content *after* image loads
       setTimeout(() => {
         setShowButton(true);
-      }, 2000);
+      }, 2600);
     };
   }, []);
+
+  const handleStart = () => {
+    // If inputting a new name, ensure it's not empty
+    if (!hasStoredName && !playerName.trim()) {
+      setInputError(true);
+      return;
+    }
+    // Save name and start
+    if (playerName.trim()) {
+      localStorage.setItem("gameHub_playerName", playerName.trim());
+    }
+    onStart();
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") handleStart();
+  };
 
   return (
     <div className="fixed inset-0 z-[9999] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
@@ -1128,17 +1165,49 @@ const SplashScreen = ({ onStart }) => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-        {/* Pulsing Action Button */}
+      <div className="relative z-10 flex flex-col items-center gap-6 w-full max-w-md px-6">
+        {/* --- 1. INPUT FIELD OR WELCOME MESSAGE (Slides in First) --- */}
+        <div
+          className={`w-full flex justify-center transform transition-all duration-1000 ease-out ${
+            showInput ? "translate-y-0 opacity-100" : "translate-y-16 opacity-0"
+          }`}
+        >
+          {hasStoredName ? (
+            <div className="text-indigo-200 font-black tracking-widest text-xl text-center uppercase drop-shadow-md mb-2">
+              WELCOME BACK
+              <br />
+              <span className="text-indigo-400">{playerName}</span>
+            </div>
+          ) : (
+            <div className="relative w-full max-w-xs md:max-w-sm">
+              <input
+                type="text"
+                value={playerName}
+                onChange={(e) => setPlayerName(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="ENTER NICKNAME"
+                className="w-full px-8 py-4 bg-indigo-600/20 border border-indigo-500/50 text-indigo-400 font-black text-m tracking-widest rounded-none outline-none text-center placeholder-indigo-200/40 focus:bg-indigo-600/30 focus:border-indigo-400 transition-all"
+                autoFocus={showInput}
+              />
+              {inputError && (
+                <div className="absolute bottom-16 left-0 right-0 text-center text-indigo-200 text-s font-bold animate-bounce">
+                  NAME REQUIRED
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* --- ORIGINAL BUTTON (UNCHANGED) --- */}
         <div
           className={`transform transition-all duration-1000 ease-out ${
             showButton
               ? "translate-y-0 opacity-100"
-              : "translate-y-32 opacity-0"
+              : "translate-y-16 opacity-0"
           }`}
         >
           <button
-            onClick={onStart}
+            onClick={handleStart}
             className="group relative px-12 py-5 bg-indigo-600/20 hover:bg-indigo-600/40 border border-indigo-500/50 hover:border-indigo-400 text-indigo-300 font-black text-2xl tracking-widest rounded-none transform transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(99,102,241,0.4)] backdrop-blur-md overflow-hidden"
           >
             {/* Animated Scanline overlay */}
