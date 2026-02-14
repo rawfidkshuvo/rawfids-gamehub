@@ -1278,15 +1278,18 @@ const GameHub = () => {
       }
 
       const providers = [
-      "https://ipapi.co/json/",      // Best first
-      "https://ipinfo.io/json/",
-      "https://ipwho.is/",
-    ];
+        "https://ipapi.co/json/",
+        "https://ipinfo.io/json/",
+        "https://freeipapi.com/api/json/",
+        "https://geolocation-db.com/json/",
+        "https://ipwho.is/",
+      ];
 
       try {
         for (const url of providers) {
           try {
             const res = await fetch(url);
+            if (!res.ok) continue; // 👈 BIG upgrade
             const data = await res.json();
 
             const loc = {
