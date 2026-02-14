@@ -1278,9 +1278,10 @@ const GameHub = () => {
       }
 
       const providers = [
-        "https://ipwho.is/?fields=success,country,city",
-        "https://ipinfo.io/json",
-      ];
+      "https://ipapi.co/json/",      // Best first
+      "https://ipinfo.io/json/",
+      "https://ipwho.is/",
+    ];
 
       try {
         for (const url of providers) {
@@ -1293,6 +1294,7 @@ const GameHub = () => {
                 data.country ||
                 data.country_name ||
                 data.countryCode ||
+                data.country_code ||
                 "Unknown",
               city: data.city || "Unknown",
             };
