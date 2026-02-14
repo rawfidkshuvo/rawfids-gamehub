@@ -1280,7 +1280,6 @@ const GameHub = () => {
       const providers = [
         "https://ipwho.is/?fields=success,country,city",
         "https://ipinfo.io/json",
-        "http://ip-api.com/json/",
       ];
 
       try {
