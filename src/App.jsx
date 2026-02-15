@@ -162,11 +162,6 @@ const logGameClick = async (game) => {
     const storedName =
       localStorage.getItem("gameHub_playerName") || "Anonymous";
 
-    const primaryCategory =
-      game.categories && game.categories.length > 0
-        ? game.categories[0]
-        : "Uncategorized";
-
     const deviceInfo = getDeviceInfo();
 
     const logPromise = addDoc(logsRef, {
@@ -175,7 +170,7 @@ const logGameClick = async (game) => {
       sessionId: SESSION_ID,
       gameId: game.id,
       gameTitle: game.title,
-      category: primaryCategory,
+      categories: game.categories || [], // <--- NEW FIELD: Pushes the entire array
       country: globalLocationData.country || "Unknown",
       city: globalLocationData.city || "Unknown",
       deviceType: deviceInfo.device,
