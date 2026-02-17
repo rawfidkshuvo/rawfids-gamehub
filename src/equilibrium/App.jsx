@@ -88,6 +88,7 @@ import {
   Origami,
   ChartNoAxesGantt,
   RotateCcw,
+  Repeat1,
 } from "lucide-react";
 
 import CoverImage from "./assets/harmony_cover.png";
@@ -575,7 +576,9 @@ const ANIMALS = {
     },
     check: (cell, board) =>
       checkStack(cell, ["SAND"]) &&
-      checkAnyNeighbor(board, cell.q, cell.r, (n) => checkStack(n, ["WOOD", "WOOD", "LEAF"])),
+      checkAnyNeighbor(board, cell.q, cell.r, (n) =>
+        checkStack(n, ["WOOD", "WOOD", "LEAF"]),
+      ),
   },
   BEAR: {
     id: "BEAR",
@@ -1110,7 +1113,9 @@ const ANIMALS = {
     },
     check: (cell, board) =>
       checkStack(cell, ["STONE"]) &&
-      checkAnyNeighbor(board, cell.q, cell.r, (n) => checkStack(n, ["STONE", "STONE", "STONE"])),
+      checkAnyNeighbor(board, cell.q, cell.r, (n) =>
+        checkStack(n, ["STONE", "STONE", "STONE"]),
+      ),
   },
   HORSE: {
     id: "HORSE",
@@ -2585,6 +2590,25 @@ export default function Equilibrium() {
     setShowLeaveConfirm(false);
   };
 
+  const willGetLastTurn = (playerIdx) => {
+    if (!gameState?.isLastRound || gameState.status === "finished")
+      return false;
+
+    const current = gameState.turnIndex;
+    const starter = gameState.startPlayerIndex;
+
+    // The starter never gets another turn once isLastRound is true
+    if (playerIdx === starter) return false;
+
+    if (current < starter) {
+      // Standard case: Turn is at 0, ends at 2. Players 0 and 1 get a turn.
+      return playerIdx >= current && playerIdx < starter;
+    } else {
+      // Wrap-around case: Turn is at 2, ends at 1. Players 2, 3, and 0 get a turn.
+      return playerIdx >= current || playerIdx < starter;
+    }
+  };
+
   // --- NEW: SHARED PALETTE STATE ---
   const togglePalette = async (type) => {
     // 1. Optimistic Local Update
@@ -3412,6 +3436,7 @@ export default function Equilibrium() {
           <div className="absolute top-2 md:top-4 left-0 right-0 z-10 grid grid-cols-4 gap-1 px-2 w-full max-w-2xl mx-auto pointer-events-auto">
             {gameState.players.map((p, i) => {
               const isTurn = gameState.turnIndex === i;
+              const hasFinalMove = willGetLastTurn(i); // Using our new helper
               const totalScore =
                 (p.score || 0) +
                 (p.landscapeScore || 0) -
@@ -3431,6 +3456,15 @@ export default function Equilibrium() {
           }
         `}
                 >
+                  {/* --- NEW: FINAL CHANCE INDICATOR --- */}
+                  {hasFinalMove && (
+                    <div className="absolute -top-2 -left-1 z-30">
+                      <div className="bg-amber-500 text-slate-950 p-1 rounded-md shadow-lg border border-amber-200 animate-pulse">
+                        <Repeat1 size={10} strokeWidth={3} />
+                      </div>
+                    </div>
+                  )}
+
                   {/* --- NEW: LIVE ACTIVITY INDICATORS --- */}
                   {/* If viewing Tokens: Cyan Circle */}
                   {p.activePalette === "TOKENS" && (
