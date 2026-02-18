@@ -1232,7 +1232,19 @@ const SplashScreen = ({ onStart }) => {
 // --- MAIN COMPONENT ---
 const GameHub = () => {
   const [showSplash, setShowSplash] = useState(() => {
-    return !sessionStorage.getItem("gh_splash_done");
+    // 1. Check if the session is already active
+    const splashDone = sessionStorage.getItem("gh_splash_done");
+
+    // 2. Check for required persistent data
+    const hasName = localStorage.getItem("gameHub_playerName");
+    const hasGeo = localStorage.getItem("geo");
+
+    // Show splash if session isn't done OR if we are missing basic info
+    if (!splashDone || !hasName || !hasGeo) {
+      return true;
+    }
+
+    return false;
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
