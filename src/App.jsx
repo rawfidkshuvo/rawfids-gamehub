@@ -64,6 +64,7 @@ import {
   Loader,
   Play,
   RotateCcw,
+  RefreshCw,
 } from "lucide-react";
 import CoverImage from "./assets/gamehub_cover.png";
 
@@ -595,7 +596,7 @@ const RandomGameModal = ({ isOpen, onClose, games, onSelect }) => {
         </button>
         <h2 className="text-2xl font-bold text-white mb-6 flex justify-center items-center gap-2">
           {isSpinning ? (
-            <Shuffle className="animate-spin" />
+            <RefreshCw className="animate-spin" />
           ) : (
             <Dice5 className="text-indigo-500" />
           )}
@@ -1808,8 +1809,8 @@ const GameHub = () => {
             {/* MAIN GAMES GRID HEADER */}
             <div className="flex items-center justify-between gap-3 mb-6">
               <div className="flex items-center gap-2 min-w-0">
-                <div className="p-2 bg-slate-800 rounded-lg border border-slate-700 shrink-0">
-                  <Gamepad2 className="w-5 h-5 text-slate-400" />
+                <div className="p-2 bg-green-500/10 rounded-lg border border-green-500/20 shrink-0">
+                  <Gamepad2 className="w-5 h-5 text-green-400" />
                 </div>
                 <h2 className="text-2xl font-bold text-white tracking-wide truncate">
                   {isFiltering
