@@ -72,6 +72,9 @@ import {
   Factory,
   BanknoteArrowDown,
   TrendingDownIcon,
+  RectangleVertical,
+  GalleryHorizontalEnd,
+  Repeat,
 } from "lucide-react";
 import CoverImage from "./assets/contraband_cover.png";
 
@@ -3771,14 +3774,14 @@ export default function ContrabandGame() {
             </div>
             {/* Round Counter */}
             <div className="text-xs text-zinc-500 bg-black/50 px-2 py-1 rounded border border-zinc-800 flex items-center gap-1">
-              <Calendar size={14} />
+              <Repeat size={14} />
               <span>
                 {gameState.currentRound}/{totalRounds}
               </span>
             </div>
             {/* Deck Counter */}
             <div className="text-xs text-zinc-500 bg-black/50 px-2 py-1 rounded border border-zinc-800 flex items-center gap-1">
-              <div className="w-2 h-3 bg-zinc-600 rounded-sm"></div>
+              <Layers size={14} />
               {gameState.deck.length}
             </div>
           </div>
