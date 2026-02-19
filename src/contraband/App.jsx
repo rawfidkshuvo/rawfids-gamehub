@@ -69,6 +69,9 @@ import {
   Flame,
   ChessKing,
   StepBack,
+  Factory,
+  BanknoteArrowDown,
+  TrendingDownIcon,
 } from "lucide-react";
 import CoverImage from "./assets/contraband_cover.png";
 
@@ -1832,7 +1835,7 @@ const RulesModal = ({ onClose }) => (
           <p className="text-lg text-zinc-400">
             Amass the biggest fortune. Money is earned by smuggling goods and
             collecting fines. The player with the highest total value (Cash +
-            Stash Bonus) when the deck runs out wins.
+            Stash + Bonus).
           </p>
         </section>
 
@@ -1852,7 +1855,7 @@ const RulesModal = ({ onClose }) => (
               <Package size={16} /> 2. Load & Bluff
             </h4>
             <p className="text-sm">
-              Pack up to 3 cards. You must declare a legal good type. You can
+              Pack up to 4 items (+1 with extention). You must declare a legal good type. You can
               lie. You can also attach a cash <strong>Bribe</strong> to tempt
               the Inspector.
             </p>
@@ -1863,7 +1866,7 @@ const RulesModal = ({ onClose }) => (
             </h4>
             <p className="text-sm">
               The Inspector chooses to <strong>PASS</strong> or{" "}
-              <strong>OPEN</strong>. If passed, you sell goods immediately. If
+              <strong>OPEN</strong> or take <strong>BRIBE</strong>. If passed, you sell goods immediately. If
               opened and caught lying, you pay a fine!
             </p>
           </div>
@@ -1988,7 +1991,7 @@ const RulesModal = ({ onClose }) => (
             <div className="flex items-center gap-3 p-2 bg-zinc-800 rounded">
               <Bomb size={16} className="text-red-500" />{" "}
               <span>
-                <strong>War Zone:</strong> Weapons and Machinery sell for 2x
+                <strong>War Zone:</strong> Weapons sell for 2x
                 value.
               </span>
             </div>
@@ -1996,6 +1999,13 @@ const RulesModal = ({ onClose }) => (
               <Skull size={16} className="text-purple-500" />{" "}
               <span>
                 <strong>Pandemic:</strong> Meds and Foods sell for 2x value.
+              </span>
+            </div>
+            <div className="flex items-center gap-3 p-2 bg-zinc-800 rounded">
+              <Factory size={16} className="text-green-500" />{" "}
+              <span>
+                <strong>Industrial Revolution:</strong> Uniforms and Machinery sell for 2x
+                value.
               </span>
             </div>
             <div className="flex items-center gap-3 p-2 bg-zinc-800 rounded">
@@ -2008,6 +2018,18 @@ const RulesModal = ({ onClose }) => (
               <TrendingUp size={16} className="text-green-500" />{" "}
               <span>
                 <strong>Free Trade:</strong> All fines are halved.
+              </span>
+            </div>
+            <div className="flex items-center gap-3 p-2 bg-zinc-800 rounded">
+              <BanknoteArrowDown size={16} className="text-purple-500" />{" "}
+              <span>
+                <strong>Deflation:</strong> Legal Goods value -20%.
+              </span>
+            </div>
+            <div className="flex items-center gap-3 p-2 bg-zinc-800 rounded">
+              <TrendingDown size={16} className="text-red-500" />{" "}
+              <span>
+                <strong>Recession:</strong> Contraband value -20%.
               </span>
             </div>
           </div>
