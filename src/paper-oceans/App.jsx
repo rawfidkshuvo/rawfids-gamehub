@@ -393,49 +393,50 @@ const calculatePoints = (hand, tableau, isLastChance = false) => {
 // COMPONENTS
 // ---------------------------------------------------------------------------
 
-const FloatingBackground = ({ isShaking }) => (
-  <div
-    className={`absolute inset-0 overflow-hidden pointer-events-none z-0 ${
-      isShaking ? "animate-shake bg-red-900/20" : ""
-    }`}
-  >
-    <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-yellow-900/20 via-gray-950 to-black" />
-    <div className="absolute top-0 left-0 w-full h-full opacity-10">
-      {[...Array(20)].map((_, i) => {
-        const fruitKeys = Object.keys(CARD_TYPES);
-        const Icon = CARD_TYPES[fruitKeys[i % fruitKeys.length]].icon;
-        return (
-          <div
-            key={i}
-            className="absolute animate-float text-white/60"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDuration: `${10 + Math.random() * 20}s`,
-              transform: `scale(${0.5 + Math.random()})`,
-            }}
-          >
-            <Icon size={32} />
-          </div>
-        );
-      })}
-    </div>
-    <style>{`
-      @keyframes float {
-        0%, 100% { transform: translateY(0) rotate(0deg); }
-        50% { transform: translateY(-20px) rotate(10deg); }
-      }
-      .animate-float { animation: float infinite ease-in-out; }
+const FloatingBackground = React.memo(() => {
+  // useMemo ensures these random positions are calculated ONLY ONCE
+  // This keeps the performance high and stops icons from resetting.
+  const backgroundIcons = React.useMemo(() => {
+    return [...Array(20)].map((_, i) => {
+      const iconKeys = Object.keys(CARD_TYPES);
+      const Icon = CARD_TYPES[iconKeys[i % iconKeys.length]].icon;
+      return (
+        <div
+          key={i}
+          className="absolute animate-float text-white/60"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            animationDuration: `${10 + Math.random() * 20}s`,
+            transform: `scale(${0.5 + Math.random()})`,
+          }}
+        >
+          <Icon size={32} />
+        </div>
+      );
+    });
+  }, []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      {/* Dark Gradient Layer */}
+      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-yellow-900/20 via-gray-950 to-black" />
       
-      @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
-        20%, 40%, 60%, 80% { transform: translateX(5px); }
-      }
-      .animate-shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
-    `}</style>
-  </div>
-);
+      {/* Floating Icons Layer */}
+      <div className="absolute top-0 left-0 w-full h-full opacity-10">
+        {backgroundIcons}
+      </div>
+
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(10deg); }
+        }
+        .animate-float { animation: float infinite ease-in-out; }
+      `}</style>
+    </div>
+  );
+});
 
 const GameLogo = () => (
   <div className="flex items-center justify-center gap-2 opacity-40 mt-auto pb-4 pt-2 relative z-10 pointer-events-none select-none">
