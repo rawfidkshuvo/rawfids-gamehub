@@ -1007,7 +1007,7 @@ const FloatingBackground = ({ games }) => {
       {particles.map((p) => (
         <div
           key={p.id}
-          className={`absolute ${p.color} opacity-[0.07] animate-float`}
+          className={`absolute ${p.color} opacity-[0.15] animate-float`}
           style={{
             left: `${p.left}%`,
             top: `${p.top}%`,
