@@ -3699,7 +3699,37 @@ export default function ContrabandGame() {
   }
 
   if (view === "game" && gameState) {
+    // --- CRASH FIX START ---
+    // Safety Check: Ensure the inspector exists. 
+    // If a player left, the array index might be out of bounds.
     const inspector = gameState.players[gameState.inspectorIndex];
+    
+    // Safety Check: Ensure 'me' (current user) still exists in the game state
+    // (Though the onSnapshot listener usually catches this, it prevents render races)
+    const currentUser = gameState.players.find(p => p.id === user?.uid);
+
+    if (!inspector || !currentUser) {
+      return (
+        <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-6 relative overflow-hidden">
+          <FloatingBackground />
+          <div className="z-10 bg-zinc-900/90 p-8 rounded-2xl border border-red-500/50 shadow-2xl text-center max-w-md animate-in fade-in zoom-in">
+            <Siren size={64} className="text-red-500 mx-auto mb-4 animate-pulse" />
+            <h2 className="text-2xl font-bold text-white mb-2">MISSION COMPROMISED</h2>
+            <p className="text-zinc-400 mb-6">
+              An agent has disconnected or the operation data is out of sync. 
+              The current round cannot continue.
+            </p>
+            <button 
+              onClick={returnToLobby}
+              className="w-full py-3 bg-zinc-700 hover:bg-zinc-600 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+            >
+              <RotateCcw size={18} /> Return to Lobby
+            </button>
+          </div>
+        </div>
+      );
+    }
+    // --- CRASH FIX END ---
     const guestsReady = gameState.players
       .filter((p) => p.id !== gameState.hostId)
       .every((p) => p.ready);
