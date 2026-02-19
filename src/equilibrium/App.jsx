@@ -2653,6 +2653,13 @@ export default function Equilibrium() {
     me.activePalette = null; // <--- Clear status in DB
     market.splice(marketIdx, 1);
 
+    // Add the draft log
+    newLogs.push({
+      text: `${me.name} drafted tokens.`,
+      type: "neutral",
+      id: Date.now(), // +1 to ensure unique ID if same ms
+    });
+
     // REFILL LOGIC
     if (bag.length >= 3) {
       const newSlot = {
@@ -2668,17 +2675,10 @@ export default function Equilibrium() {
       newLogs.push({
         text: "The Bag is empty! Finishing the round...",
         type: "warning",
-        id: Date.now(),
+        id: Date.now() + 1,
       });
     }
     // ------------------------------------
-
-    // Add the draft log
-    newLogs.push({
-      text: `${me.name} drafted tokens.`,
-      type: "neutral",
-      id: Date.now() + 1, // +1 to ensure unique ID if same ms
-    });
 
     // Merge new logs with existing
     const updatedLogs = gameState.logs
