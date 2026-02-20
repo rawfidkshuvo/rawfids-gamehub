@@ -919,6 +919,7 @@ export default function GuildOfShadows() {
             setRoomId("");
             setView("menu");
             setError("You have been removed from the guild.");
+            localStorage.removeItem("guild_room_id");
             return;
           }
 
@@ -963,6 +964,7 @@ export default function GuildOfShadows() {
           setRoomId("");
           setView("menu");
           setError("The Guild Hall was disbanded by the host.");
+          localStorage.removeItem("guild_room_id");
         }
       },
       (err) => console.error(err),

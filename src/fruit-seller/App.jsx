@@ -830,6 +830,7 @@ export default function FruitSellerGame() {
         setRoomId(null);
         setView("menu");
         setError("Market closed by the Master.");
+        localStorage.removeItem("fs_roomId");
       }
     });
     return () => unsubscribe();
