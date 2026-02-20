@@ -1319,8 +1319,8 @@ const calculateLandscapeScore = (board) => {
         const neighbor = board[`${n.q},${n.r}`];
         if (neighbor && neighbor.stack.length > 0) {
           const type = neighbor.stack[neighbor.stack.length - 1];
-          // We count colors other than BRICK for the diversity bonus
-          if (type !== "BRICK") distinctColors.add(type);
+          // We now count BRICK for the diversity bonus
+          distinctColors.add(type);
         }
       });
       if (distinctColors.size >= 3) breakdown.buildings += 5;
@@ -1775,7 +1775,7 @@ const RulesModal = ({ onClose }) => (
               <ul className="list-disc pl-4 text-xs space-y-1">
                 <li>
                   5 Pts for each Building if surrounded by 3+ distinct token
-                  types (Except Brick).
+                  types.
                 </li>
                 <li>Wooden House (1 Wood + 1 Brick)</li>
                 <li>Stoned House(1 Stone + 1 Brick)</li>
