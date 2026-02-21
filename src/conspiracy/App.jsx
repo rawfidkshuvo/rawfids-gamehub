@@ -2361,14 +2361,14 @@ export default function ConspiracyGame() {
                           onClick={() => handleAction("STAB", p.id)}
                           className="disabled:opacity-20 bg-red-900/40 border border-red-800 hover:bg-red-800 text-red-300 py-1 rounded text-[9px] font-bold"
                         >
-                          Stab(3)
+                          Stab (-3)
                         </button>
                         <button
                           disabled={me.coins < 7}
                           onClick={() => handleAction("KILL", p.id)}
-                          className="disabled:opacity-20 bg-gray-800 border border-red-900/50 hover:bg-red-950 text-red-500 py-1 rounded text-[9px] font-bold"
+                          className="disabled:opacity-20 bg-red-900/30 border border-red-800 hover:bg-red-900 text-red-500 py-1 rounded text-[9px] font-bold"
                         >
-                          Kill(7)
+                          Kill (-7)
                         </button>
                       </div>
                     )}
