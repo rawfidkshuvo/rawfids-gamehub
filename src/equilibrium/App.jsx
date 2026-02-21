@@ -4029,10 +4029,10 @@ export default function Equilibrium() {
                       selectedHoldingIdx !== null && (
                         <button
                           onClick={handleDiscard}
-                          className="w-8 h-8 rounded-full border-2 border-red-500 bg-red-900/50 flex items-center justify-center hover:bg-red-800 transition-colors"
+                          className="w-10 h-10 rounded-full border-2 border-red-500 bg-red-900/50 flex items-center justify-center hover:bg-red-800 transition-colors"
                           title="Discard Token (-2 pts)"
                         >
-                          <Trash2 size={12} className="text-red-300" />
+                          <Trash2 size={18} className="text-red-300" />
                         </button>
                       )}
                   </div>
