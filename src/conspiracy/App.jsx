@@ -2856,25 +2856,25 @@ export default function ConspiracyGame() {
                   <div className="grid grid-cols-4 gap-2">
                     <button
                       onClick={() => handleAction("EARN")}
-                      className="bg-gray-800 hover:bg-gray-700 border border-gray-700 p-2 rounded-lg flex flex-col items-center transition-colors group"
+                      className="bg-yellow-900/30 hover:bg-yellow-900/50 border border-yellow-800/50 p-2 rounded-lg flex flex-col items-center transition-colors group"
                     >
                       <Coins
                         size={20}
-                        className="text-gray-400 group-hover:text-yellow-200 mb-1"
+                        className="text-yellow-400 mb-1"
                       />
-                      <span className="text-[10px] text-gray-400 group-hover:text-white font-bold">
+                      <span className="text-[10px] text-yellow-300 font-bold">
                         Income (+1)
                       </span>
                     </button>
                     <button
                       onClick={() => handleAction("EXPORT")}
-                      className="bg-gray-800 hover:bg-gray-700 border border-gray-700 p-2 rounded-lg flex flex-col items-center transition-colors group"
+                      className="bg-blue-900/30 hover:bg-blue-900/50 border border-blue-800/50 p-2 rounded-lg flex flex-col items-center transition-colors group"
                     >
                       <DoorOpen
                         size={20}
-                        className="text-blue-400/70 group-hover:text-blue-300 mb-1"
+                        className="text-blue-400 mb-1"
                       />
-                      <span className="text-[10px] text-gray-400 group-hover:text-white font-bold">
+                      <span className="text-[10px] text-blue-300 font-bold">
                         Export (+2)
                       </span>
                     </button>
