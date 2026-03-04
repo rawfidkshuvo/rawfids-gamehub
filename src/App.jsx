@@ -66,7 +66,7 @@ import {
   RotateCcw,
   RefreshCw,
 } from "lucide-react";
-import CoverImage from "./assets/gamehub_cover_02.png";
+import CoverImage from "./assets/gamehub_cover.png";
 
 // ---------------------------------------------------------------------------
 // FIREBASE CONFIGURATION
