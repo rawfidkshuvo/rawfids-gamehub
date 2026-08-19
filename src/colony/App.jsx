@@ -72,7 +72,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const APP_ID = typeof __app_id !== "undefined" ? __app_id : "colony-game";
-const GAME_ID = "colony";
+const GAME_ID = "21";
 
 // ---------------------------------------------------------------------------
 // STYLES & VISUALS

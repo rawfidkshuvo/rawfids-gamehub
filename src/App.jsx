@@ -523,6 +523,22 @@ const INITIAL_GAMES = [
     duration: "20-30m",
     link: "./spectrum/",
   },
+  {
+    id: 21,
+    title: "Colony",
+    description:
+      "A tactical duel of numerical frequencies. Navigate the shifting colors to win tricks and calibrate your score.",
+    icon: <Target className="w-12 h-12 text-white" />,
+    color: "from-fuchsia-600 to-indigo-950",
+    shadow: "shadow-fuchsia-500/50",
+    categories: ["Trick-Taking", "Strategy"],
+    minPlayers: 3,
+    maxPlayers: 4,
+    hasBots: false,
+    complexity: "Medium",
+    duration: "20-30m",
+    link: "./colony/",
+  },
 ];
 
 // ---------------------------------------------------------------------------
