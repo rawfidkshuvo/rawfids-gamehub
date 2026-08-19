@@ -54,6 +54,7 @@ import {
   History,
   BarChart2,
 } from "lucide-react";
+import CoverImage from "./assets/catan.png";
 
 // ---------------------------------------------------------------------------
 // CONFIGURATION
@@ -143,6 +144,25 @@ const FloatingBackground = React.memo(() => {
     </div>
   );
 });
+
+
+const GameLogo = () => (
+  <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10">
+    <Hexagon size={12} className="text-orange-500" />
+    <span className="text-[10px] font-black tracking-widest text-orange-400 uppercase">
+      COLONY
+    </span>
+  </div>
+);
+
+const GameLogoBig = () => (
+  <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10">
+    <Hexagon size={20} className="text-orange-500" />
+    <span className="text-[20px] font-black tracking-widest text-orange-500 uppercase">
+      COLONY
+    </span>
+  </div>
+);
 
 // ---------------------------------------------------------------------------
 // GAME LOGIC & CONSTANTS
@@ -409,43 +429,106 @@ const ScoreboardModal = ({ gameState, onClose }) => (
   </div>
 );
 
+// --- UPDATED SPLASH SCREEN (With Loading Indicator) ---
 const SplashScreen = ({ onStart }) => {
   const [hasSession, setHasSession] = useState(false);
+
+  // State 1: Image is downloaded and ready to show
+  const [isLoaded, setIsLoaded] = useState(false);
+  // State 2: Button is ready to slide in (after zoom)
   const [showButton, setShowButton] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("colony_roomId");
+    // 1. Check Session immediately
+    const saved = localStorage.getItem("equilibrium_roomId");
     setHasSession(!!saved);
-    setTimeout(() => setShowButton(true), 1000);
+
+    // 2. Preload the image
+    const img = new Image();
+    img.src = CoverImage;
+
+    img.onload = () => {
+      // Image is downloaded. Start the show.
+      setIsLoaded(true);
+
+      // Start the 2-second timer for the button *after* image loads
+      setTimeout(() => {
+        setShowButton(true);
+      }, 2000);
+    };
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-center font-sans overflow-hidden">
-      <GlobalStyles />
-      <FloatingBackground />
-      <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-        <div className="text-center mb-10 mt-8">
-          <Hexagon size={80} className="text-orange-500 mx-auto mb-4 animate-spin-slow" />
-          <h1 className="text-5xl md:text-7xl font-thin text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-amber-600 tracking-tighter drop-shadow-md">
-            COLONY
-          </h1>
-          <p className="text-orange-200/40 tracking-[0.5em] uppercase mt-2 text-xs">
-            Trade. Build. Survive.
-          </p>
+    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+      {/* --- NEW: LOADING INDICATOR --- */}
+      {/* This shows only while the image is NOT loaded yet */}
+      {!isLoaded && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-50 text-emerald-500/50">
+          <Loader size={48} className="animate-spin mb-4" />
+          <div className="font-mono text-xs tracking-[0.3em] animate-pulse">
+            INITIALIZING SYSTEM...
+          </div>
         </div>
-        <div className={`transform transition-all duration-1000 ease-out ${showButton ? "translate-y-0 opacity-100" : "translate-y-32 opacity-0"}`}>
-          <button onClick={onStart} className="group relative px-12 py-5 bg-orange-600/20 hover:bg-orange-600/40 border border-orange-500/50 hover:border-orange-400 text-orange-300 font-black text-2xl tracking-widest rounded-none transform transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(249,115,22,0.4)] backdrop-blur-md overflow-hidden">
+      )}
+
+      {/* Background Image Container */}
+      {/* Opacity 0 -> 100 ensures a smooth fade-in once loaded */}
+      <div
+        className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-1000 ${isLoaded ? "opacity-100" : "opacity-0"}`}
+      >
+        <div
+          className={`w-full h-full bg-cover bg-center transition-transform duration-[2000ms] ease-out ${
+            isLoaded ? "scale-100" : "scale-130"
+          }`}
+          style={{ backgroundImage: `url(${CoverImage})` }}
+        />
+        {/* Dark Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+        {/* Pulsing Action Button */}
+        <div
+          className={`transform transition-all duration-1000 ease-out ${
+            showButton
+              ? "translate-y-0 opacity-100"
+              : "translate-y-32 opacity-0"
+          }`}
+        >
+          <button
+            onClick={onStart}
+            className="group relative px-12 py-5 bg-orange-600/20 hover:bg-orange-600/40 border border-orange-500/50 hover:border-orange-400 text-orange-300 font-black text-2xl tracking-widest rounded-none transform transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] backdrop-blur-md overflow-hidden"
+          >
+            {/* Animated Scanline overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-orange-400/10 to-transparent translate-y-[-100%] animate-[scan_2s_infinite_linear]" />
+
             <span className="relative z-10 flex items-center gap-3 animate-pulse">
-              {hasSession ? <><RotateCcw className="animate-spin-slow" /> RESUME</> : <><Play /> PLAY</>}
+              {hasSession ? (
+                <>
+                  <RotateCcw className="animate-spin-slow" /> RESUME
+                </>
+              ) : (
+                <>
+                  <Play /> PLAY
+                </>
+              )}
             </span>
           </button>
         </div>
       </div>
-      <div className="absolute bottom-4 text-slate-600 text-xs text-center z-10">
-        Inspired by Catan. A tribute game.<br/>Developed by <strong>RAWFID K SHUVO</strong>.
+      <div className="absolute bottom-4 text-slate-600 text-xs text-center">
+        Inspired by Catan. A tribute game.
+        <br />
+        Developed by <strong>RAWFID K SHUVO</strong>.
       </div>
-      <style>{`@keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(200%); } }`}</style>
+
+      <style>{`
+        @keyframes scan {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(200%); }
+        }
+      `}</style>
     </div>
   );
 };
@@ -1140,6 +1223,7 @@ export default function ColonyGame() {
     return (
       <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-white p-4 text-center">
         <GlobalStyles />
+        <GameLogoBig />
         <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10 mb-8">
           <Hexagon size={32} className="text-orange-500 animate-spin-slow" />
         </div>
@@ -1158,6 +1242,7 @@ export default function ColonyGame() {
             </div>
           </div>
         </a>
+        <GameLogo />
       </div>
     );
   }
@@ -1221,6 +1306,7 @@ export default function ColonyGame() {
       <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative">
         <GlobalStyles />
         <FloatingBackground />
+        <GameLogoBig />
         {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
         <div className="z-10 w-full max-w-lg bg-slate-900/90 backdrop-blur p-8 rounded-2xl border border-orange-500/30 shadow-2xl animate-in slide-in-from-bottom-8 mt-6">
           <div className="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
@@ -1278,6 +1364,7 @@ export default function ColonyGame() {
             </div>
           </div>
         )}
+        <GameLogo />
       </div>
     );
   }
@@ -1295,11 +1382,34 @@ export default function ColonyGame() {
           <div className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl max-w-xs w-full text-center shadow-2xl">
               <h3 className="text-xl font-bold text-white mb-2 uppercase">Abandon Game?</h3>
-              <p className="text-slate-400 mb-6 text-sm">{gameState.hostId === user.uid ? "Leaving deletes the game for everyone." : "You will leave this ongoing game."}</p>
+              <p className="text-slate-400 mb-6 text-sm">
+                {gameState.hostId === user.uid 
+                  ? "Leaving deletes the game for everyone." 
+                  : "You will leave this ongoing game."}
+              </p>
+              
               <div className="flex gap-2">
-                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-slate-800 hover:bg-slate-700 py-2 rounded font-bold text-slate-300">Stay</button>
-                <button onClick={handleLeave} className="flex-1 bg-red-600 hover:bg-red-500 py-2 rounded font-bold text-white">Leave</button>
+                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-slate-800 hover:bg-slate-700 py-2 rounded font-bold text-slate-300">
+                  Stay
+                </button>
+                <button onClick={handleLeave} className="flex-1 bg-red-600 hover:bg-red-500 py-2 rounded font-bold text-white">
+                  Leave
+                </button>
               </div>
+
+              {/* THE MISSING HOST BUTTON */}
+              {gameState.hostId === user.uid && (
+                <button
+                  onClick={() => {
+                    returnToLobby();
+                    setShowLeaveConfirm(false);
+                  }}
+                  className="w-full bg-slate-800 hover:bg-slate-700 py-2 rounded font-bold text-orange-400 mt-2 text-sm border border-slate-700 transition-colors"
+                >
+                  Return All to Lobby
+                </button>
+              )}
+              
             </div>
           </div>
         )}
@@ -1754,6 +1864,7 @@ export default function ColonyGame() {
             </div>
           </div>
         )}
+        <GameLogo />
 
       </div>
     );
