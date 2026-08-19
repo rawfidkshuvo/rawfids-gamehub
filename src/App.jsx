@@ -528,7 +528,7 @@ const INITIAL_GAMES = [
     title: "Colony",
     description:
       "Gather resources, trade with your neighbors, and build your settlements. Strategize wisely to expand your empire and conquer the island.",
-    icon: <Target className="w-12 h-12 text-white" />,
+    icon: <Hexagon className="w-12 h-12 text-white" />,
     color: "from-orange-600 to-amber-950",
     shadow: "shadow-orange-500/50",
     categories: ["Strategy"],
