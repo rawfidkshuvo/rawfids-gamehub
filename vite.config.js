@@ -11,6 +11,7 @@ export default defineConfig({
       input: {
         main: resolve(__dirname, 'index.html'),
         angryVirus: resolve(__dirname, 'angry-virus/index.html'),
+        colony: resolve(__dirname, 'colony/index.html'),
         conspiracy: resolve(__dirname, 'conspiracy/index.html'),
         contraband: resolve(__dirname, 'contraband/index.html'),
         emperor: resolve(__dirname, 'emperor/index.html'),

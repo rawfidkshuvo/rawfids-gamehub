@@ -12,41 +12,49 @@ import {
   setDoc,
   getDoc,
   updateDoc,
+  deleteDoc,
   onSnapshot,
   arrayUnion,
-  increment,
-  deleteDoc,
 } from "firebase/firestore";
 import {
-  Biohazard,
-  Pill,
-  Skull,
-  Crosshair,
-  Trophy,
-  User,
-  Play,
-  LogOut,
-  RotateCcw,
-  CheckCircle,
-  X,
-  History,
-  BookOpen,
+  Earth,
+  Hexagon,
+  TreeDeciduous,
+  Mountain,
+  Sun,
   AlertTriangle,
-  ArrowRight,
-  Hammer,
   Crown,
-  Settings,
-  Home,
   Sparkles,
-  Trash2,
-  FileText, // Added for report icon
-  Copy,
-  Loader,
+  Trophy,
+  PawPrint,
+  Cuboid,
+  Leaf,
+  Home,
+  Dices,
+  Grip,
+  ArrowRightLeft,
+  Building2,
+  Skull,
+  Anchor,
+  Scroll,
+  Handshake,
+  Swords,
+  Gem,
+  X,
   StepBack,
+  Play,
+  RotateCcw,
+  Copy,
+  CheckCircle,
+  Trash2,
+  LogOut,
+  Loader,
+  Hammer
 } from "lucide-react";
-import CoverImage from "./assets/virus_cover.png";
 
-// --- Firebase Config & Init ---
+// ---------------------------------------------------------------------------
+// CONFIGURATION
+// ---------------------------------------------------------------------------
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
@@ -55,113 +63,62 @@ const firebaseConfig = {
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const APP_ID = typeof __app_id !== "undefined" ? __app_id : "angry-virus";
-const GAME_ID = "11";
+const APP_ID = typeof __app_id !== "undefined" ? __app_id : "catan-clone";
+const GAME_ID = "catan";
 
-// --- Constants ---
-const DECK_START = 3;
-const DECK_END = 35; // 33 cards total
+// ---------------------------------------------------------------------------
+// STYLES & VISUALS
+// ---------------------------------------------------------------------------
+const GlobalStyles = () => (
+  <style>{`
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(249, 115, 22, 0.3); border-radius: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(249, 115, 22, 0.6); }
+    
+    @keyframes float { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-20px) rotate(5deg); } }
+    .animate-float { animation: float infinite ease-in-out; }
+    
+    @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .animate-spin-slow { animation: spin-slow 12s linear infinite; }
+    
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-// --- Helpers ---
-const shuffle = (array) => {
-  let currentIndex = array.length,
-    randomIndex;
-  while (currentIndex !== 0) {
-    randomIndex = Math.floor(Math.random() * currentIndex);
-    currentIndex--;
-    [array[currentIndex], array[randomIndex]] = [
-      array[randomIndex],
-      array[currentIndex],
-    ];
-  }
-  return array;
-};
-
-// Calculate score with the "Consecutive Sequence" twist
-const calculateScore = (cards, tokens) => {
-  if (!cards || cards.length === 0) return -tokens;
-
-  // Sort cards numerically
-  const sorted = [...cards].sort((a, b) => a - b);
-  let score = 0;
-
-  for (let i = 0; i < sorted.length; i++) {
-    // If it's the first card, or not consecutive to the previous one, add it
-    if (i === 0 || sorted[i] !== sorted[i - 1] + 1) {
-      score += sorted[i];
+    @keyframes float-up {
+        0% { transform: translate(-50%, 0) scale(0.8); opacity: 1; }
+        100% { transform: translate(-50%, -40px) scale(1.2); opacity: 0; }
     }
-    // If it IS consecutive (e.g. 22 after 21), we essentially "skip" adding it
-  }
-
-  return score - tokens;
-};
-
-// Helper to group consecutive cards for display
-const groupConsecutiveCards = (cards) => {
-  if (!cards || cards.length === 0) return [];
-  const sorted = [...cards].sort((a, b) => a - b);
-  const groups = [];
-  let currentGroup = [sorted[0]];
-
-  for (let i = 1; i < sorted.length; i++) {
-    if (sorted[i] === sorted[i - 1] + 1) {
-      currentGroup.push(sorted[i]);
-    } else {
-      groups.push(currentGroup);
-      currentGroup = [sorted[i]];
+    .animate-float-up { animation: float-up 2s ease-out forwards; }
+    
+    @keyframes slow-blink {
+        0%, 100% { opacity: 1; box-shadow: 0 0 15px rgba(0,0,0,1); }
+        50% { opacity: 0.5; box-shadow: 0 0 5px rgba(0,0,0,0.5); }
     }
-  }
-  groups.push(currentGroup);
-  return groups;
-};
+    .animate-slow-blink { animation: slow-blink 3s ease-in-out infinite; }
 
-// --- Components ---
-
-const Logo = () => (
-  <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10">
-    <Biohazard size={12} className="text-green-500" />
-    <span className="text-[10px] font-black tracking-widest text-green-500 uppercase">
-      ANGRY VIRUS
-    </span>
-  </div>
+    @keyframes flash-red {
+      0%, 33%, 66%, 100% { box-shadow: inset 0 0 0px transparent; background-color: rgb(30, 41, 59); }
+      16%, 50%, 83% { box-shadow: inset 0 0 20px rgba(239, 68, 68, 0.8); background-color: rgba(239, 68, 68, 0.3); }
+    }
+    .animate-flash-red { animation: flash-red 3s ease-in-out; }
+  `}</style>
 );
-
-const LogoBig = () => (
-  <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10">
-    <Biohazard size={22} className="text-green-500" />
-    <span className="text-[20px] font-black tracking-widest text-green-500 uppercase">
-      ANGRY VIRUS
-    </span>
-  </div>
-);
-
-const DICE_ICONS = {
-  1: Biohazard,
-  2: Pill,
-  3: Crosshair,
-  4: Skull,
-};
 
 const FloatingBackground = React.memo(() => {
-  // useMemo ensures these random positions are calculated ONLY ONCE
-  // This keeps the performance high and stops icons from resetting.
   const backgroundIcons = React.useMemo(() => {
+    const icons = [TreeDeciduous, Mountain, Cuboid, PawPrint, Leaf, Sun];
     return [...Array(20)].map((_, i) => {
-      // --- CHANGE START ---
-        const diceKeys = Object.keys(DICE_ICONS);
-        // We cycle through keys 1-6 based on the index
-        const key = diceKeys[i % diceKeys.length];
-        // Direct assignment because DICE_ICONS values are the components themselves
-        const Icon = DICE_ICONS[key];
-        // --- CHANGE END ---
+      const Icon = icons[i % icons.length];
       return (
         <div
           key={i}
-          className="absolute animate-float text-white/60"
+          className="absolute animate-float text-white/10"
           style={{
             left: `${Math.random() * 100}%`,
             top: `${Math.random() * 100}%`,
@@ -174,941 +131,1171 @@ const FloatingBackground = React.memo(() => {
       );
     });
   }, []);
-
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      {/* Dark Gradient Layer */}
-      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-yellow-900/20 via-gray-950 to-black" />
-      
-      {/* Floating Icons Layer */}
-      <div className="absolute top-0 left-0 w-full h-full opacity-10">
+      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-slate-900 via-gray-950 to-black" />
+      <div className="absolute top-0 left-0 w-full h-full opacity-30">
         {backgroundIcons}
       </div>
-
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0) rotate(0deg); }
-          50% { transform: translateY(-20px) rotate(10deg); }
-        }
-        .animate-float { animation: float infinite ease-in-out; }
-      `}</style>
     </div>
   );
 });
 
-const Card = ({
-  value,
-  size = "md",
-  isNew = false,
-  isSequenceStart = false,
-}) => {
-  const sizeClasses =
-    size === "lg"
-      ? "w-24 h-36 md:w-32 md:h-48 text-3xl md:text-4xl"
-      : size === "md"
-        ? "w-16 h-24 md:w-20 md:h-28 text-xl md:text-2xl"
-        : "w-10 h-14 md:w-12 md:h-16 text-xs md:text-sm";
-
-  return (
-    <div
-      className={`${sizeClasses} bg-gray-200 rounded-xl border-4 ${
-        isSequenceStart
-          ? "border-yellow-500 ring-2 ring-yellow-500/50 z-10"
-          : "border-green-700"
-      } flex flex-col items-center justify-center shadow-xl relative overflow-hidden transform transition-all ${
-        isNew ? "animate-in zoom-in duration-500" : ""
-      }`}
-    >
-      <div className="absolute top-1 left-2 text-green-800 font-black opacity-50 text-[8px] md:text-[10px]">
-        VIRUS
-      </div>
-      <div className="font-black text-green-900 z-10">{value}</div>
-      <Biohazard className="absolute -bottom-4 -right-4 text-green-800/10 w-3/4 h-3/4" />
-      <div className="absolute inset-0 bg-linear-to-br from-white/0 to-green-500/10" />
-    </div>
-  );
+// ---------------------------------------------------------------------------
+// GAME LOGIC & CONSTANTS
+// ---------------------------------------------------------------------------
+const HEX_SIZE = 50;
+const RESOURCES = {
+  WOOD: { id: "WOOD", color: "bg-emerald-700", border: "border-emerald-900", icon: TreeDeciduous, name: "Wood" },
+  BRICK: { id: "BRICK", color: "bg-red-700", border: "border-red-900", icon: Cuboid, name: "Brick" },
+  SHEEP: { id: "SHEEP", color: "bg-lime-500", border: "border-lime-700", icon: PawPrint, name: "Sheep" },
+  WHEAT: { id: "WHEAT", color: "bg-yellow-500", border: "border-yellow-700", icon: Leaf, name: "Wheat" },
+  ORE: { id: "ORE", color: "bg-slate-500", border: "border-slate-700", icon: Mountain, name: "Ore" },
+  DESERT: { id: "DESERT", color: "bg-amber-200", border: "border-amber-400", icon: Sun, name: "Desert" },
 };
 
-const TokenDisplay = ({ count, size = "md" }) => (
-  <div
-    className={`flex items-center gap-1 bg-orange-600/90 text-white rounded-full font-bold shadow-lg border border-orange-400 ${
-      size === "lg"
-        ? "px-3 py-1.5 md:px-4 md:py-2 text-lg md:text-xl"
-        : "px-2 py-1 text-[10px] md:text-xs"
-    }`}
-  >
-    <Pill
-      className={size === "lg" ? "w-5 h-5 md:w-6 md:h-6" : "w-3 h-3"}
-      fill="currentColor"
-    />
-    <span>{count}</span>
-  </div>
-);
-
-// --- New Component: Round Summary Modal ---
-const RoundSummaryModal = ({ players, onClose }) => {
-  // Sort players by score (lowest wins)
-  const sortedPlayers = [...players].sort(
-    (a, b) =>
-      calculateScore(a.cards, a.tokens) - calculateScore(b.cards, b.tokens),
-  );
-
-  return (
-    <div className="fixed inset-0 bg-black/95 z-170 flex items-center justify-center p-4 animate-in fade-in">
-      <div className="bg-gray-900 w-full max-w-3xl rounded-2xl border border-gray-700 overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
-        {/* Header */}
-        <div className="p-6 border-b border-gray-800 bg-gray-950 flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-black text-white uppercase tracking-wider flex items-center gap-2">
-              <FileText className="text-green-500" /> Viral Report
-            </h2>
-            <p className="text-gray-500 text-xs mt-1">
-              Detailed breakdown of collected specimens
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-2 hover:bg-gray-800 rounded-full text-gray-400 hover:text-white transition-colors"
-          >
-            <X size={24} />
-          </button>
-        </div>
-
-        {/* List */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
-          {sortedPlayers.map((player, idx) => {
-            const score = calculateScore(player.cards, player.tokens);
-            const groups = groupConsecutiveCards(player.cards);
-
-            return (
-              <div
-                key={player.id}
-                className={`rounded-xl p-4 border ${
-                  idx === 0
-                    ? "bg-green-900/10 border-green-500/50"
-                    : "bg-gray-800/40 border-gray-700"
-                }`}
-              >
-                <div className="flex justify-between items-center mb-3">
-                  <div className="flex items-center gap-3">
-                    <span className="font-mono text-gray-500 font-bold">
-                      #{idx + 1}
-                    </span>
-                    <span className="font-bold text-lg text-white">
-                      {player.name}
-                    </span>
-                    {idx === 0 && (
-                      <span className="px-2 py-0.5 rounded text-[10px] bg-green-500 text-black font-bold uppercase">
-                        Cleanest
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1 text-orange-400 text-sm">
-                      <Pill size={14} /> -{player.tokens} pts
-                    </div>
-                    <div className="text-xl font-black text-white">
-                      {score} <span className="text-xs text-gray-500">PTS</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Cards Visualization */}
-                <div className="flex flex-wrap gap-2">
-                  {groups.length === 0 ? (
-                    <span className="text-xs text-gray-500 italic">
-                      No viruses collected (Incredible!)
-                    </span>
-                  ) : (
-                    groups.map((group, gIdx) => (
-                      <div
-                        key={gIdx}
-                        className="flex items-center p-1 bg-black/30 rounded border border-gray-700/50"
-                      >
-                        {group.map((card, cIdx) => (
-                          <div
-                            key={card}
-                            className={`w-8 h-10 flex items-center justify-center text-xs font-bold rounded mr-1 last:mr-0 ${
-                              cIdx === 0
-                                ? "bg-gray-200 text-red-900 border-2 border-red-500/50 z-10 scale-110 shadow-lg"
-                                : "bg-gray-700 text-gray-400 border border-gray-600 opacity-60 scale-90"
-                            }`}
-                            title={
-                              cIdx === 0
-                                ? "Active Virus (Points Counted)"
-                                : "Contained Virus (Points Ignored)"
-                            }
-                          >
-                            {card}
-                          </div>
-                        ))}
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Footer */}
-        <div className="p-4 border-t border-gray-800 bg-gray-950 flex justify-end">
-          <button
-            onClick={onClose}
-            className="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 transition-all hover:scale-105"
-          >
-            Proceed to Final Results <ArrowRight size={18} />
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+const DEV_CARD_TYPES = {
+  KNIGHT: { id: "KNIGHT", name: "Knight", desc: "Move the robber. Play before rolling.", icon: Swords },
+  VP: { id: "VP", name: "Victory Point", desc: "Play to reveal and add +1 to your score.", icon: Trophy },
+  ROAD: { id: "ROAD", name: "Road Building", desc: "Build 2 free roads.", icon: Grip },
+  PLENTY: { id: "PLENTY", name: "Year of Plenty", desc: "Take any 2 resources.", icon: Gem },
+  MONOPOLY: { id: "MONOPOLY", name: "Monopoly", desc: "Steal all of 1 resource type.", icon: Crown },
 };
 
-const GameGuideModal = ({ onClose }) => (
-  <div className="fixed inset-0 bg-black/95 z-150 flex items-center justify-center p-4">
-    <div className="bg-gray-900 rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden border border-green-500/30 flex flex-col">
-      <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-950">
-        <h2 className="text-2xl font-black text-green-500 uppercase tracking-widest flex items-center gap-2">
-          <Biohazard /> Virus Protocol
-        </h2>
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-gray-800 rounded-full text-gray-400"
-        >
-          <X />
-        </button>
-      </div>
-      <div className="p-6 overflow-y-auto space-y-6 text-gray-300">
-        <section>
-          <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2">
-            <Skull className="text-red-500" size={20} /> Goal: Stay Healthy
-          </h3>
-          <p className="text-sm">
-            Avoid collecting high-value Virus cards. Your score is the sum of
-            your viruses minus your vitamins.{" "}
-            <strong>Lowest score wins!</strong>
-          </p>
-        </section>
+const PLAYER_COLORS = [
+  { bg: "bg-blue-500", border: "border-blue-700", fill: "#3b82f6" },
+  { bg: "bg-red-500", border: "border-red-700", fill: "#ef4444" },
+  { bg: "bg-purple-500", border: "border-purple-700", fill: "#a855f7" },
+  { bg: "bg-green-500", border: "border-green-700", fill: "#00ff00" },
+];
 
-        <section>
-          <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2">
-            <RotateCcw className="text-blue-400" size={20} /> The Choice
-          </h3>
-          <p className="text-sm mb-2">
-            On your turn, a Virus card is revealed. You have two options:
-          </p>
-          <ul className="list-disc pl-5 space-y-1 text-sm">
-            <li>
-              <strong>Pass:</strong> Place 1 Vitamin token on the card to skip
-              it. Pass play to the left. (Requires tokens!)
-            </li>
-            <li>
-              <strong>Take:</strong> Take the card AND all tokens on it. Reveal
-              the next card. It is still your turn.
-            </li>
-          </ul>
-        </section>
+const COSTS = {
+  ROAD: { WOOD: 1, BRICK: 1, SHEEP: 0, WHEAT: 0, ORE: 0 },
+  SETTLEMENT: { WOOD: 1, BRICK: 1, SHEEP: 1, WHEAT: 1, ORE: 0 },
+  CITY: { WOOD: 0, BRICK: 0, SHEEP: 0, WHEAT: 2, ORE: 3 },
+  DEV_CARD: { WOOD: 0, BRICK: 0, SHEEP: 1, WHEAT: 1, ORE: 1 },
+};
 
-        <section>
-          <h3 className="text-white font-bold text-lg mb-2 flex items-center gap-2">
-            <Trophy className="text-yellow-400" size={20} /> The Twist
-          </h3>
-          <p className="text-sm">
-            Collected viruses form chains! If you have consecutive numbers
-            (e.g., 21, 22, 23), <strong>only the lowest number counts</strong>{" "}
-            towards your score.
-            <br />
-            <span className="text-gray-500 text-xs italic">
-              Example: 21, 22, 23 counts as just 21 points.
-            </span>
-          </p>
-        </section>
-      </div>
-      <div className="p-4 bg-gray-950 border-t border-gray-800 text-center">
-        <button
-          onClick={onClose}
-          className="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-lg font-bold"
-        >
-          Understood
-        </button>
-      </div>
-    </div>
-  </div>
-);
+const getHexCenter = (q, r) => ({
+  x: HEX_SIZE * Math.sqrt(3) * (q + r / 2),
+  y: HEX_SIZE * (3 / 2) * r,
+});
+const getDistance = (x1, y1, x2, y2) => Math.hypot(x2 - x1, y2 - y1);
 
-// Updated Leave Modal with proper Host/Guest logic
-const LeaveConfirmModal = ({
-  onConfirmLeave,
-  onConfirmLobby,
-  onCancel,
-  isHost,
-  inGame,
-}) => (
-  <div className="fixed inset-0 bg-black/90 z-200 flex items-center justify-center p-4 animate-in fade-in">
-    <div className="bg-gray-800 rounded-xl border border-gray-700 p-6 max-w-sm w-full text-center shadow-2xl">
-      <h3 className="text-xl font-bold text-white mb-2">Abandon Quarantine?</h3>
-      <p className="text-gray-400 mb-6 text-sm">
-        {isHost
-          ? "WARNING: As Host, leaving will disband the group and return everyone to the menu."
-          : inGame
-            ? "Leaving now will impact the game for others."
-            : "Leaving the lobby will disconnect you."}
-      </p>
-      <div className="flex flex-col gap-3">
-        <button
-          onClick={onCancel}
-          className="bg-gray-700 hover:bg-gray-600 text-white py-3 rounded font-bold transition-colors"
-        >
-          Stay (Cancel)
-        </button>
-        {isHost && inGame && (
-          <button
-            onClick={onConfirmLobby}
-            className="py-3 rounded font-bold transition-colors flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white"
-          >
-            <Home size={18} /> Return Crew to Lobby
-          </button>
-        )}
-        <button
-          onClick={onConfirmLeave}
-          className="bg-red-600 hover:bg-red-500 text-white py-3 rounded font-bold transition-colors flex items-center justify-center gap-2"
-        >
-          <LogOut size={18} /> {isHost ? "Disband Group" : "Leave Game"}
-        </button>
-      </div>
-    </div>
-  </div>
-);
+const GENERATE_DECK = () => {
+  let deck = [];
+  for (let i = 0; i < 14; i++) deck.push("KNIGHT");
+  for (let i = 0; i < 5; i++) deck.push("VP");
+  for (let i = 0; i < 2; i++) deck.push("ROAD");
+  for (let i = 0; i < 2; i++) deck.push("PLENTY");
+  for (let i = 0; i < 2; i++) deck.push("MONOPOLY");
+  return deck.sort(() => Math.random() - 0.5);
+};
 
-// --- UPDATED SPLASH SCREEN (With Loading Indicator) ---
+const getLongestRoad = (pId, board) => {
+  const playerEdges = Object.values(board.edges).filter((e) => e.owner === pId);
+  if (playerEdges.length === 0) return 0;
+  let maxLen = 0;
+  const dfs = (currentNodeId, visitedEdges) => {
+    maxLen = Math.max(maxLen, visitedEdges.size);
+    const node = board.nodes[currentNodeId];
+    if (node.owner && node.owner !== pId && visitedEdges.size > 0) return;
+    const connectedEdges = playerEdges.filter(
+      (e) => e.n1 === currentNodeId || e.n2 === currentNodeId
+    );
+    for (const edge of connectedEdges) {
+      if (!visitedEdges.has(edge.id)) {
+        visitedEdges.add(edge.id);
+        const nextNodeId = edge.n1 === currentNodeId ? edge.n2 : edge.n1;
+        dfs(nextNodeId, visitedEdges);
+        visitedEdges.delete(edge.id);
+      }
+    }
+  };
+  const relevantNodes = new Set();
+  playerEdges.forEach((e) => {
+    relevantNodes.add(e.n1);
+    relevantNodes.add(e.n2);
+  });
+  relevantNodes.forEach((startNodeId) => dfs(startNodeId, new Set()));
+  return maxLen;
+};
+
+const getTotalScore = (p, gameState) => {
+  let s = p.score || 0;
+  if (gameState.longestRoad?.playerId === p.id) s += 2;
+  if (gameState.largestArmy?.playerId === p.id) s += 2;
+  return s;
+};
+
+const GENERATE_BOARD = () => {
+  const hexes = {};
+  const nodes = {};
+  const edges = {};
+  const gridShape = [
+    { r: -2, qStart: 0, qEnd: 2 },
+    { r: -1, qStart: -1, qEnd: 2 },
+    { r: 0, qStart: -2, qEnd: 2 },
+    { r: 1, qStart: -2, qEnd: 1 },
+    { r: 2, qStart: -2, qEnd: 0 },
+  ];
+
+  const resourcePool = [
+    "DESERT", "WOOD", "WOOD", "WOOD", "WOOD", "BRICK", "BRICK", "BRICK",
+    "SHEEP", "SHEEP", "SHEEP", "SHEEP", "WHEAT", "WHEAT", "WHEAT", "WHEAT",
+    "ORE", "ORE", "ORE",
+  ].sort(() => Math.random() - 0.5);
+
+  const numberPool = [
+    2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12,
+  ].sort(() => Math.random() - 0.5);
+
+  gridShape.forEach(({ r, qStart, qEnd }) => {
+    for (let q = qStart; q <= qEnd; q++) {
+      const res = resourcePool.pop();
+      const num = res === "DESERT" ? null : numberPool.pop();
+      const center = getHexCenter(q, r);
+      hexes[`${q},${r}`] = { q, r, resource: res, number: num, center };
+
+      const W = Math.sqrt(3) * HEX_SIZE;
+      const corners = [
+        { x: center.x, y: center.y - HEX_SIZE },
+        { x: center.x + W / 2, y: center.y - HEX_SIZE / 2 },
+        { x: center.x + W / 2, y: center.y + HEX_SIZE / 2 },
+        { x: center.x, y: center.y + HEX_SIZE },
+        { x: center.x - W / 2, y: center.y + HEX_SIZE / 2 },
+        { x: center.x - W / 2, y: center.y - HEX_SIZE / 2 },
+      ];
+
+      corners.forEach((c) => {
+        const id = `${c.x.toFixed(1)},${c.y.toFixed(1)}`;
+        if (!nodes[id])
+          nodes[id] = { id, x: c.x, y: c.y, owner: null, type: null, port: null };
+      });
+
+      for (let i = 0; i < 6; i++) {
+        const c1 = corners[i];
+        const c2 = corners[(i + 1) % 6];
+        const mx = (c1.x + c2.x) / 2;
+        const my = (c1.y + c2.y) / 2;
+        const angle = Math.atan2(c2.y - c1.y, c2.x - c1.x) * (180 / Math.PI);
+        const id = `${mx.toFixed(1)},${my.toFixed(1)}`;
+        const id1 = `${c1.x.toFixed(1)},${c1.y.toFixed(1)}`;
+        const id2 = `${c2.x.toFixed(1)},${c2.y.toFixed(1)}`;
+
+        if (!edges[id]) {
+          edges[id] = { id, x: mx, y: my, angle, owner: null, hexes: [], n1: id1, n2: id2, port: null };
+        }
+        if (!edges[id].hexes.includes(`${q},${r}`)) edges[id].hexes.push(`${q},${r}`);
+      }
+    }
+  });
+
+  const outerEdges = Object.values(edges).filter((e) => e.hexes.length === 1);
+  outerEdges.sort((a, b) => Math.atan2(a.y, a.x) - Math.atan2(b.y, b.x));
+
+  const ports = [
+    "3:1", "3:1", "3:1", "3:1",
+    "WOOD_2:1", "BRICK_2:1", "SHEEP_2:1", "WHEAT_2:1", "ORE_2:1",
+  ].sort(() => Math.random() - 0.5);
+
+  let portIdx = 0;
+  for (let i = 0; i < outerEdges.length; i += 3) {
+    if (portIdx < ports.length) {
+      const edge = outerEdges[i];
+      edge.port = ports[portIdx];
+      nodes[edge.n1].port = ports[portIdx];
+      nodes[edge.n2].port = ports[portIdx];
+      portIdx++;
+    }
+  }
+
+  return { hexes, nodes, edges };
+};
+
+// ---------------------------------------------------------------------------
+// COMPONENTS
+// ---------------------------------------------------------------------------
 const SplashScreen = ({ onStart }) => {
   const [hasSession, setHasSession] = useState(false);
-
-  // State 1: Image is downloaded and ready to show
-  const [isLoaded, setIsLoaded] = useState(false);
-  // State 2: Button is ready to slide in (after zoom)
   const [showButton, setShowButton] = useState(false);
 
   useEffect(() => {
-    // 1. Check Session immediately
-    const saved = localStorage.getItem("angryvirus_roomId");
+    const saved = localStorage.getItem("catan_roomId");
     setHasSession(!!saved);
-
-    // 2. Preload the image
-    const img = new Image();
-    img.src = CoverImage;
-
-    img.onload = () => {
-      // Image is downloaded. Start the show.
-      setIsLoaded(true);
-
-      // Start the 2-second timer for the button *after* image loads
-      setTimeout(() => {
-        setShowButton(true);
-      }, 2000);
-    };
+    setTimeout(() => {
+      setShowButton(true);
+    }, 1500);
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
-      {/* --- NEW: LOADING INDICATOR --- */}
-      {/* This shows only while the image is NOT loaded yet */}
-      {!isLoaded && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-50 text-green-500/50">
-          <Loader size={48} className="animate-spin mb-4" />
-          <div className="font-mono text-xs tracking-[0.3em] animate-pulse">
-            INITIALIZING SYSTEM...
-          </div>
-        </div>
-      )}
-
-      {/* Background Image Container */}
-      {/* Opacity 0 -> 100 ensures a smooth fade-in once loaded */}
-      <div
-        className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-1000 ${isLoaded ? "opacity-100" : "opacity-0"}`}
-      >
-        <div
-          className={`w-full h-full bg-cover bg-center transition-transform duration-[2000ms] ease-out ${
-            isLoaded ? "scale-100" : "scale-130"
-          }`}
-          style={{ backgroundImage: `url(${CoverImage})` }}
-        />
-        {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
-      </div>
-
-      {/* Content */}
+    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-center font-sans overflow-hidden">
+      <GlobalStyles />
+      <FloatingBackground />
       <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-        {/* Pulsing Action Button */}
-        <div
-          className={`transform transition-all duration-1000 ease-out ${
-            showButton
-              ? "translate-y-0 opacity-100"
-              : "translate-y-32 opacity-0"
-          }`}
-        >
+        <div className="text-center mb-10">
+          <Hexagon size={80} className="text-orange-500 mx-auto mb-4 animate-spin-slow" />
+          <h1 className="text-5xl md:text-7xl font-thin text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-amber-600 tracking-tighter drop-shadow-md">
+            SETTLERS
+          </h1>
+          <p className="text-orange-200/40 tracking-[0.5em] uppercase mt-2 text-xs">
+            Trade. Build. Survive.
+          </p>
+        </div>
+        <div className={`transform transition-all duration-1000 ease-out ${showButton ? "translate-y-0 opacity-100" : "translate-y-32 opacity-0"}`}>
           <button
             onClick={onStart}
-            className="group relative px-12 py-5 bg-green-600/20 hover:bg-green-600/40 border border-green-500/50 hover:border-green-400 text-green-300 font-black text-2xl tracking-widest rounded-none transform transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] backdrop-blur-md overflow-hidden"
+            className="group relative px-12 py-5 bg-orange-600/20 hover:bg-orange-600/40 border border-orange-500/50 hover:border-orange-400 text-orange-300 font-black text-2xl tracking-widest rounded-none transform transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(249,115,22,0.4)] backdrop-blur-md overflow-hidden"
           >
-            {/* Animated Scanline overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-green-400/10 to-transparent translate-y-[-100%] animate-[scan_2s_infinite_linear]" />
-
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-orange-400/10 to-transparent translate-y-[-100%] animate-[scan_2s_infinite_linear]" />
             <span className="relative z-10 flex items-center gap-3 animate-pulse">
-              {hasSession ? (
-                <>
-                  <RotateCcw className="animate-spin-slow" /> RESUME
-                </>
-              ) : (
-                <>
-                  <Play /> PLAY
-                </>
-              )}
+              {hasSession ? <><RotateCcw className="animate-spin-slow" /> RESUME</> : <><Play /> PLAY</>}
             </span>
           </button>
         </div>
       </div>
-      <div className="absolute bottom-4 text-slate-600 text-xs text-center">
-        Inspired by No Thanks. A tribute game.
-        <br />
-        Developed by <strong>RAWFID K SHUVO</strong>.
-      </div>
-
-      <style>{`
-        @keyframes scan {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(200%); }
-        }
-      `}</style>
+      <style>{`@keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(200%); } }`}</style>
     </div>
   );
 };
 
-// --- Main Component ---
-
-export default function AngryVirus() {
+export default function CatanClone() {
   const [user, setUser] = useState(null);
-  const [view, setView] = useState("splash"); // menu, lobby, game
+  const [view, setView] = useState("splash");
+  const [playerName, setPlayerName] = useState("");
+  const [roomCode, setRoomCode] = useState("");
   const [roomId, setRoomId] = useState("");
-  const [roomCodeInput, setRoomCodeInput] = useState("");
   const [gameState, setGameState] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showGuide, setShowGuide] = useState(false);
-  const [showLogs, setShowLogs] = useState(false);
-  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  // NEW: State for the report modal
-  const [showReport, setShowReport] = useState(false);
-  //read and fill global name
-  const [playerName, setPlayerName] = useState(
-    () => localStorage.getItem("gameHub_playerName") || "",
-  );
-  //set global name for all game
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+
+  // Modals & UI States
+  const [feedback, setFeedback] = useState(null);
+  const [showTradeModal, setShowTradeModal] = useState(false);
+  const [showDevModal, setShowDevCards] = useState(false);
+  const [activeBuildMode, setActiveBuildMode] = useState(null);
+  const [popupContent, setPopupContent] = useState(null);
+
+  // Animations & Effects States
+  const [resourceAnimations, setResourceAnimations] = useState({});
+  const [flashDice, setFlashDice] = useState(false);
+
+  // Trades & Discard
+  const [offerTokens, setOfferTokens] = useState({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 });
+  const [requestTokens, setRequestTokens] = useState({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 });
+  const [discardTokens, setDiscardTokens] = useState({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 });
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
+  const [mustDiscardAmount, setMustDiscardAmount] = useState(0);
+
+  // Gamehub Maintenance Listener
   useEffect(() => {
-    if (playerName) localStorage.setItem("gameHub_playerName", playerName);
-  }, [playerName]);
-  // --- Auth & Config ---
-  useEffect(() => {
-    const initAuth = async () => {
-      if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
-        await signInWithCustomToken(auth, __initial_auth_token);
-      } else {
-        await signInAnonymously(auth);
-      }
-    };
-    initAuth();
-    onAuthStateChanged(auth, setUser);
+    const unsub = onSnapshot(
+      doc(db, "game_hub_settings", "config"),
+      (doc) => {
+        if (doc.exists() && doc.data()[GAME_ID]?.maintenance) setIsMaintenance(true);
+        else setIsMaintenance(false);
+      },
+      (err) => console.log("Config Read Error (Safe to ignore):", err)
+    );
+    return () => unsub();
   }, []);
 
-  // 3. NEW FUNCTION: Handle Splash Button Click
-  const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("angryvirus_roomId");
-
-    if (savedRoomId) {
-      setLoading(true);
-      // Resume: Set the room ID, which triggers the existing logic to connect
-      setRoomId(savedRoomId);
-      // We switch to 'menu' briefly; if the connection works,
-      // the existing listener will auto-switch to 'lobby' or 'game'
-      setView("menu");
-    } else {
-      // New Game: Just go to menu
-      setView("menu");
-    }
-  };
-
-  //--- Session Restore ---
-  // useEffect(() => {
-  //   const savedRoomId = localStorage.getItem("angryvirus_roomId");
-  //   if (savedRoomId) {
-  //     setRoomId(savedRoomId);
-  //   }
-  // }, []);
-
   useEffect(() => {
-    const unsub = onSnapshot(doc(db, "game_hub_settings", "config"), (doc) => {
-      if (doc.exists() && doc.data()[GAME_ID]?.maintenance) {
-        setIsMaintenance(true);
-      } else {
-        setIsMaintenance(false);
+    const initAuth = async () => {
+      if (typeof __initial_auth_token !== "undefined" && __initial_auth_token)
+        await signInWithCustomToken(auth, __initial_auth_token);
+      else await signInAnonymously(auth);
+    };
+    initAuth();
+    const unsub = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      if (u) {
+        const savedName = localStorage.getItem("gameHub_playerName") || localStorage.getItem("catan_playerName");
+        if (savedName) setPlayerName(savedName);
       }
     });
     return () => unsub();
   }, []);
 
-  // --- Room Sync ---
   useEffect(() => {
     if (!roomId || !user) return;
+    const roomRef = doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId);
     const unsub = onSnapshot(
-      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      roomRef,
       (snap) => {
         if (snap.exists()) {
           const data = snap.data();
-          setGameState(data);
-
-          // Check if user was kicked
-          if (data.players && !data.players.find((p) => p.id === user.uid)) {
+          if (!data.players.some((p) => p.id === user.uid)) {
             setRoomId("");
+            localStorage.removeItem("catan_roomId");
             setView("menu");
-            localStorage.removeItem("angryvirus_roomId");
-            setError("You have been removed from the quarantine zone.");
+            setError("You were removed from the world.");
             return;
           }
-
-          if (data.status === "playing" || data.status === "finished")
-            setView("game");
+          setGameState(data);
+          if (data.status === "playing" || data.status === "finished") setView("game");
           else if (data.status === "lobby") setView("lobby");
+
+          handleGamePopups(data);
+          handleDiscardPhase(data);
         } else {
-          // Room deleted
-          setRoomId("");
           setView("menu");
-          localStorage.removeItem("angryvirus_roomId");
-          setError("Quarantine zone lifted (Room closed).");
+          setRoomId("");
+          localStorage.removeItem("catan_roomId");
+          setError("World collapsed.");
         }
       },
+      (err) => {
+        console.error(err);
+        setError("Connection lost.");
+      }
     );
     return () => unsub();
   }, [roomId, user]);
 
-  // --- NEW: Trigger Report on Finish ---
-  useEffect(() => {
-    if (gameState?.status === "finished") {
-      setShowReport(true);
+  const handleSplashStart = () => {
+    const savedRoomId = localStorage.getItem("catan_roomId");
+    if (savedRoomId) {
+      setLoading(true);
+      setRoomId(savedRoomId);
+      setView("menu");
     } else {
-      setShowReport(false);
+      setView("menu");
     }
-  }, [gameState?.status]);
+  };
 
-  // --- Logic ---
+  const prevDice = useRef(null);
+  useEffect(() => {
+    if (gameState?.dice && prevDice.current) {
+      if (
+        (gameState.hasRolled && !prevDice.current.hasRolled) ||
+        gameState.dice[0] !== prevDice.current.dice[0] ||
+        gameState.dice[1] !== prevDice.current.dice[1]
+      ) {
+        setFlashDice(true);
+        setTimeout(() => setFlashDice(false), 3000);
+      }
+    }
+    prevDice.current = { dice: gameState?.dice || [1, 1], hasRolled: gameState?.hasRolled };
+  }, [gameState?.dice, gameState?.hasRolled]);
+
+  const pIdx = gameState?.players?.findIndex((p) => p.id === user?.uid) ?? -1;
+  const me = pIdx !== -1 ? gameState.players[pIdx] : null;
+
+  const prevResources = useRef(null);
+  useEffect(() => {
+    if (!me) return;
+    if (prevResources.current) {
+      const newAnims = { ...resourceAnimations };
+      let changed = false;
+      Object.keys(me.resources).forEach((res) => {
+        const diff = me.resources[res] - prevResources.current[res];
+        if (diff !== 0) {
+          changed = true;
+          if (!newAnims[res]) newAnims[res] = [];
+          const id = Date.now() + Math.random();
+          newAnims[res].push({ id, val: diff });
+          setTimeout(() => {
+            setResourceAnimations((curr) => {
+              const updated = { ...curr };
+              if (updated[res]) updated[res] = updated[res].filter((a) => a.id !== id);
+              return updated;
+            });
+          }, 2000);
+        }
+      });
+      if (changed) setResourceAnimations(newAnims);
+    }
+    prevResources.current = { ...me.resources };
+  }, [me?.resources]);
+
+  const lastLogIdRef = useRef(null);
+  useEffect(() => {
+    if (!gameState?.logs || gameState.logs.length === 0) return;
+    const latestLog = gameState.logs[gameState.logs.length - 1];
+    if (lastLogIdRef.current === null) {
+      lastLogIdRef.current = latestLog.id;
+      return;
+    }
+    if (latestLog.id <= lastLogIdRef.current) return;
+    lastLogIdRef.current = latestLog.id;
+
+    if (latestLog.important) {
+      setFeedback({
+        type: latestLog.type || "neutral",
+        message: latestLog.title || "UPDATE",
+        subtext: latestLog.text,
+        icon: latestLog.type === "success" ? Sparkles : AlertTriangle,
+      });
+      setTimeout(() => setFeedback(null), 2500);
+    }
+  }, [gameState?.logs]);
+
+  const handleDiscardPhase = (data) => {
+    if (data.turnPhase === "DISCARD") {
+      const currentPlayer = data.players.find((p) => p.id === user?.uid);
+      const needsToDiscard = data.discardingPlayers && data.discardingPlayers.includes(user?.uid);
+      if (needsToDiscard && !showDiscardModal) {
+        const count = Object.values(currentPlayer.resources).reduce((a, b) => a + b, 0);
+        const toLose = Math.floor(count / 2);
+        setMustDiscardAmount(toLose);
+        setShowDiscardModal(true);
+        setDiscardTokens({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 });
+      } else if (!needsToDiscard) {
+        setShowDiscardModal(false);
+      }
+    } else {
+      setShowDiscardModal(false);
+    }
+  };
+
+  const handleGamePopups = (data) => {
+    const idx = data.players.findIndex((p) => p.id === user?.uid);
+    if (idx === -1) return;
+
+    if (data.turnPhase === "ROBBER_STEAL" && data.turnIndex === idx) {
+      const hexNodes = getHexVertices(data.robberTarget.q, data.robberTarget.r, data.board.nodes);
+      const victims = [...new Set(hexNodes.filter((n) => n.owner && n.owner !== user.uid).map((n) => n.owner))];
+      if (victims.length > 0) {
+        setPopupContent({ type: "STEAL", victims });
+        return;
+      } else {
+        const nextPhase = data.hasRolled ? "MAIN" : "ROLL";
+        updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), { turnPhase: nextPhase });
+      }
+    }
+
+    if (data.activeTrade && data.activeTrade.senderId !== user.uid && !data.activeTrade.responses?.[user.uid]) {
+      setPopupContent({ type: "INCOMING_TRADE", trade: data.activeTrade });
+      return;
+    }
+    if (data.turnPhase === "YEAR_OF_PLENTY" && data.turnIndex === idx) {
+      setPopupContent({ type: "YEAR_OF_PLENTY" });
+      return;
+    }
+    if (data.turnPhase === "MONOPOLY" && data.turnIndex === idx) {
+      setPopupContent({ type: "MONOPOLY" });
+      return;
+    }
+    setPopupContent(null);
+  };
+
+  const triggerLog = (text, type = "neutral", important = false, title = "") => ({
+    text, type, important, title, id: Date.now() + Math.random()
+  });
+
+  const getHexVertices = (q, r, allNodes) => {
+    const center = getHexCenter(q, r);
+    return Object.values(allNodes).filter((node) => getDistance(center.x, center.y, node.x, node.y) < HEX_SIZE + 5);
+  };
+
+  const checkVictory = (players, longestRoadState, largestArmyState) => {
+    const idx = players.findIndex((p) => p.id === user.uid);
+    if (idx === -1) return false;
+    let total = players[idx].score;
+    if (longestRoadState?.playerId === user.uid) total += 2;
+    if (largestArmyState?.playerId === user.uid) total += 2;
+    return total >= 10;
+  };
 
   const createRoom = async () => {
-    if (!playerName) return setError("Name required");
+    if (!playerName) return setError("Enter Name");
+    localStorage.setItem("gameHub_playerName", playerName);
+    localStorage.setItem("catan_playerName", playerName);
     setLoading(true);
-    const chars = "123456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
-    let newRoomId = "";
-    for (let i = 0; i < 6; i++) {
-      newRoomId += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-
-    // Create Deck 3 to 35
-    const deck = Array.from({ length: 33 }, (_, i) => i + 3);
-
-    await setDoc(
-      doc(db, "artifacts", APP_ID, "public", "data", "rooms", newRoomId),
-      {
-        roomId: newRoomId,
-        hostId: user.uid,
-        status: "lobby",
-        players: [
-          {
-            id: user.uid,
-            name: playerName,
-            tokens: 0,
-            cards: [],
-            ready: false,
-          },
-        ],
-        deck: [], // Empty until start
-        cardsToRemove: 5,
-        currentCard: null,
-        tokensOnCard: 0,
-        turnIndex: 0,
-        logs: [],
-        winnerId: null,
-      },
-    );
-    localStorage.setItem("angryvirus_roomId", newRoomId);
-    setRoomId(newRoomId);
-    setLoading(false);
-  };
-
-  const updateCardsToRemove = async (count) => {
-    if (gameState.hostId !== user.uid) return;
-    if (count < 5 || count > 9) return;
-    await updateDoc(
-      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
-      {
-        cardsToRemove: count,
-      },
-    );
-  };
-
-  const joinRoom = async () => {
-    if (!roomCodeInput || !playerName) return setError("Code/Name required");
-    setLoading(true);
-    const ref = doc(
-      db,
-      "artifacts",
-      APP_ID,
-      "public",
-      "data",
-      "rooms",
-      roomCodeInput,
-    );
-    const snap = await getDoc(ref);
-    if (!snap.exists()) {
-      setError("Room not found");
-      setLoading(false);
-      return;
-    }
-
-    const data = snap.data();
-    if (data.status !== "lobby") {
-      setError("Outbreak already started");
-      setLoading(false);
-      return;
-    }
-    if (data.players.length >= 7) {
-      setError("Room full");
-      setLoading(false);
-      return;
-    }
-
-    if (!data.players.find((p) => p.id === user.uid)) {
-      await updateDoc(ref, {
-        players: arrayUnion({
+    const newId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const initialData = {
+      roomId: newId,
+      hostId: user.uid,
+      status: "lobby",
+      players: [
+        {
           id: user.uid,
           name: playerName,
-          tokens: 0,
-          cards: [],
-          ready: false,
-        }),
-      });
-    }
-    localStorage.setItem("angryvirus_roomId", roomCodeInput);
-    setRoomId(roomCodeInput);
-    setLoading(false);
-  };
-
-  const leaveRoom = async () => {
-    if (!roomId || !user) return;
-    try {
-      const roomRef = doc(
-        db,
-        "artifacts",
-        APP_ID,
-        "public",
-        "data",
-        "rooms",
-        roomId,
-      );
-      const snap = await getDoc(roomRef);
-
-      if (snap.exists()) {
-        const data = snap.data();
-        const isHost = data.hostId === user.uid;
-
-        if (isHost) {
-          await deleteDoc(roomRef);
-        } else {
-          const leavingPlayerIndex = data.players.findIndex(
-            (p) => p.id === user.uid,
-          );
-          const newPlayers = data.players.filter((p) => p.id !== user.uid);
-          let newStatus = data.status;
-
-          let newTurnIndex = data.turnIndex;
-          if (leavingPlayerIndex < newTurnIndex) {
-            newTurnIndex = Math.max(0, newTurnIndex - 1);
-          }
-          if (newTurnIndex >= newPlayers.length) {
-            newTurnIndex = 0;
-          }
-
-          if (data.status === "playing" && newPlayers.length < 2) {
-            newStatus = "finished";
-          }
-
-          await updateDoc(roomRef, {
-            players: newPlayers,
-            status: newStatus,
-            turnIndex: newTurnIndex,
-            logs: arrayUnion({
-              text: `${playerName} abandoned the quarantine.`,
-              type: "danger",
-            }),
-          });
-        }
-      }
-    } catch (e) {
-      console.error("Error leaving room:", e);
-    }
-
-    localStorage.removeItem("angryvirus_roomId");
-    setRoomId("");
-    setView("menu");
-    setGameState(null);
-    setShowLeaveConfirm(false);
-    setShowReport(false);
-  };
-
-  const kickPlayer = async (pid) => {
-    if (gameState.hostId !== user.uid) return;
-    const players = gameState.players.filter((p) => p.id !== pid);
-    await updateDoc(
-      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
-      {
-        players,
-      },
-    );
-  };
-
-  const copyToClipboard = () => {
-    const textToCopy = gameState.roomId;
-
-    // Logic to show the popup and hide it after 2 seconds
-    const handleSuccess = () => {
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
-
-      // Keep your existing global feedback if needed
-      if (triggerFeedback)
-        triggerFeedback("neutral", "COPIED!", "", CheckCircle);
+          colorIdx: 0,
+          score: 0,
+          resources: { WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 },
+          devCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
+          newDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
+          usedDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
+          playedKnights: 0,
+          hasPlayedDevCard: false,
+          roadLength: 0,
+        },
+      ],
+      longestRoad: { playerId: null, length: 4 },
+      largestArmy: { playerId: null, size: 2 },
+      hasRolled: false,
+      board: null,
+      devDeck: [],
+      activeTrade: null,
+      turnIndex: 0,
+      turnPhase: "SETUP_SETTLEMENT",
+      setupRound: 1,
+      dice: [1, 1],
+      robberHex: null,
+      logs: [],
+      discardingPlayers: [],
     };
 
     try {
-      navigator.clipboard.writeText(textToCopy);
-      handleSuccess();
+      await setDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", newId), initialData);
+      setRoomId(newId);
+      localStorage.setItem("catan_roomId", newId);
     } catch (e) {
-      // Fallback for older browsers
+      setError("Failed to create world.");
+    }
+    setLoading(false);
+  };
+
+  const joinRoom = async () => {
+    if (!roomCode || !playerName) return setError("Enter details");
+    localStorage.setItem("gameHub_playerName", playerName);
+    localStorage.setItem("catan_playerName", playerName);
+    setLoading(true);
+    try {
+      const code = roomCode.toUpperCase().trim();
+      const ref = doc(db, "artifacts", APP_ID, "public", "data", "rooms", code);
+      const snap = await getDoc(ref);
+
+      if (snap.exists() && snap.data().status === "lobby") {
+        const data = snap.data();
+        if (!data.players.some((p) => p.id === user.uid)) {
+          if (data.players.length >= 4) {
+            setError("World is full.");
+            setLoading(false);
+            return;
+          }
+          const newPlayers = [
+            ...data.players,
+            {
+              id: user.uid,
+              name: playerName,
+              colorIdx: data.players.length,
+              score: 0,
+              resources: { WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 },
+              devCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
+              newDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
+              usedDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
+              playedKnights: 0,
+              hasPlayedDevCard: false,
+              roadLength: 0,
+            },
+          ];
+          await updateDoc(ref, { players: newPlayers });
+        }
+        setRoomId(code);
+        localStorage.setItem("catan_roomId", code);
+      } else setError("Room not found or in progress");
+    } catch (e) {
+      setError(e.message);
+    }
+    setLoading(false);
+  };
+
+  const startGame = async () => {
+    const board = GENERATE_BOARD();
+    const desertEntry = Object.entries(board.hexes).find(([_, h]) => h.resource === "DESERT");
+    const robberHex = desertEntry ? desertEntry[0] : "0,0";
+    const devDeck = GENERATE_DECK();
+
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
+      status: "playing",
+      board,
+      robberHex,
+      devDeck,
+      turnIndex: 0,
+      turnPhase: "SETUP_SETTLEMENT",
+      setupRound: 1,
+      dice: [1, 1],
+      hasRolled: false,
+      longestRoad: { playerId: null, length: 4 },
+      largestArmy: { playerId: null, size: 2 },
+      logs: arrayUnion({
+        text: "The settlement begins.",
+        important: true,
+        type: "success",
+        id: Date.now(),
+      }),
+      discardingPlayers: [],
+    });
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(roomId).then(() => {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }).catch(err => {
       const el = document.createElement("textarea");
-      el.value = textToCopy;
+      el.value = roomId;
       document.body.appendChild(el);
       el.select();
       document.execCommand("copy");
       document.body.removeChild(el);
-      handleSuccess();
-    }
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    });
   };
 
-  const startGame = async () => {
-    if (gameState.hostId !== user.uid) return;
-    const pCount = gameState.players.length;
-    if (pCount < 2) return;
-
-    let initialTokens = 11;
-    if (pCount === 6) initialTokens = 9;
-    if (pCount === 7) initialTokens = 7;
-
-    let fullDeck = shuffle(Array.from({ length: 33 }, (_, i) => i + 3));
-    const removeCount = gameState.cardsToRemove || 5;
-    fullDeck = fullDeck.slice(0, fullDeck.length - removeCount);
-
-    const firstCard = fullDeck.pop();
-
-    const players = gameState.players.map((p) => ({
-      ...p,
-      tokens: initialTokens,
-      cards: [],
-      ready: false,
-    }));
-    const randStart = Math.floor(Math.random() * pCount);
-
-    await updateDoc(
-      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
-      {
-        status: "playing",
-        players,
-        deck: fullDeck,
-        currentCard: firstCard,
-        tokensOnCard: 0,
-        turnIndex: randStart,
-        logs: [
-          {
-            text: `The Outbreak Begins! (${removeCount} cards removed hiddenly)`,
-            type: "neutral",
-          },
-        ],
-      },
-    );
-  };
-
-  const takeAction = async (action) => {
-    const players = [...gameState.players];
-    const playerIdx = gameState.turnIndex;
-    const player = players[playerIdx];
-    let deck = [...gameState.deck];
-    let currentCard = gameState.currentCard;
-    let tokensOnCard = gameState.tokensOnCard;
-    let nextTurnIndex = gameState.turnIndex;
-    let logs = [];
-    let status = "playing";
-    let winnerId = null;
-
-    if (action === "PASS") {
-      if (player.tokens <= 0) return;
-
-      player.tokens -= 1;
-      tokensOnCard += 1;
-      nextTurnIndex = (nextTurnIndex + 1) % players.length;
-
-      logs.push({
-        text: `${player.name} passed (-1 Vitamin).`,
-        type: "neutral",
-      });
-    } else if (action === "TAKE") {
-      player.cards.push(currentCard);
-      player.cards.sort((a, b) => a - b);
-      player.tokens += tokensOnCard;
-
-      logs.push({
-        text: `${player.name} took Virus ${currentCard} and ${tokensOnCard} Vitamins!`,
-        type: "warning",
-      });
-
-      if (deck.length > 0) {
-        currentCard = deck.pop();
-        tokensOnCard = 0;
-      } else {
-        status = "finished";
-        currentCard = null;
-        tokensOnCard = 0;
-
-        const scores = players.map((p) => ({
-          id: p.id,
-          score: calculateScore(p.cards, p.tokens),
-        }));
-        scores.sort((a, b) => a.score - b.score);
-        winnerId = scores[0].id;
-
-        logs.push({
-          text: "All viruses contained. Game Over!",
-          type: "success",
-        });
+  const handleLeave = async () => {
+    if (!roomId) return;
+    try {
+      const ref = doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId);
+      if (gameState.hostId === user.uid) await deleteDoc(ref);
+      else {
+        const newPlayers = gameState.players.filter((p) => p.id !== user.uid);
+        await updateDoc(ref, { players: newPlayers });
       }
+    } catch (e) {
+      console.log("Room gone");
     }
+    localStorage.removeItem("catan_roomId");
+    setRoomId("");
+    setView("menu");
+    setShowLeaveConfirm(false);
+    setGameState(null);
+  };
 
-    await updateDoc(
-      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
-      {
-        players,
-        deck,
-        currentCard,
-        tokensOnCard,
-        turnIndex: nextTurnIndex,
-        status,
-        winnerId,
-        logs: arrayUnion(...logs),
-      },
-    );
+  const kickPlayer = async (targetId) => {
+    if (!gameState || gameState.hostId !== user.uid) return;
+    try {
+      const newPlayers = gameState.players.filter((p) => p.id !== targetId);
+      await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
+        players: newPlayers,
+        logs: arrayUnion(triggerLog("A player was removed from the world.", "warning"))
+      });
+    } catch (e) {
+      console.error("Error kicking player:", e);
+    }
   };
 
   const returnToLobby = async () => {
     if (gameState.hostId !== user.uid) return;
     const players = gameState.players.map((p) => ({
       ...p,
-      cards: [],
-      tokens: 0,
-      ready: false,
+      score: 0,
+      resources: { WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 },
+      devCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
+      newDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
+      usedDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
+      playedKnights: 0,
+      hasPlayedDevCard: false,
+      roadLength: 0,
     }));
-    await updateDoc(
-      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
-      {
-        status: "lobby",
-        players,
-        deck: [],
-        currentCard: null,
-        winnerId: null,
-        logs: [],
-      },
-    );
-    setShowLeaveConfirm(false);
-    setShowReport(false);
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
+      status: "lobby",
+      players,
+      board: null,
+      longestRoad: { playerId: null, length: 4 },
+      largestArmy: { playerId: null, size: 2 },
+      hasRolled: false,
+      devDeck: [],
+      activeTrade: null,
+      turnIndex: 0,
+      turnPhase: "SETUP_SETTLEMENT",
+      setupRound: 1,
+      dice: [1, 1],
+      robberHex: null,
+      logs: [],
+      discardingPlayers: [],
+    });
   };
 
-  const restartGame = async () => {
-    if (gameState.hostId !== user.uid) return;
-    await startGame();
-    setShowReport(false);
+  const handleRollDice = async () => {
+    if (gameState.turnIndex !== pIdx || gameState.turnPhase !== "ROLL" || gameState.hasRolled) return;
+    const d1 = Math.floor(Math.random() * 6) + 1;
+    const d2 = Math.floor(Math.random() * 6) + 1;
+    const total = d1 + d2;
+    let updates = { dice: [d1, d2], hasRolled: true };
+    let logs = [triggerLog(`${me.name} rolled a ${total}!`)];
+    let players = JSON.parse(JSON.stringify(gameState.players));
+
+    if (total === 7) {
+      logs.push(triggerLog(`The Robber strikes!`, "failure", true, "SEVEN ROLLED"));
+      let playersToDiscard = [];
+      players.forEach((p) => {
+        const count = Object.values(p.resources).reduce((a, b) => a + b, 0);
+        if (count > 7) playersToDiscard.push(p.id);
+      });
+      if (playersToDiscard.length > 0) {
+        updates.turnPhase = "DISCARD";
+        updates.discardingPlayers = playersToDiscard;
+        logs.push(triggerLog(`Waiting for players to discard cards...`));
+      } else {
+        updates.turnPhase = "ROBBER";
+      }
+    } else {
+      updates.turnPhase = "MAIN";
+      const producingHexes = Object.values(gameState.board.hexes).filter(
+        (h) => h.number === total && `${h.q},${h.r}` !== gameState.robberHex
+      );
+      let produced = false;
+      producingHexes.forEach((hex) => {
+        const hexCorners = getHexVertices(hex.q, hex.r, gameState.board.nodes);
+        hexCorners.forEach((node) => {
+          if (node.owner) {
+            const ownerIdx = players.findIndex((p) => p.id === node.owner);
+            if (ownerIdx !== -1) {
+              const amount = node.type === "CITY" ? 2 : 1;
+              players[ownerIdx].resources[hex.resource] += amount;
+              produced = true;
+            }
+          }
+        });
+      });
+      if (produced) logs.push(triggerLog(`Resources produced from ${total}.`));
+    }
+    updates.players = players;
+    if (logs.length > 0) updates.logs = arrayUnion(...logs);
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), updates);
   };
 
-  const toggleReady = async () => {
-    if (!roomId || !user) return;
-    const updatedPlayers = gameState.players.map((p) =>
-      p.id === user.uid ? { ...p, ready: !p.ready } : p,
-    );
+  const submitDiscard = async () => {
+    const totalDiscarded = Object.values(discardTokens).reduce((a, b) => a + b, 0);
+    if (totalDiscarded !== mustDiscardAmount) return alert(`You must discard exactly ${mustDiscardAmount} cards.`);
+    let valid = true;
+    Object.keys(discardTokens).forEach((k) => { if (me.resources[k] < discardTokens[k]) valid = false; });
+    if (!valid) return alert("You don't have those resources!");
 
-    await updateDoc(
-      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
-      { players: updatedPlayers },
-    );
+    let players = JSON.parse(JSON.stringify(gameState.players));
+    Object.keys(discardTokens).forEach((k) => { players[pIdx].resources[k] -= discardTokens[k]; });
+    let discardingPlayers = gameState.discardingPlayers.filter((id) => id !== user.uid);
+    let updates = { players, discardingPlayers };
+    let logs = [triggerLog(`${me.name} discarded ${mustDiscardAmount} cards.`)];
+
+    if (discardingPlayers.length === 0) {
+      updates.turnPhase = "ROBBER";
+      logs.push(triggerLog(`All players discarded. Place the robber!`));
+    }
+    updates.logs = arrayUnion(...logs);
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), updates);
+    setShowDiscardModal(false);
   };
 
-  // --- Render ---
+  const handlePlaceRobber = async (q, r) => {
+    if (gameState.turnIndex !== pIdx || gameState.turnPhase !== "ROBBER") return;
+    const hexId = `${q},${r}`;
+    if (hexId === gameState.robberHex) return;
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
+      robberHex: hexId, robberTarget: { q, r }, turnPhase: "ROBBER_STEAL", logs: arrayUnion(triggerLog(`Robber moved to ${hexId}.`)),
+    });
+  };
 
+  const executeSteal = async (victimId) => {
+    let players = JSON.parse(JSON.stringify(gameState.players));
+    let logs = [];
+    const victimIdx = players.findIndex((p) => p.id === victimId);
+    const v = players[victimIdx];
+    const resKeys = Object.keys(v.resources).filter((k) => v.resources[k] > 0);
+    if (resKeys.length > 0) {
+      const stolenRes = resKeys[Math.floor(Math.random() * resKeys.length)];
+      v.resources[stolenRes]--;
+      players[pIdx].resources[stolenRes]++;
+      logs.push(triggerLog(`Stole a resource from ${v.name}.`));
+    } else {
+      logs.push(triggerLog(`${v.name} had no resources to steal.`));
+    }
+    let nextPhase = gameState.hasRolled ? "MAIN" : "ROLL";
+    let updates = { players, turnPhase: nextPhase };
+    if (logs.length > 0) updates.logs = arrayUnion(...logs);
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), updates);
+    setPopupContent(null);
+  };
+
+  const getTradeRatios = (pId, board) => {
+    let ratios = { WOOD: 4, BRICK: 4, SHEEP: 4, WHEAT: 4, ORE: 4 };
+    Object.values(board.nodes).forEach((n) => {
+      if (n.owner === pId && n.port) {
+        if (n.port === "3:1") Object.keys(ratios).forEach((k) => (ratios[k] = Math.min(ratios[k], 3)));
+        else { const res = n.port.split("_")[0]; ratios[res] = 2; }
+      }
+    });
+    return ratios;
+  };
+
+  const executeBankTrade = async () => {
+    let players = JSON.parse(JSON.stringify(gameState.players));
+    const ratios = getTradeRatios(user.uid, gameState.board);
+    let allowedPicks = 0;
+    let validOffer = true;
+    Object.keys(offerTokens).forEach((res) => {
+      if (offerTokens[res] > 0) {
+        if (players[pIdx].resources[res] < offerTokens[res]) validOffer = false;
+        if (offerTokens[res] % ratios[res] !== 0) validOffer = false;
+        allowedPicks += Math.floor(offerTokens[res] / ratios[res]);
+      }
+    });
+    const requestedPicks = Object.values(requestTokens).reduce((a, b) => a + b, 0);
+    if (!validOffer) return alert("Offer must be exactly in multiples of your bank/port ratios!");
+    if (requestedPicks !== allowedPicks || requestedPicks === 0) return alert(`You offered enough for ${allowedPicks} resources, but requested ${requestedPicks}.`);
+
+    Object.keys(offerTokens).forEach((res) => (players[pIdx].resources[res] -= offerTokens[res]));
+    Object.keys(requestTokens).forEach((res) => (players[pIdx].resources[res] += requestTokens[res]));
+
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
+      players, logs: arrayUnion(triggerLog(`${me.name} traded with the bank.`)),
+    });
+    setShowTradeModal(false);
+    setOfferTokens({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 });
+    setRequestTokens({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 });
+  };
+
+  const proposeDomesticTrade = async () => {
+    let hasOffer = Object.values(offerTokens).some((v) => v > 0);
+    let hasReq = Object.values(requestTokens).some((v) => v > 0);
+    if (!hasOffer || !hasReq) return alert("Must offer and request something.");
+    let valid = true;
+    Object.keys(offerTokens).forEach((k) => { if (me.resources[k] < offerTokens[k]) valid = false; });
+    if (!valid) return alert("You don't have those resources!");
+
+    const trade = { id: Date.now(), senderId: user.uid, senderName: me.name, offer: offerTokens, request: requestTokens, responses: {} };
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
+      activeTrade: trade, logs: arrayUnion(triggerLog(`${me.name} proposed a domestic trade.`)),
+    });
+    setShowTradeModal(false);
+  };
+
+  const respondToTrade = async (accept) => {
+    const active = gameState.activeTrade;
+    if (!active) return;
+    if (accept) {
+      let valid = true;
+      Object.keys(active.request).forEach((k) => { if (me.resources[k] < active.request[k]) valid = false; });
+      if (!valid) return alert("You don't have the resources to accept this trade.");
+
+      let players = JSON.parse(JSON.stringify(gameState.players));
+      const senderIdx = players.findIndex((p) => p.id === active.senderId);
+      Object.keys(active.offer).forEach((k) => { players[senderIdx].resources[k] -= active.offer[k]; players[pIdx].resources[k] += active.offer[k]; });
+      Object.keys(active.request).forEach((k) => { players[pIdx].resources[k] -= active.request[k]; players[senderIdx].resources[k] += active.request[k]; });
+
+      await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
+        players, activeTrade: null, logs: arrayUnion(triggerLog(`${me.name} accepted ${active.senderName}'s trade!`, "success")),
+      });
+    } else {
+      await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
+        [`activeTrade.responses.${user.uid}`]: "rejected",
+      });
+    }
+    setPopupContent(null);
+  };
+
+  const handleBuyDevCard = async () => {
+    if (gameState.turnIndex !== pIdx || gameState.turnPhase !== "MAIN") return;
+    let players = JSON.parse(JSON.stringify(gameState.players));
+    let deck = [...gameState.devDeck];
+    const cost = COSTS.DEV_CARD;
+    if (Object.keys(cost).some((k) => players[pIdx].resources[k] < cost[k])) return alert("Not enough resources!");
+    if (deck.length === 0) return alert("Deck is empty!");
+
+    Object.keys(cost).forEach((k) => (players[pIdx].resources[k] -= cost[k]));
+    const card = deck.pop();
+    let updates = { devDeck: deck };
+    let logs = [triggerLog(`${me.name} bought a Development Card.`)];
+    if (card === "VP") players[pIdx].devCards["VP"]++;
+    else players[pIdx].newDevCards[card]++;
+
+    updates.players = players;
+    updates.logs = arrayUnion(...logs);
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), updates);
+  };
+
+  const playDevCard = async (type) => {
+    if (gameState.turnIndex !== pIdx) return;
+    if (type !== "VP" && gameState.players[pIdx].hasPlayedDevCard) return alert("You can only play one Development Card per turn.");
+    let players = JSON.parse(JSON.stringify(gameState.players));
+    let updates = {};
+    let logs = [];
+
+    if (type === "VP") {
+      const vpCount = players[pIdx].devCards["VP"];
+      players[pIdx].devCards["VP"] = 0;
+      if (!players[pIdx].usedDevCards) players[pIdx].usedDevCards = { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 };
+      players[pIdx].usedDevCards["VP"] += vpCount;
+      players[pIdx].score += vpCount;
+      logs.push(triggerLog(`${players[pIdx].name} revealed ${vpCount} Victory Point Card${vpCount > 1 ? "s" : ""}!`, "important", true));
+    } else {
+      players[pIdx].devCards[type]--;
+      players[pIdx].hasPlayedDevCard = true;
+      if (!players[pIdx].usedDevCards) players[pIdx].usedDevCards = { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 };
+      players[pIdx].usedDevCards[type]++;
+      logs.push(triggerLog(`${players[pIdx].name} played a ${DEV_CARD_TYPES[type].name} Card!`, "important", true));
+
+      if (type === "KNIGHT") {
+        players[pIdx].playedKnights++;
+        const currentArmySize = gameState.largestArmy?.size || 2;
+        const currentArmyHolder = gameState.largestArmy?.playerId;
+        if (players[pIdx].playedKnights > currentArmySize) {
+          updates.largestArmy = { playerId: user.uid, size: players[pIdx].playedKnights };
+          if (currentArmyHolder !== user.uid) logs.push(triggerLog(`${players[pIdx].name} took the Largest Army!`, "important", true));
+        }
+        updates.turnPhase = "ROBBER";
+      } else if (type === "ROAD") updates.turnPhase = "ROAD_BUILDING_1";
+      else if (type === "PLENTY") updates.turnPhase = "YEAR_OF_PLENTY";
+      else if (type === "MONOPOLY") updates.turnPhase = "MONOPOLY";
+    }
+
+    if (checkVictory(players, gameState.longestRoad, updates.largestArmy || gameState.largestArmy)) {
+      updates.status = "finished";
+      logs.push(triggerLog(`${players[pIdx].name} wins the game!`, "important", true, "VICTORY"));
+    }
+
+    updates.players = players;
+    updates.logs = arrayUnion(...logs);
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), updates);
+    setShowDevCards(false);
+  };
+
+  const handleYearOfPlenty = async (res1, res2) => {
+    let players = JSON.parse(JSON.stringify(gameState.players));
+    players[pIdx].resources[res1]++;
+    players[pIdx].resources[res2]++;
+    let nextPhase = gameState.hasRolled ? "MAIN" : "ROLL";
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
+      players, turnPhase: nextPhase, logs: arrayUnion(triggerLog(`${me.name} took ${res1} and ${res2} via Year of Plenty.`)),
+    });
+    setPopupContent(null);
+  };
+
+  const handleMonopoly = async (res) => {
+    let players = JSON.parse(JSON.stringify(gameState.players));
+    let totalStolen = 0;
+    players.forEach((p, i) => { if (i !== pIdx) { totalStolen += p.resources[res]; p.resources[res] = 0; } });
+    players[pIdx].resources[res] += totalStolen;
+    let nextPhase = gameState.hasRolled ? "MAIN" : "ROLL";
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
+      players, turnPhase: nextPhase, logs: arrayUnion(triggerLog(`${me.name} stole ${totalStolen} ${res} via Monopoly!`)),
+    });
+    setPopupContent(null);
+  };
+
+  const isValidSettlement = (nodeId) => {
+    const node = gameState.board.nodes[nodeId];
+    if (node.owner) return false;
+    const tooClose = Object.values(gameState.board.nodes).some((n) => n.owner && getDistance(n.x, n.y, node.x, node.y) < HEX_SIZE + 5);
+    if (tooClose) return false;
+    if (gameState.turnPhase.startsWith("SETUP_")) return true;
+    const hasRoad = Object.values(gameState.board.edges).some((e) => e.owner === user.uid && getDistance(e.x, e.y, node.x, node.y) < HEX_SIZE / 2 + 5);
+    return hasRoad;
+  };
+
+  const isValidRoad = (edgeId) => {
+    const edge = gameState.board.edges[edgeId];
+    if (edge.owner) return false;
+    const connectedToMyNode = Object.values(gameState.board.nodes).some((n) => n.owner === user.uid && getDistance(n.x, n.y, edge.x, edge.y) < HEX_SIZE / 2 + 5);
+    const myRoads = Object.values(gameState.board.edges).filter((e) => e.owner === user.uid);
+    const validConnectedRoad = myRoads.some((myRoad) => {
+      const sharedNodeId = [myRoad.n1, myRoad.n2].find((n) => n === edge.n1 || n === edge.n2);
+      if (sharedNodeId) {
+        const node = gameState.board.nodes[sharedNodeId];
+        if (node.owner && node.owner !== user.uid) return false;
+        return true;
+      }
+      return false;
+    });
+    if (gameState.turnPhase.startsWith("SETUP_ROAD")) return connectedToMyNode;
+    return connectedToMyNode || validConnectedRoad;
+  };
+
+  const handleBuildNode = async (nodeId) => {
+    if (gameState.turnIndex !== pIdx) return;
+    let updates = {};
+    let players = JSON.parse(JSON.stringify(gameState.players));
+    let board = JSON.parse(JSON.stringify(gameState.board));
+    let logs = [];
+
+    if (activeBuildMode === "SETTLEMENT" || gameState.turnPhase === "SETUP_SETTLEMENT") {
+      if (!isValidSettlement(nodeId)) return;
+      if (!gameState.turnPhase.startsWith("SETUP_")) {
+        const cost = COSTS.SETTLEMENT;
+        if (Object.keys(cost).some((k) => players[pIdx].resources[k] < cost[k])) return alert("Not enough resources!");
+        Object.keys(cost).forEach((k) => (players[pIdx].resources[k] -= cost[k]));
+      }
+
+      board.nodes[nodeId].owner = user.uid;
+      board.nodes[nodeId].type = "SETTLEMENT";
+      players[pIdx].score += 1;
+
+      let maxRoadLength = 4;
+      let maxPlayers = [];
+      players.forEach((p) => {
+        const pRoadLen = getLongestRoad(p.id, board);
+        p.roadLength = pRoadLen;
+        if (pRoadLen > maxRoadLength) { maxRoadLength = pRoadLen; maxPlayers = [p.id]; }
+        else if (pRoadLen === maxRoadLength && pRoadLen > 4) { maxPlayers.push(p.id); }
+      });
+
+      let currentLongestPlayer = null;
+      const previousOwner = gameState.longestRoad?.playerId;
+      const previousLength = gameState.longestRoad?.length || 4;
+      if (maxPlayers.length === 1) currentLongestPlayer = maxPlayers[0];
+      else if (maxPlayers.length > 1) {
+        if (maxPlayers.includes(previousOwner) && maxRoadLength === previousLength) currentLongestPlayer = previousOwner;
+        else currentLongestPlayer = null;
+      }
+
+      if (currentLongestPlayer !== previousOwner || maxRoadLength !== previousLength) {
+        updates.longestRoad = { playerId: currentLongestPlayer, length: maxRoadLength };
+        if (currentLongestPlayer) {
+          if (currentLongestPlayer !== previousOwner) {
+            const newOwnerName = players.find((p) => p.id === currentLongestPlayer).name;
+            logs.push(triggerLog(`Longest road updated! ${newOwnerName} holds it.`, "important", true));
+          }
+        } else {
+          updates.longestRoad = { playerId: null, length: maxRoadLength };
+          logs.push(triggerLog(`The Longest Road has been broken! No one holds it.`, "important", true));
+        }
+      }
+
+      if (gameState.turnPhase === "SETUP_SETTLEMENT") {
+        if (gameState.setupRound === 2) {
+          const adjHexes = Object.values(board.hexes).filter(
+            (h) => getDistance(h.center.x, h.center.y, board.nodes[nodeId].x, board.nodes[nodeId].y) < HEX_SIZE + 5
+          );
+          adjHexes.forEach((h) => { if (h.resource !== "DESERT") players[pIdx].resources[h.resource]++; });
+        }
+        updates.turnPhase = "SETUP_ROAD";
+      } else setActiveBuildMode(null);
+
+      logs.push(triggerLog(`${me.name} built a Settlement.`, "success"));
+    } else if (activeBuildMode === "CITY") {
+      const node = board.nodes[nodeId];
+      if (node.owner !== user.uid || node.type !== "SETTLEMENT") return;
+      const cost = COSTS.CITY;
+      if (Object.keys(cost).some((k) => players[pIdx].resources[k] < cost[k])) return alert("Not enough resources!");
+      Object.keys(cost).forEach((k) => (players[pIdx].resources[k] -= cost[k]));
+
+      board.nodes[nodeId].type = "CITY";
+      players[pIdx].score += 1;
+      setActiveBuildMode(null);
+      logs.push(triggerLog(`${me.name} upgraded to a City.`, "success"));
+    }
+
+    if (checkVictory(players, updates.longestRoad || gameState.longestRoad, gameState.largestArmy)) {
+      updates.status = "finished";
+      logs.push(triggerLog(`${me.name} wins the game!`, "important", true, "VICTORY"));
+    }
+
+    if (logs.length === 0) return;
+    updates.players = players;
+    updates.board = board;
+    updates.logs = arrayUnion(...logs);
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), updates);
+  };
+
+  const handleBuildEdge = async (edgeId) => {
+    if (gameState.turnIndex !== pIdx) return;
+    const isSpecialBuildPhase = gameState.turnPhase.includes("ROAD");
+    if (activeBuildMode !== "ROAD" && !isSpecialBuildPhase) return;
+    if (!isValidRoad(edgeId)) return;
+
+    let updates = {};
+    let players = JSON.parse(JSON.stringify(gameState.players));
+    let board = JSON.parse(JSON.stringify(gameState.board));
+    let logs = [];
+
+    if (!gameState.turnPhase.includes("SETUP_") && !gameState.turnPhase.includes("ROAD_BUILDING")) {
+      const cost = COSTS.ROAD;
+      if (Object.keys(cost).some((k) => players[pIdx].resources[k] < cost[k])) return alert("Not enough resources!");
+      Object.keys(cost).forEach((k) => (players[pIdx].resources[k] -= cost[k]));
+    }
+
+    board.edges[edgeId].owner = user.uid;
+    logs.push(triggerLog(`${me.name} built a Road.`));
+    setActiveBuildMode(null);
+
+    const currentLen = getLongestRoad(user.uid, board);
+    players[pIdx].roadLength = currentLen;
+    const currentRecord = gameState.longestRoad?.length || 4;
+    const currentHolder = gameState.longestRoad?.playerId;
+
+    if (currentLen > currentRecord) {
+      updates.longestRoad = { playerId: user.uid, length: currentLen };
+      if (currentHolder !== user.uid) logs.push(triggerLog(`${me.name} took the Longest Road!`, "important", true));
+    }
+
+    if (gameState.turnPhase === "SETUP_ROAD") {
+      const numPlayers = gameState.players.length;
+      if (gameState.setupRound === 1) {
+        if (gameState.turnIndex === numPlayers - 1) { updates.setupRound = 2; updates.turnPhase = "SETUP_SETTLEMENT"; }
+        else { updates.turnIndex = gameState.turnIndex + 1; updates.turnPhase = "SETUP_SETTLEMENT"; }
+      } else {
+        if (gameState.turnIndex === 0) { updates.turnPhase = "ROLL"; logs.push(triggerLog("Setup complete. Main phase begins!", "important", true, "GAME START")); }
+        else { updates.turnIndex = gameState.turnIndex - 1; updates.turnPhase = "SETUP_SETTLEMENT"; }
+      }
+    } else if (gameState.turnPhase === "ROAD_BUILDING_1") { updates.turnPhase = "ROAD_BUILDING_2"; }
+    else if (gameState.turnPhase === "ROAD_BUILDING_2") { updates.turnPhase = gameState.hasRolled ? "MAIN" : "ROLL"; }
+
+    if (checkVictory(players, updates.longestRoad || gameState.longestRoad, gameState.largestArmy)) {
+      updates.status = "finished";
+      logs.push(triggerLog(`${me.name} wins the game!`, "important", true, "VICTORY"));
+    }
+
+    if (logs.length === 0) return;
+    updates.players = players;
+    updates.board = board;
+    updates.logs = arrayUnion(...logs);
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), updates);
+  };
+
+  const skipRoadBuilding = async () => {
+    let nextPhase = gameState.turnPhase === "ROAD_BUILDING_1" ? "ROAD_BUILDING_2" : gameState.hasRolled ? "MAIN" : "ROLL";
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), { turnPhase: nextPhase });
+    setActiveBuildMode(null);
+  };
+
+  const handleEndTurn = async () => {
+    if (gameState.turnIndex !== pIdx || gameState.turnPhase !== "MAIN") return;
+    let players = JSON.parse(JSON.stringify(gameState.players));
+    Object.keys(players[pIdx].newDevCards).forEach((k) => { players[pIdx].devCards[k] += players[pIdx].newDevCards[k]; players[pIdx].newDevCards[k] = 0; });
+    players[pIdx].hasPlayedDevCard = false;
+
+    const nextIdx = (gameState.turnIndex + 1) % gameState.players.length;
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
+      turnIndex: nextIdx,
+      turnPhase: "ROLL",
+      players,
+      hasRolled: false,
+      logs: arrayUnion(triggerLog(`Turn passed to ${gameState.players[nextIdx].name}.`)),
+    });
+    setActiveBuildMode(null);
+  };
+
+  // ---------------------------------------------------------------------------
+  // RENDER LOGIC
+  // ---------------------------------------------------------------------------
   if (isMaintenance) {
     return (
       <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-white p-4 text-center">
-        <LogoBig />
+        <GlobalStyles />
+        <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10 mb-8">
+          <Hexagon size={32} className="text-orange-500 animate-spin-slow" />
+        </div>
         <div className="bg-orange-500/10 p-8 rounded-2xl border border-orange-500/30">
-          <Hammer
-            size={64}
-            className="text-orange-500 mx-auto mb-4 animate-bounce"
-          />
+          <Hammer size={64} className="text-orange-500 mx-auto mb-4 animate-bounce" />
           <h1 className="text-3xl font-bold mb-2">Under Maintenance</h1>
-          <p className="text-gray-400">
-            Quarantine in effect. Stay safe until the last traces of virus in
-            eradicated.
-          </p>
+          <p className="text-gray-400">The island is currently undergoing terraforming. Please return soon!</p>
         </div>
         <div className="h-8"></div>
         <a href={import.meta.env.BASE_URL}>
           <div className="flex items-center justify-center gap-3 mb-2">
             <div className="text-center pb-12 animate-pulse">
-              <div className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900/50 rounded-full border border-indigo-500/20 text-indigo-300 font-bold tracking-widest text-sm uppercase backdrop-blur-sm">
-                <Sparkles size={16} /> Visit Gamehub...Try our other releases...{" "}
-                <Sparkles size={16} />
+              <div className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900/50 rounded-full border border-orange-500/20 text-orange-300 font-bold tracking-widest text-sm uppercase backdrop-blur-sm">
+                <StepBack size={16} /> Return to Gamehub <StepBack size={16} />
               </div>
             </div>
           </div>
         </a>
-        <Logo />
       </div>
     );
   }
 
-  if (!user)
+  if (!user) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-green-500 animate-pulse">
-        Spreading infection...
-      </div>
-    );
-
-  // RECONNECTING STATE
-  if (roomId && !gameState && !error) {
-    return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4">
-        <FloatingBackground />
-        <div className="bg-zinc-900/80 backdrop-blur p-8 rounded-2xl border border-zinc-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
-          <Loader size={48} className="text-green-500 animate-spin" />
-          <div className="text-center">
-            <h2 className="text-xl font-bold">Reconnecting...</h2>
-            <p className="text-zinc-400 text-sm">Resuming your session</p>
-          </div>
-        </div>
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-orange-500 animate-pulse font-mono tracking-widest">
+        Connecting...
       </div>
     );
   }
@@ -1119,640 +1306,741 @@ export default function AngryVirus() {
 
   if (view === "menu") {
     return (
-      <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans select-none">
+        <GlobalStyles />
         <FloatingBackground />
-        {/* --- START OF BACK BUTTON --- */}
+        
+        {/* Back to Gamehub Nav */}
         <nav className="absolute top-0 left-0 w-full p-4 z-50">
           <a
             href={import.meta.env.BASE_URL}
-            className="flex items-center gap-2 text-green-800 rounded-lg font-bold shadow-md hover:text-green-400 transition-colors w-fit animate-pulse"
+            className="flex items-center gap-2 text-orange-600/80 rounded-lg font-bold shadow-md hover:text-orange-400 transition-colors w-fit animate-pulse"
           >
-            {/* Arrow Icon */}
             <StepBack />
             <span>Back to Gamehub</span>
           </a>
         </nav>
-        {/* --- END OF BACK BUTTON --- */}
-        <div className="z-10 text-center mb-10">
-          <Biohazard
-            size={64}
-            className="text-green-500 mx-auto mb-4 animate-bounce md:w-20 md:h-20"
-          />
-          <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-linear-to-br from-green-400 to-lime-600 uppercase tracking-tighter">
-            Angry Virus
+
+        <div className="z-10 text-center mb-10 mt-8">
+          <Hexagon size={64} className="text-orange-400 mx-auto mb-4 animate-spin-slow" />
+          <h1 className="text-5xl md:text-7xl font-thin text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-amber-600 tracking-tighter drop-shadow-md">
+            SETTLERS
           </h1>
-          <p className="text-white-400/60 tracking-[0.3em] uppercase mt-2">
-            Infectious Strategy
+          <p className="text-orange-200/40 tracking-[0.5em] uppercase mt-2 text-xs">
+            Trade. Build. Survive.
           </p>
         </div>
-
-        <div className="bg-gray-900/80 backdrop-blur border border-green-500/30 p-6 md:p-8 rounded-2xl w-full max-w-md shadow-2xl z-10 mx-4">
+        <div className="bg-slate-900/80 backdrop-blur-md border border-orange-500/30 p-8 rounded-2xl w-full max-w-md shadow-2xl z-10 relative">
           {error && (
-            <div className="bg-red-900/50 text-red-200 p-2 mb-4 rounded text-center text-sm border border-red-800">
-              {error}
+            <div className="bg-red-500/20 border border-red-500/50 text-red-200 p-3 mb-4 rounded text-center text-sm font-bold flex items-center justify-center gap-2">
+              <AlertTriangle size={16} /> {error}
             </div>
           )}
-
-          <input
-            className="w-full bg-black/50 border border-gray-600 p-3 rounded-xl mb-4 text-white focus:border-green-500 outline-none text-sm md:text-base"
-            placeholder="Survivor Name"
-            value={playerName}
-            onChange={(e) => setPlayerName(e.target.value)}
-          />
-
-          <button
-            onClick={createRoom}
-            disabled={loading}
-            className="w-full bg-green-700 hover:bg-green-600 p-3 md:p-4 rounded-xl font-bold mb-4 flex items-center justify-center gap-2 transition-all text-sm md:text-base"
-          >
-            <Biohazard size={20} /> Start Outbreak
-          </button>
-
-          <div className="flex flex-col md:flex-row gap-2 mb-4">
+          <div className="space-y-4">
             <input
-              className="flex-1 bg-black/50 border border-gray-600 p-3 rounded-xl text-white focus:border-green-500 outline-none text-sm md:text-base"
-              placeholder="ROOM CODE"
-              value={roomCodeInput}
-              onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
+              className="w-full bg-black/50 border border-orange-700 focus:border-orange-500 p-4 rounded-xl text-white outline-none transition-all text-lg font-bold text-center"
+              placeholder="YOUR NAME"
+              value={playerName}
+              onChange={(e) => setPlayerName(e.target.value)}
+              maxLength={12}
             />
-            <button
-              onClick={joinRoom}
-              disabled={loading}
-              className="bg-gray-800 hover:bg-gray-700 border border-gray-600 px-6 py-3 rounded-xl font-bold transition-all text-sm md:text-base"
-            >
-              Join
-            </button>
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              <button
+                onClick={createRoom}
+                disabled={loading}
+                className="bg-gradient-to-br from-orange-600 to-amber-700 hover:from-orange-500 hover:to-amber-600 p-4 rounded-xl font-bold flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-lg shadow-orange-900/50"
+              >
+                <Earth size={24} /> <span>Create</span>
+              </button>
+              <div className="flex flex-col gap-2">
+                <input
+                  className="bg-black/50 border border-orange-700 focus:border-orange-500 p-2 rounded-xl text-white text-center uppercase font-mono font-bold tracking-widest outline-none h-12"
+                  placeholder="CODE"
+                  value={roomCode}
+                  onChange={(e) => setRoomCode(e.target.value)}
+                  maxLength={6}
+                />
+                <button
+                  onClick={joinRoom}
+                  disabled={loading}
+                  className="bg-slate-800 hover:bg-slate-700 p-2 rounded-xl font-bold text-slate-300 transition-all active:scale-95 h-full"
+                >
+                  Join
+                </button>
+              </div>
+            </div>
           </div>
-
-          <button
-            onClick={() => setShowGuide(true)}
-            className="w-full text-center text-gray-400 hover:text-white text-xs md:text-sm flex items-center justify-center gap-2 py-2"
-          >
-            <BookOpen size={14} /> Survival Guide
-          </button>
         </div>
-        {showGuide && <GameGuideModal onClose={() => setShowGuide(false)} />}
       </div>
     );
   }
 
   if (view === "lobby" && gameState) {
     const isHost = gameState.hostId === user.uid;
-    const cardsToRemove = gameState.cardsToRemove || 5;
-
+    const canStart = gameState.players.length >= 3 && gameState.players.length <= 4;
+    
     return (
-      <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center p-4 md:p-6 relative">
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative">
+        <GlobalStyles />
         <FloatingBackground />
-        <LogoBig />
-
-        {showLeaveConfirm && (
-          <LeaveConfirmModal
-            onConfirmLeave={leaveRoom}
-            onConfirmLobby={returnToLobby}
-            onCancel={() => setShowLeaveConfirm(false)}
-            isHost={isHost}
-            inGame={false}
-          />
-        )}
-
-        <div className="z-10 w-full max-w-lg bg-gray-900/90 backdrop-blur p-6 md:p-8 rounded-2xl border border-green-500/30 shadow-2xl">
-          <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-800">
+        <div className="z-10 w-full max-w-lg bg-slate-900/90 backdrop-blur p-8 rounded-2xl border border-orange-500/30 shadow-2xl animate-in slide-in-from-bottom-8 mt-6">
+          
+          <div className="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
             <div>
-              <h2 className="text-lg md:text-xl text-green-500 font-bold uppercase">
-                Quarantine Zone
+              <h2 className="text-lg md:text-xl flex items-center gap-2 text-orange-500 font-bold uppercase">
+                <Earth size={24} /> Island Code:
               </h2>
-
-              {/* Flex container to align ID and Button side-by-side */}
               <div className="flex items-center gap-3 mt-1">
-                <div className="text-2xl md:text-3xl font-mono text-white font-black">
-                  {gameState.roomId}
+                <div className="text-3xl md:text-4xl font-mono text-white font-black">
+                  {roomId}
                 </div>
-
-                {/* 2. Container set to relative for positioning the popup */}
                 <div className="relative">
-                  <button
-                    onClick={copyToClipboard}
-                    className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
-                  >
-                    {/* Optional: Change icon to checkmark when copied */}
-                    {isCopied ? (
-                      <CheckCircle size={16} className="text-green-500" />
-                    ) : (
-                      <Copy size={16} />
-                    )}
+                  <button onClick={copyToClipboard} className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white">
+                    {isCopied ? <CheckCircle size={20} className="text-green-500" /> : <Copy size={20} />}
                   </button>
-
-                  {/* 3. The Copied Popup */}
                   {isCopied && (
-                    <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-green-500 text-black text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">
+                    <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-orange-500 text-black text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">
                       Copied!
                     </div>
                   )}
                 </div>
               </div>
             </div>
-
-            <button
-              onClick={() => setShowLeaveConfirm(true)}
-              className="p-2 bg-red-900/30 text-red-400 rounded-full hover:bg-red-900/50"
-            >
-              <LogOut size={20} />
-            </button>
+            <div className="flex gap-2">
+              <button onClick={() => setShowLeaveConfirm(true)} className="p-2 hover:bg-red-900/30 rounded text-red-400 transition-colors">
+                <LogOut size={24} />
+              </button>
+            </div>
           </div>
 
           <div className="space-y-3 mb-8">
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
+              Settlers ({gameState.players.length}/4)
+            </h3>
             {gameState.players.map((p) => (
-              <div
-                key={p.id}
-                className="flex items-center justify-between bg-black/40 p-3 rounded-xl border border-gray-700"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-full bg-gray-800">
-                    <User size={18} className="text-green-400" />
-                  </div>
-                  <span
-                    className={`font-bold ${
-                      p.id === user.uid ? "text-green-400" : "text-gray-300"
-                    }`}
-                  >
-                    {p.name}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  {p.id === gameState.hostId && (
-                    <Crown size={16} className="text-yellow-500" />
-                  )}
-                  {isHost && p.id !== user.uid && (
-                    <button
-                      onClick={() => kickPlayer(p.id)}
-                      className="text-gray-500 hover:text-red-500 p-1 transition-colors"
-                      title="Kick Player"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  )}
-                </div>
+              <div key={p.id} className="flex justify-between items-center bg-slate-800 p-4 rounded-xl border border-slate-700">
+                <span className="font-bold flex items-center gap-3 text-lg">
+                  <div className={`w-4 h-4 rounded-full ${PLAYER_COLORS[p.colorIdx].bg}`} />
+                  {p.name}
+                  {p.id === gameState.hostId && <Crown size={16} className="text-yellow-500" />}
+                </span>
+                {gameState.hostId === user.uid && p.id !== user.uid && (
+                  <button onClick={() => kickPlayer(p.id)} className="p-2 bg-red-900/20 hover:bg-red-900/50 text-red-500 rounded-lg transition-colors border border-red-900/30" title="Kick Player">
+                    <Trash2 size={16} />
+                  </button>
+                )}
               </div>
             ))}
-            {gameState.players.length < 2 && (
-              <div className="text-center text-gray-500 py-4 italic text-sm">
-                Waiting for survivors...
+            {Array.from({ length: 4 - gameState.players.length }).map((_, i) => (
+              <div key={i} className="border-2 border-dashed border-slate-700 rounded-xl p-4 flex items-center justify-center text-slate-600 font-bold uppercase text-sm">
+                Empty Slot
               </div>
-            )}
+            ))}
           </div>
 
-          {isHost && (
-            <div className="bg-black/30 p-4 rounded-xl mb-6 border border-gray-700">
-              <h3 className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
-                <Settings size={12} /> Difficulty: Cards Removed
-              </h3>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-400">
-                  Randomly remove <strong>{cardsToRemove}</strong> cards
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => updateCardsToRemove(cardsToRemove - 1)}
-                    disabled={cardsToRemove <= 5}
-                    className="w-8 h-8 flex items-center justify-center bg-gray-700 rounded hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed font-bold"
-                  >
-                    -
-                  </button>
-                  <button
-                    onClick={() => updateCardsToRemove(cardsToRemove + 1)}
-                    disabled={cardsToRemove >= 9}
-                    className="w-8 h-8 flex items-center justify-center bg-gray-700 rounded hover:bg-gray-600 disabled:opacity-30 disabled:cursor-not-allowed font-bold"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
           {isHost ? (
-            <button
-              onClick={startGame}
-              disabled={gameState.players.length < 2}
-              className="w-full py-4 rounded-xl font-black text-lg md:text-xl uppercase tracking-widest bg-green-600 hover:bg-green-500 text-white shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Release Virus
-            </button>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={startGame}
+                disabled={!canStart}
+                className="w-full flex justify-center items-center gap-2 px-8 py-4 rounded-xl font-bold text-lg shadow-lg transition-all bg-gradient-to-br from-orange-600 to-amber-700 text-white hover:bg-orange-400 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
+              >
+                <Earth size={24} /> Generate Island
+              </button>
+              {!canStart && (
+                <div className="text-center text-xs font-bold text-amber-500 uppercase tracking-wider mt-1">
+                  Requires 3 or 4 players to start
+                </div>
+              )}
+            </div>
           ) : (
-            <div className="w-full py-4 rounded-xl font-bold text-center text-gray-500 bg-gray-800/50 border border-gray-700 animate-pulse text-sm md:text-base">
-              Waiting for Host...
+            <div className="text-center text-slate-500 text-sm font-bold uppercase tracking-widest animate-pulse">
+              Waiting for host...
             </div>
           )}
         </div>
-        <Logo />
+
+        {/* Leave Confirmation Modal */}
+        {showLeaveConfirm && (
+          <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl max-w-xs w-full text-center shadow-2xl">
+              <h3 className="text-xl font-bold text-white mb-2 uppercase">Leave World?</h3>
+              <p className="text-slate-400 mb-6 text-sm">
+                {gameState.hostId === user.uid ? "As Host, leaving ends the session for everyone." : "You will disconnect from this session."}
+              </p>
+              <div className="flex gap-2">
+                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-slate-800 hover:bg-slate-700 py-2 rounded font-bold text-slate-300">Stay</button>
+                <button onClick={handleLeave} className="flex-1 bg-red-600 hover:bg-red-500 py-2 rounded font-bold text-white">Leave</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
 
   if (view === "game" && gameState) {
-    const me = gameState.players.find((p) => p.id === user.uid);
-    if (!me || !gameState.players[gameState.turnIndex]) {
-      return (
-        <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center">
-          Loading game state...
-        </div>
-      );
-    }
+    const isMyTurn = gameState.turnIndex === pIdx;
 
-    const isMyTurn = gameState.players[gameState.turnIndex].id === user.uid;
-    const activePlayer = gameState.players[gameState.turnIndex];
-    const isHost = gameState.hostId === user.uid;
-    const myGroups = groupConsecutiveCards(me.cards);
-    const score = calculateScore(me.cards, me.tokens);
-    const recentLogs = gameState.logs ? gameState.logs.slice(-2).reverse() : [];
-    const allGuestsReady = gameState.players
-      .filter((p) => p.id !== gameState.hostId)
-      .every((p) => p.ready);
+    const getHexClasses = (hId) => {
+      if (gameState.turnPhase === "ROBBER" && isMyTurn) return "cursor-pointer hover:scale-105 hover:brightness-125 z-20";
+      return "opacity-100";
+    };
 
     return (
-      <div className="h-screen bg-gray-950 text-white flex flex-col relative overflow-hidden font-sans">
+      <div className="fixed inset-0 bg-slate-950 text-white flex flex-col overflow-hidden font-sans select-none">
+        <GlobalStyles />
         <FloatingBackground />
 
+        {/* Leave Confirmation Modal (In Game) */}
         {showLeaveConfirm && (
-          <LeaveConfirmModal
-            onConfirmLeave={leaveRoom}
-            onConfirmLobby={returnToLobby}
-            onCancel={() => setShowLeaveConfirm(false)}
-            isHost={isHost}
-            inGame={true}
-          />
-        )}
-
-        {/* --- NEW: REPORT MODAL --- */}
-        {showReport && gameState.status === "finished" && (
-          <RoundSummaryModal
-            players={gameState.players}
-            onClose={() => setShowReport(false)}
-          />
-        )}
-
-        {/* Header */}
-        <div className="h-14 md:h-16 bg-gray-900/90 border-b border-gray-800 flex items-center justify-between px-4 z-160 sticky top-0 backdrop-blur-md">
-          <div className="flex items-center gap-2">
-            <Biohazard className="text-green-500 w-5 h-5 md:w-6 md:h-6" />
-            <div className="flex flex-col">
-              <span className="font-black uppercase leading-none text-sm md:text-base">
-                Angry Virus
-              </span>
-              <span className="text-[10px] text-gray-500 tracking-wider">
-                {gameState.deck.length} Unrevealed Cards
-              </span>
+          <div className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl max-w-xs w-full text-center shadow-2xl">
+              <h3 className="text-xl font-bold text-white mb-2 uppercase">Abandon Game?</h3>
+              <p className="text-slate-400 mb-6 text-sm">
+                {gameState.hostId === user.uid ? "Leaving deletes the game for everyone." : "You will leave this ongoing game."}
+              </p>
+              <div className="flex gap-2">
+                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-slate-800 hover:bg-slate-700 py-2 rounded font-bold text-slate-300">Stay</button>
+                <button onClick={handleLeave} className="flex-1 bg-red-600 hover:bg-red-500 py-2 rounded font-bold text-white">Leave</button>
+              </div>
             </div>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setShowGuide(true)}
-              className="p-2 text-gray-400 hover:bg-gray-800 rounded-full"
-            >
-              <BookOpen size={18} />
-            </button>
-            <button
-              onClick={() => setShowLogs(!showLogs)}
-              className={`p-2 rounded-full ${
-                showLogs
-                  ? "bg-green-900 text-green-400"
-                  : "text-gray-400 hover:bg-gray-800"
+        )}
+
+        {/* Dynamic Overlays and Popups */}
+        {feedback && (
+          <div className="fixed inset-0 z-[160] flex items-center justify-center pointer-events-none animate-in fade-in zoom-in duration-300">
+            <div className={`flex flex-col items-center justify-center p-8 md:p-12 rounded-3xl border-4 shadow-2xl backdrop-blur-xl max-w-sm md:max-w-xl mx-4 text-center ${
+                feedback.type === "success" ? "bg-orange-900/90 border-orange-500 text-orange-100" :
+                feedback.type === "failure" ? "bg-red-900/90 border-red-500 text-red-100" :
+                "bg-amber-900/90 border-amber-500 text-amber-100"
               }`}
             >
-              <History size={18} />
-            </button>
-            <button
-              onClick={() => setShowLeaveConfirm(true)}
-              className="p-2 text-red-400 hover:bg-red-900/20 rounded-full"
-            >
-              <LogOut size={18} />
-            </button>
-          </div>
-        </div>
-
-        {/* Guides & Logs */}
-        {showGuide && <GameGuideModal onClose={() => setShowGuide(false)} />}
-        {showLogs && (
-          <div className="fixed top-16 right-4 w-64 max-h-60 bg-gray-900/95 border border-gray-700 rounded-xl z-155 overflow-y-auto p-2 shadow-2xl">
-            {gameState.logs
-              .slice()
-              .reverse()
-              .map((l, i) => (
-                <div
-                  key={i}
-                  className={`text-xs p-2 mb-1 rounded ${
-                    l.type === "warning"
-                      ? "text-yellow-300 bg-yellow-900/20"
-                      : l.type === "success"
-                        ? "text-green-300 bg-green-900/20"
-                        : "text-gray-400"
-                  }`}
-                >
-                  {l.text}
-                </div>
-              ))}
-          </div>
-        )}
-
-        {/* Game Over Screen */}
-        {gameState.status === "finished" && (
-          <div className="fixed inset-0 top-14 z-150 bg-black/95 flex flex-col items-center justify-center p-6 text-center animate-in zoom-in">
-            <Trophy size={80} className="text-yellow-400 mb-6 animate-bounce" />
-            <h1 className="text-5xl font-black text-white mb-2 uppercase">
-              Survival Complete
-            </h1>
-            <div className="text-2xl text-gray-300 mb-8">
-              Winner:{" "}
-              <span className="text-green-400 font-bold">
-                {
-                  gameState.players.find((p) => p.id === gameState.winnerId)
-                    ?.name
-                }
-              </span>
-            </div>
-
-            {/* Added button to re-open report if they closed it */}
-            <button
-              onClick={() => setShowReport(true)}
-              className="mb-6 flex items-center gap-2 text-green-400 hover:text-green-300 underline"
-            >
-              <FileText size={16} /> View Detailed Report
-            </button>
-
-            <div className="grid grid-cols-1 gap-3 w-full max-w-md max-h-[30vh] overflow-y-auto mb-8">
-              {[...gameState.players]
-                .sort(
-                  (a, b) =>
-                    calculateScore(a.cards, a.tokens) -
-                    calculateScore(b.cards, b.tokens),
-                )
-                .map((p, i) => (
-                  <div
-                    key={p.id}
-                    className={`flex justify-between items-center p-4 rounded-xl border ${
-                      p.id === gameState.winnerId
-                        ? "bg-green-900/30 border-green-500"
-                        : "bg-gray-800 border-gray-700"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-gray-500">#{i + 1}</span>
-                      <span className="font-bold">{p.name}</span>
-                      {p.ready && (
-                        <CheckCircle size={16} className="text-green-500" />
-                      )}
-                    </div>
-                    <div className="font-mono text-xl font-bold">
-                      {calculateScore(p.cards, p.tokens)} pts
-                    </div>
-                  </div>
-                ))}
-            </div>
-
-            <div className="flex flex-col gap-4 items-center w-full max-w-md">
-              {isHost ? (
-                <div className="flex flex-col w-full gap-3">
-                  <div className="flex gap-4 w-full">
-                    <button
-                      onClick={returnToLobby}
-                      disabled={!allGuestsReady}
-                      className={`flex-1 py-3 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
-                        allGuestsReady
-                          ? "bg-gray-700 hover:bg-gray-600 text-white"
-                          : "bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700"
-                      }`}
-                    >
-                      <LogOut size={18} /> Lobby
-                    </button>
-                    <button
-                      onClick={restartGame}
-                      disabled={!allGuestsReady}
-                      className={`flex-1 py-3 rounded-xl font-bold text-white shadow-lg transition-all flex items-center justify-center gap-2 ${
-                        allGuestsReady
-                          ? "bg-green-600 hover:bg-green-500 hover:scale-105"
-                          : "bg-gray-800 text-gray-500 cursor-not-allowed border border-gray-700"
-                      }`}
-                    >
-                      <RotateCcw size={18} /> New Game
-                    </button>
-                  </div>
-                  {!allGuestsReady && (
-                    <p className="text-gray-500 text-sm animate-pulse">
-                      Waiting for survivors to confirm status...
-                    </p>
-                  )}
-                </div>
-              ) : !me.ready ? (
-                <button
-                  onClick={toggleReady}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-bold text-white shadow-lg animate-pulse transition-all hover:scale-105"
-                >
-                  Ready for Next Game
-                </button>
-              ) : (
-                <div className="w-full py-3 bg-gray-800 rounded-xl font-bold text-green-400 border border-green-500/50 flex items-center justify-center gap-2">
-                  <CheckCircle size={20} /> Waiting for host...
+              {feedback.icon && (
+                <div className="mb-4 p-4 bg-black/20 rounded-full">
+                  <feedback.icon size={64} className="animate-bounce" />
                 </div>
               )}
+              <h2 className="text-3xl md:text-5xl font-black uppercase tracking-widest drop-shadow-md mb-2">{feedback.message}</h2>
+              {feedback.subtext && <p className="text-lg md:text-xl font-bold opacity-90 tracking-wide">{feedback.subtext}</p>}
             </div>
           </div>
         )}
 
-        {/* Main Area */}
-        <div className="flex-1 flex flex-col w-full max-w-5xl mx-auto p-4 gap-4 overflow-hidden relative">
-          {/* Top: Opponents - Responsive Sizing */}
-          <div className="flex-none h-32 flex items-center gap-3 overflow-x-auto no-scrollbar px-2">
-            {gameState.players
-              .filter((p) => p.id !== user.uid)
-              .map((p) => {
-                const oppGroups = groupConsecutiveCards(p.cards);
-                return (
-                  <div
-                    key={p.id}
-                    className={`flex flex-col items-center justify-start min-w-[120px] p-2 rounded-xl border-2 h-full transition-all ${
-                      gameState.players[gameState.turnIndex].id === p.id
-                        ? "border-green-500 bg-green-900/20 scale-105"
-                        : "border-gray-800 bg-gray-900/50 opacity-70"
-                    }`}
-                  >
-                    <div className="flex items-center gap-1 mb-1 w-full justify-center">
-                      <User size={14} className="text-gray-400" />
-                      <span className="text-xs font-bold truncate max-w-[80px]">
-                        {p.name}
-                      </span>
-                    </div>
-
-                    {/* Opponent Card Mini Visualization */}
-                    <div className="flex gap-1 overflow-x-auto w-full mb-1 no-scrollbar justify-center">
-                      {oppGroups.length > 0 ? (
-                        oppGroups.map((group, gIdx) => (
-                          <div
-                            key={gIdx}
-                            className="flex flex-col items-center bg-gray-800/80 rounded px-1 border border-gray-600"
-                          >
-                            <span className="text-[10px] font-bold text-green-400">
-                              {group[0]}
-                            </span>
-                            {group.length > 1 && (
-                              <span className="text-[8px] text-gray-500">
-                                +{group.length - 1}
-                              </span>
-                            )}
-                          </div>
-                        ))
-                      ) : (
-                        <div className="text-[10px] text-gray-600">
-                          No cards
+        {/* Discard Modal */}
+        {showDiscardModal && me && (
+          <div className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4 backdrop-blur-md">
+            <div className="bg-slate-900 border-2 border-red-500 p-6 rounded-2xl max-w-sm w-full text-center shadow-[0_0_50px_rgba(239,68,68,0.3)] relative">
+              <Skull size={48} className="text-red-500 mx-auto mb-4 animate-bounce" />
+              <h3 className="text-2xl font-black text-white mb-2 uppercase">The Robber Strikes!</h3>
+              <p className="text-red-300 text-sm mb-6 font-bold">You have too many cards. Discard exactly {mustDiscardAmount}.</p>
+              <div className="bg-black/50 p-4 rounded-xl mb-6">
+                <div className="flex flex-col gap-3">
+                  {["WOOD", "BRICK", "SHEEP", "WHEAT", "ORE"].map((res) => {
+                    const count = me.resources[res];
+                    if (count === 0) return null;
+                    const IconComponent = RESOURCES[res].icon;
+                    return (
+                      <div key={res} className="flex items-center justify-between bg-slate-800 p-2 rounded-lg border border-slate-700">
+                        <div className="flex items-center gap-2">
+                          <div className={`p-1.5 rounded ${RESOURCES[res].color} w-8 flex justify-center`}><IconComponent size={16} /></div>
+                          <span className="font-bold text-sm">{res} (Have: {count})</span>
                         </div>
-                      )}
-                    </div>
-
-                    <div className="mt-auto flex gap-2 text-xs">
-                      <div className="flex items-center gap-0.5 text-orange-400">
-                        <Pill size={10} /> {p.tokens}
+                        <div className="flex items-center gap-3">
+                          <button onClick={() => setDiscardTokens({ ...discardTokens, [res]: Math.max(0, discardTokens[res] - 1) })} className="w-8 h-8 rounded-full bg-slate-700 hover:bg-slate-600 font-bold">-</button>
+                          <span className="w-4 text-center font-black text-red-400">{discardTokens[res]}</span>
+                          <button onClick={() => setDiscardTokens({ ...discardTokens, [res]: Math.min(count, discardTokens[res] + 1) })} className="w-8 h-8 rounded-full bg-slate-700 hover:bg-slate-600 font-bold">+</button>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="flex justify-between items-center mb-4">
+                <span className="text-slate-400 font-bold">Selected:</span>
+                <span className={`text-xl font-black ${Object.values(discardTokens).reduce((a, b) => a + b, 0) === mustDiscardAmount ? "text-orange-500" : "text-red-500"}`}>
+                  {Object.values(discardTokens).reduce((a, b) => a + b, 0)} / {mustDiscardAmount}
+                </span>
+              </div>
+              <button onClick={submitDiscard} disabled={Object.values(discardTokens).reduce((a, b) => a + b, 0) !== mustDiscardAmount} className="w-full py-3 bg-red-600 hover:bg-red-500 disabled:opacity-50 disabled:hover:bg-red-600 rounded-xl font-black text-white transition-all uppercase tracking-widest shadow-lg">Confirm Discard</button>
+            </div>
           </div>
+        )}
 
-          {/* Center: Active Card & LOG OVERLAY */}
-          <div className="flex-1 flex flex-col items-center justify-center gap-6 relative min-h-0">
-            {/* PERSISTENT LOG OVERLAY - Placed at top of action area to avoid overlap */}
-            <div className="absolute top-0 left-0 right-0 flex flex-col items-center pointer-events-none z-10 space-y-1">
-              {recentLogs.map((l, i) => (
-                <div
-                  key={i}
-                  className={`px-4 py-1 rounded-full text-[10px] md:text-xs font-bold shadow-lg backdrop-blur-md animate-in fade-in slide-in-from-top-2 border max-w-[90%] text-center truncate ${
-                    l.type === "warning"
-                      ? "bg-yellow-900/60 border-yellow-500/30 text-yellow-100"
-                      : l.type === "success"
-                        ? "bg-green-900/60 border-green-500/30 text-green-100"
-                        : "bg-gray-800/60 border-gray-600/30 text-gray-200"
-                  }`}
-                >
-                  {l.text}
+        {/* Steal Target Modal */}
+        {popupContent && popupContent.type === "STEAL" && (
+          <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4">
+            <div className="bg-slate-900 border-2 border-red-500 p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl">
+              <Skull size={48} className="text-red-500 mx-auto mb-4 animate-bounce" />
+              <h3 className="text-2xl font-black text-white mb-4">WHO TO ROB?</h3>
+              <div className="flex flex-col gap-2">
+                {popupContent.victims.map((vId) => {
+                  const v = gameState.players.find((p) => p.id === vId);
+                  return <button key={v.id} onClick={() => executeSteal(v.id)} className="py-3 bg-slate-800 hover:bg-red-900/50 rounded-xl font-bold border border-slate-600 transition-all">{v.name}</button>;
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Incoming Trade Modal */}
+        {popupContent && popupContent.type === "INCOMING_TRADE" && (
+          <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4">
+            <div className="bg-slate-900 border-2 border-blue-500 p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl">
+              <Handshake size={48} className="text-blue-500 mx-auto mb-4 animate-pulse" />
+              <h3 className="text-xl font-black text-white mb-2 uppercase">{popupContent.trade.senderName} Proposes a Trade</h3>
+              <div className="bg-black/30 p-4 rounded-xl mb-4">
+                <div className="text-xs text-orange-400 font-bold mb-1 uppercase">You Receive:</div>
+                <div className="flex justify-center gap-2 mb-4">
+                  {Object.keys(popupContent.trade.offer).map((k) => popupContent.trade.offer[k] > 0 && <span key={k} className="bg-orange-900/50 px-2 py-1 rounded text-xs border border-orange-800">{popupContent.trade.offer[k]} {k}</span>)}
+                </div>
+                <div className="text-xs text-red-400 font-bold mb-1 uppercase">You Give:</div>
+                <div className="flex justify-center gap-2">
+                  {Object.keys(popupContent.trade.request).map((k) => popupContent.trade.request[k] > 0 && <span key={k} className="bg-red-900/50 px-2 py-1 rounded text-xs border border-red-800">{popupContent.trade.request[k]} {k}</span>)}
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => respondToTrade(false)} className="flex-1 py-3 bg-red-900/50 rounded-xl font-bold text-red-200 hover:bg-red-800">Reject</button>
+                <button onClick={() => respondToTrade(true)} className="flex-1 py-3 bg-orange-600 rounded-xl font-bold text-white hover:bg-orange-500">Accept</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Year of Plenty Modal */}
+        {popupContent && popupContent.type === "YEAR_OF_PLENTY" && (
+          <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4">
+            <div className="bg-slate-900 border-2 border-yellow-500 p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl">
+              <Gem size={48} className="text-yellow-500 mx-auto mb-4" />
+              <h3 className="text-2xl font-black text-white mb-4">YEAR OF PLENTY</h3>
+              <p className="text-slate-300 text-sm mb-4">Select two resources to add to your hand.</p>
+              <div className="grid grid-cols-5 gap-2 mb-6">
+                {["WOOD", "BRICK", "SHEEP", "WHEAT", "ORE"].map((res) => (
+                  <button key={res} onClick={() => { if (!popupContent.res1) setPopupContent({ ...popupContent, res1: res }); else handleYearOfPlenty(popupContent.res1, res); }} className={`p-2 rounded-lg border-2 flex justify-center items-center ${popupContent.res1 === res ? "border-yellow-500 bg-yellow-900/50" : "border-slate-700 hover:border-slate-500"}`}>
+                    {React.createElement(RESOURCES[res].icon, { size: 24, className: "text-white" })}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Monopoly Modal */}
+        {popupContent && popupContent.type === "MONOPOLY" && (
+          <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4">
+            <div className="bg-slate-900 border-2 border-purple-500 p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl">
+              <Crown size={48} className="text-purple-500 mx-auto mb-4" />
+              <h3 className="text-2xl font-black text-white mb-4">MONOPOLY</h3>
+              <p className="text-slate-300 text-sm mb-4">Declare a resource. All players must give you all of that resource.</p>
+              <div className="grid grid-cols-5 gap-2 mb-6">
+                {["WOOD", "BRICK", "SHEEP", "WHEAT", "ORE"].map((res) => (
+                  <button key={res} onClick={() => handleMonopoly(res)} className="p-2 rounded-lg border-2 border-slate-700 flex justify-center items-center hover:border-purple-500 hover:bg-purple-900/30">
+                    {React.createElement(RESOURCES[res].icon, { size: 24, className: "text-white" })}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TOP BAR */}
+        <div className="h-16 bg-slate-900 border-b border-orange-900/30 flex items-center justify-between px-4 z-[160] shadow-lg shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-orange-900/50 rounded-lg flex items-center justify-center border border-orange-700">
+              <Hexagon className="text-orange-400" size={20} />
+            </div>
+            <div className="hidden sm:block">
+              <div className="font-bold text-sm tracking-wider text-orange-100">SETTLERS</div>
+              <div className="text-[10px] font-mono uppercase text-orange-400">{gameState.turnPhase.startsWith("SETUP") ? "SETUP PHASE" : "MAIN GAME"}</div>
+            </div>
+            <div className={`flex items-center gap-1.5 bg-slate-800 p-1.5 rounded-lg border border-slate-700 shadow-inner ml-2 ${flashDice ? "animate-flash-red" : ""}`}>
+              <div className={`w-7 h-7 rounded flex items-center justify-center font-black text-lg shadow-inner ${gameState.dice[0] + gameState.dice[1] === 7 ? "bg-red-500 text-white" : "bg-slate-200 text-slate-900"}`}>{gameState.dice[0]}</div>
+              <div className={`w-7 h-7 rounded flex items-center justify-center font-black text-lg shadow-inner ${gameState.dice[0] + gameState.dice[1] === 7 ? "bg-red-500 text-white" : "bg-slate-200 text-slate-900"}`}>{gameState.dice[1]}</div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setShowLeaveConfirm(true)} className="p-2 hover:bg-red-900/30 rounded text-red-400 transition-colors">
+              <LogOut size={20} />
+            </button>
+          </div>
+        </div>
+
+        {/* GAME BOARD AREA */}
+        <div className="flex-1 relative bg-transparent overflow-hidden flex items-center justify-center touch-none">
+          <div className="absolute top-2 md:top-4 left-0 w-full flex flex-col items-center gap-2 z-[100] pointer-events-none px-2 md:px-4">
+            <div className="flex flex-row flex-wrap justify-center gap-1 md:gap-4 w-full">
+              {gameState.players.map((p, i) => (
+                <div key={p.id} className={`flex flex-col items-center px-2 py-1 md:px-4 md:py-2 rounded-xl border-2 pointer-events-auto backdrop-blur-md bg-slate-900/80 transition-all ${gameState.turnIndex === i ? PLAYER_COLORS[p.colorIdx].border + " shadow-[0_0_15px_" + PLAYER_COLORS[p.colorIdx].fill + "]" : "border-transparent opacity-70"}`}>
+                  <span className="text-[10px] md:text-sm font-black uppercase tracking-widest drop-shadow-md truncate max-w-[60px] md:max-w-[120px]" style={{ color: PLAYER_COLORS[p.colorIdx].fill }}>{p.name}</span>
+                  <div className="flex gap-1 md:gap-3 items-center mt-0.5 md:mt-1">
+                    <span className="text-[10px] md:text-sm font-black text-white flex items-center gap-0.5 md:gap-1"><Trophy size={10} className="md:w-3.5 md:h-3.5 text-yellow-500" />{getTotalScore(p, gameState)}</span>
+                    {gameState.longestRoad?.playerId === p.id && <Grip size={10} className="md:w-3.5 md:h-3.5 text-orange-400" title="Longest Road" />}
+                    {gameState.largestArmy?.playerId === p.id && <Swords size={10} className="md:w-3.5 md:h-3.5 text-red-400" title="Largest Army" />}
+                    <span className="text-[10px] md:text-sm font-black text-white flex items-center gap-0.5 md:gap-1 opacity-80" title="Dev Cards"><Scroll size={10} className="md:w-3.5 md:h-3.5" />{Object.values(p.devCards).reduce((a, b) => a + b, 0) + Object.values(p.newDevCards).reduce((a, b) => a + b, 0)}</span>
+                  </div>
                 </div>
               ))}
             </div>
+            <div className="md:hidden pointer-events-auto bg-slate-900/90 backdrop-blur-md border border-slate-700 px-4 py-1.5 rounded-full shadow-lg mt-1">
+              <span className={`text-[11px] font-black uppercase tracking-widest ${isMyTurn ? "text-orange-400 animate-pulse" : "text-slate-400"}`}>{isMyTurn ? gameState.turnPhase.replace(/_/g, " ") : `WAITING FOR ${gameState.players[gameState.turnIndex].name}`}</span>
+            </div>
+          </div>
 
-            {!isMyTurn && (
-              <div className="mt-8 bg-gray-900/80 px-4 py-2 rounded-full border border-gray-700 text-gray-400 text-sm animate-pulse">
-                Waiting for {activePlayer.name}...
-              </div>
-            )}
-
-            {/* The Active Card */}
-            <div className={`relative group ${!isMyTurn ? "mt-0" : "mt-8"}`}>
-              <div
-                className={`absolute -inset-4 bg-green-500/20 rounded-full blur-xl ${
-                  isMyTurn ? "animate-pulse" : "hidden"
-                }`}
-              ></div>
-              {gameState.currentCard !== null ? (
-                <div className="relative">
-                  <Card value={gameState.currentCard} size="lg" isNew={true} />
-                  {/* Tokens on Card */}
-                  {gameState.tokensOnCard > 0 && (
-                    <div className="absolute -top-4 -right-4 z-20">
-                      <TokenDisplay count={gameState.tokensOnCard} size="lg" />
-                    </div>
-                  )}
+          <div className="relative transform scale-[0.75] sm:scale-[0.85] md:scale-[1.15] transition-transform mt-20 md:mt-0">
+            {Object.entries(gameState.board.hexes).map(([hId, h]) => {
+              const ResDef = h.resource !== "DESERT" ? RESOURCES[h.resource] : RESOURCES.DESERT;
+              return (
+                <div key={hId} onClick={() => handlePlaceRobber(h.q, h.r)} className={`absolute transition-all duration-300 ${getHexClasses(hId)}`} style={{ left: h.center.x, top: h.center.y, width: HEX_SIZE * Math.sqrt(3), height: HEX_SIZE * 2, transform: "translate(-50%, -50%)" }}>
+                  <div className={`w-full h-full absolute ${ResDef.color} opacity-80`} style={{ clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }} />
+                  <svg viewBox="0 0 100 100" className="absolute inset-0 z-10 w-full h-full pointer-events-none">
+                    <polygon points="50 0, 100 25, 100 75, 50 100, 0 75, 0 25" fill="none" stroke="rgba(0,0,0,0.5)" strokeWidth="2" />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-20">
+                    <ResDef.icon size={24} className="text-white/40 mb-1" />
+                    {h.number && (
+                      <div className={`w-8 h-8 bg-[#fff3e0] rounded-full flex items-center justify-center text-sm font-bold border-2 border-slate-400 shadow-md ${h.number === 6 || h.number === 8 ? "text-red-600" : "text-slate-800"}`}>
+                        {h.number}
+                      </div>
+                    )}
+                    {gameState.robberHex === hId && (
+                      <div className="absolute w-12 h-12 bg-slate-900 rounded-full border-4 border-red-500 flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.8)] animate-pulse z-30">
+                        <Skull size={24} className="text-red-400" />
+                      </div>
+                    )}
+                  </div>
                 </div>
-              ) : (
-                <div className="w-32 h-48 rounded-xl border-2 border-dashed border-gray-700 flex items-center justify-center text-gray-600">
-                  Empty
+              );
+            })}
+
+            {Object.entries(gameState.board.edges).map(([eId, e]) => {
+              const isSpecialBuildPhase = gameState.turnPhase.includes("ROAD");
+              const canBuild = isMyTurn && (activeBuildMode === "ROAD" || isSpecialBuildPhase) && isValidRoad(eId);
+              const showGhost = canBuild && !e.owner;
+              return (
+                <div key={eId} onClick={() => handleBuildEdge(eId)} className={`absolute z-30 transition-all h-3 rounded-full flex items-center justify-center ${e.owner ? PLAYER_COLORS[gameState.players.find((p) => p.id === e.owner).colorIdx].bg : ""} ${showGhost ? `bg-white/40 hover:bg-white/80 cursor-pointer shadow-[0_0_10px_white]` : ""} ${!e.owner && !showGhost ? "pointer-events-none" : ""}`} style={{ left: e.x, top: e.y, width: HEX_SIZE * 0.9, transform: `translate(-50%, -50%) rotate(${e.angle}deg)`, boxShadow: e.owner ? "0 0 10px rgba(0,0,0,0.5)" : "" }} />
+              );
+            })}
+
+            {/* HARBOR VISUALS UPDATED */}
+            {Object.values(gameState.board.edges).filter((e) => e.port).map((e) => {
+              const edgeAngleRad = e.angle * (Math.PI / 180);
+              const nx1 = Math.cos(edgeAngleRad + Math.PI / 2);
+              const ny1 = Math.sin(edgeAngleRad + Math.PI / 2);
+              const nx2 = Math.cos(edgeAngleRad - Math.PI / 2);
+              const ny2 = Math.sin(edgeAngleRad - Math.PI / 2);
+              const isN1Outward = (nx1 * e.x + ny1 * e.y) > (nx2 * e.x + ny2 * e.y);
+              const outX = isN1Outward ? nx1 : nx2;
+              const outY = isN1Outward ? ny1 : ny2;
+              const pushDistance = 28;
+              const portX = e.x + (outX * pushDistance);
+              const portY = e.y + (outY * pushDistance);
+              const pierAngle = Math.atan2(-outY, -outX) * (180 / Math.PI);
+
+              return (
+                <div key={`port-${e.id}`} className="absolute w-8 h-8 -ml-4 -mt-4 bg-cyan-900/80 rounded-full border-2 border-cyan-400 flex items-center justify-center shadow-lg" style={{ left: portX, top: portY, zIndex: 50 }}>
+                  <div className="absolute w-1 bg-cyan-400/50 rounded -z-10" style={{ height: pushDistance, top: '50%', left: '50%', transformOrigin: 'top center', transform: `translate(-50%, 0) rotate(${pierAngle - 90}deg)` }} />
+                  <Anchor size={14} className="text-cyan-400 z-10" />
+                  <span className="absolute top-8 text-[11px] bg-black/90 px-2 py-0.5 rounded font-black whitespace-nowrap text-cyan-100 border border-cyan-700 shadow-[0_0_15px_rgba(0,0,0,1)] animate-slow-blink z-[100] pointer-events-none">
+                    {e.port.replace("_", " ")}
+                  </span>
+                </div>
+              );
+            })}
+
+            {Object.entries(gameState.board.nodes).map(([nId, n]) => {
+              const isSettlementMode = activeBuildMode === "SETTLEMENT" || gameState.turnPhase.startsWith("SETUP_SETTLEMENT");
+              const canBuildSettlement = isMyTurn && isSettlementMode && isValidSettlement(nId);
+              const canBuildCity = isMyTurn && activeBuildMode === "CITY" && n.owner === user.uid && n.type === "SETTLEMENT";
+              const showGhost = (canBuildSettlement || canBuildCity) && !n.owner;
+              const showUpgradeGhost = canBuildCity && n.owner === user.uid;
+
+              return (
+                <div key={nId} className="absolute z-40" style={{ left: n.x, top: n.y }}>
+                  <div onClick={() => handleBuildNode(nId)} className={`absolute w-8 h-8 -ml-4 -mt-4 rounded-full flex items-center justify-center transition-all ${n.owner ? PLAYER_COLORS[gameState.players.find((p) => p.id === n.owner).colorIdx].bg + " border-2 border-white shadow-xl" : ""} ${showGhost ? `bg-white/40 hover:bg-white/80 border border-white border-dashed cursor-pointer shadow-[0_0_15px_white]` : ""} ${showUpgradeGhost ? `ring-4 ring-yellow-400 cursor-pointer hover:scale-125` : ""} ${!n.owner && !showGhost ? "pointer-events-none" : ""}`}>
+                    {n.type === "SETTLEMENT" && <Home size={16} className="text-white" />}
+                    {n.type === "CITY" && <Building2 size={18} className="text-white" />}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* BOTTOM UI CONTROLS */}
+        <div className="h-auto pb-4 pt-4 md:h-32 bg-slate-900/95 border-t-2 border-orange-500/50 backdrop-blur-xl z-[60] flex flex-col justify-center px-4 relative shrink-0">
+          {me && (
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex gap-1 bg-slate-900/90 p-1.5 rounded-t-xl border-t border-x border-slate-700 shadow-[0_-10px_20px_rgba(0,0,0,0.5)]">
+              {Object.entries(RESOURCES).filter(([k]) => k !== "DESERT").map(([key, def]) => (
+                <div key={key} className={`flex items-center gap-1 ${def.color} px-2 py-1 rounded-md text-xs font-bold border ${def.border} text-white shadow-md relative`}>
+                  <def.icon size={12} /> {me.resources[key]}
+                  {resourceAnimations[key]?.map((anim) => (
+                    <div key={anim.id} className={`absolute -top-6 left-1/2 -translate-x-1/2 text-sm font-black ${anim.val > 0 ? "text-emerald-400" : "text-red-400"} animate-float-up pointer-events-none drop-shadow-md z-50`}>
+                      {anim.val > 0 ? "+" : ""}{anim.val}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex flex-col md:flex-row items-center justify-between w-full max-w-5xl mx-auto gap-4">
+            <div className="w-full md:w-1/4 text-center md:text-left hidden md:block">
+              <div className="text-xs font-bold text-slate-400 tracking-wider">STATUS</div>
+              <div className={`text-sm md:text-lg font-black uppercase ${isMyTurn ? "text-orange-400 animate-pulse" : "text-slate-500"}`}>
+                {isMyTurn ? gameState.turnPhase.replace(/_/g, " ") : `WAITING FOR ${gameState.players[gameState.turnIndex].name}`}
+              </div>
+            </div>
+
+            <div className="flex-1 flex flex-wrap justify-center gap-2">
+              {isMyTurn && gameState.turnPhase === "ROLL" && !gameState.hasRolled && (
+                <button onClick={handleRollDice} className="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-8 py-3 rounded-xl shadow-[0_0_15px_rgba(16,185,129,0.5)] flex items-center gap-2 text-lg animate-bounce">
+                  <Dices /> ROLL DICE
+                </button>
+              )}
+
+              {isMyTurn && (
+                <>
+                  {gameState.turnPhase === "MAIN" && (
+                    <>
+                      <button onClick={() => setActiveBuildMode(activeBuildMode === "ROAD" ? null : "ROAD")} className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold flex flex-col items-center border-2 transition-all text-xs md:text-base ${activeBuildMode === "ROAD" ? "bg-blue-600 border-blue-400 scale-105 shadow-[0_0_10px_rgba(59,130,246,0.5)]" : "bg-slate-800 border-slate-600 hover:bg-slate-700"}`}>
+                        <Grip size={16} /> Road
+                      </button>
+                      <button onClick={() => setActiveBuildMode(activeBuildMode === "SETTLEMENT" ? null : "SETTLEMENT")} className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold flex flex-col items-center border-2 transition-all text-xs md:text-base ${activeBuildMode === "SETTLEMENT" ? "bg-orange-600 border-orange-400 scale-105 shadow-[0_0_10px_rgba(249,115,22,0.5)]" : "bg-slate-800 border-slate-600 hover:bg-slate-700"}`}>
+                        <Home size={16} /> Set
+                      </button>
+                      <button onClick={() => setActiveBuildMode(activeBuildMode === "CITY" ? null : "CITY")} className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold flex flex-col items-center border-2 transition-all text-xs md:text-base ${activeBuildMode === "CITY" ? "bg-indigo-600 border-indigo-400 scale-105 shadow-[0_0_10px_rgba(79,70,229,0.5)]" : "bg-slate-800 border-slate-600 hover:bg-slate-700"}`}>
+                        <Building2 size={16} /> City
+                      </button>
+                      <button onClick={() => setShowTradeModal(true)} className="px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold flex flex-col items-center border-2 bg-slate-800 border-slate-600 hover:bg-slate-700 transition-all text-xs md:text-base">
+                        <Handshake size={16} /> Trade
+                      </button>
+                    </>
+                  )}
+                  {!gameState.turnPhase.startsWith("SETUP") && (
+                    <button onClick={() => setShowDevCards(true)} className="px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold flex flex-col items-center border-2 bg-slate-800 border-slate-600 hover:bg-slate-700 transition-all relative text-xs md:text-base">
+                      <Scroll size={16} /> Cards
+                      {me && (!me.hasPlayedDevCard || me.devCards["VP"] > 0) && Object.values(me.devCards).reduce((a, b) => a + b, 0) > 0 && <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse border border-slate-900"></span>}
+                    </button>
+                  )}
+                </>
+              )}
+
+              {isMyTurn && gameState.turnPhase === "ROAD_BUILDING_1" && (
+                <div className="flex gap-2">
+                  <div className="bg-blue-900/50 px-2 py-1 md:px-4 md:py-2 rounded border border-blue-500 text-blue-200 font-bold animate-pulse flex items-center text-xs md:text-base">Place 1st Free Road</div>
+                  <button onClick={skipRoadBuilding} className="bg-slate-800 hover:bg-slate-700 px-2 py-1 md:px-3 md:py-2 rounded text-slate-300 font-bold text-xs">Skip</button>
+                </div>
+              )}
+              {isMyTurn && gameState.turnPhase === "ROAD_BUILDING_2" && (
+                <div className="flex gap-2">
+                  <div className="bg-blue-900/50 px-2 py-1 md:px-4 md:py-2 rounded border border-blue-500 text-blue-200 font-bold animate-pulse flex items-center text-xs md:text-base">Place 2nd Free Road</div>
+                  <button onClick={skipRoadBuilding} className="bg-slate-800 hover:bg-slate-700 px-2 py-1 md:px-3 md:py-2 rounded text-slate-300 font-bold text-xs">Skip</button>
                 </div>
               )}
             </div>
 
-            {/* Actions */}
-            {isMyTurn && gameState.status === "playing" && (
-              <div className="flex gap-4 z-20 mt-4 w-full justify-center px-4">
-                <button
-                  onClick={() => takeAction("PASS")}
-                  disabled={me.tokens <= 0}
-                  className="flex-1 max-w-[140px] flex flex-col items-center gap-1 px-4 py-3 bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl border border-gray-600 transition-all active:scale-95"
-                >
-                  <span className="font-bold text-gray-300 text-sm md:text-base">
-                    PASS
-                  </span>
-                  <div className="flex items-center gap-1 text-[10px] text-orange-400 font-bold bg-black/40 px-2 py-0.5 rounded-full">
-                    Pay 1 <Pill size={10} />
-                  </div>
+            <div className="w-full md:w-1/4 flex justify-center md:justify-end mt-2 md:mt-0">
+              {isMyTurn && gameState.turnPhase === "MAIN" && (
+                <button onClick={handleEndTurn} className="bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-2 md:px-8 md:py-3 rounded-xl shadow-[0_0_15px_rgba(220,38,38,0.5)] border border-red-400 transition-colors w-full md:w-auto text-sm md:text-base">
+                  END TURN
                 </button>
-
-                <button
-                  onClick={() => takeAction("TAKE")}
-                  className="flex-1 max-w-[160px] flex flex-col items-center gap-1 px-4 py-3 bg-green-600 hover:bg-green-500 text-white rounded-xl font-bold shadow-lg shadow-green-900/40 hover:scale-105 transition-all active:scale-95"
-                >
-                  <span className="text-sm md:text-base">TAKE IT</span>
-                  {gameState.tokensOnCard > 0 && (
-                    <div className="text-[10px] text-green-100 bg-green-700/50 px-2 py-0.5 rounded-full">
-                      Gain {gameState.tokensOnCard} Tokens
-                    </div>
-                  )}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Bottom: Player Hand */}
-          <div className="flex-none bg-gray-900/80 backdrop-blur-md p-4 rounded-t-3xl border-t border-gray-800 shadow-2xl">
-            <div className="flex justify-between items-end mb-4">
-              <div className="flex items-center gap-3">
-                <div className="bg-gray-800 p-2 rounded-lg border border-gray-700 hidden md:block">
-                  <User size={24} className="text-green-400" />
-                </div>
-                <div>
-                  <div className="text-xs md:text-sm font-bold text-gray-400">
-                    Your Score
-                  </div>
-                  <div className="text-2xl md:text-3xl font-black text-white leading-none">
-                    {score}
-                  </div>
-                </div>
-              </div>
-              <div className="flex flex-col items-end">
-                <div className="text-xs font-bold text-orange-400 uppercase tracking-widest mb-1">
-                  Vitamins
-                </div>
-                <TokenDisplay count={me.tokens} size="lg" />
-              </div>
-            </div>
-
-            {/* Cards Scroll - Grouped by Consecutive Sequence */}
-            <div className="flex gap-4 overflow-x-auto pb-2 no-scrollbar min-h-[80px] md:min-h-[100px]">
-              {myGroups.length === 0 ? (
-                <div className="flex items-center justify-center w-full text-gray-600 text-sm italic">
-                  No viruses collected yet...
-                </div>
-              ) : (
-                myGroups.map((group, gIdx) => (
-                  <div
-                    key={gIdx}
-                    className="flex gap-1 p-2 bg-black/20 rounded-xl border border-gray-700/50"
-                  >
-                    {group.map((val, i) => (
-                      <div
-                        key={i}
-                        className="transform hover:-translate-y-2 transition-transform"
-                      >
-                        <Card value={val} size="sm" isSequenceStart={i === 0} />
-                      </div>
-                    ))}
-                  </div>
-                ))
               )}
             </div>
           </div>
         </div>
-        <Logo />
+
+        {/* TRADE MODAL */}
+        {showTradeModal && me && (
+          <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-slate-900 border border-slate-700 p-6 rounded-2xl max-w-lg w-full text-center shadow-2xl relative">
+              <button onClick={() => setShowTradeModal(false)} className="absolute top-4 right-4 p-2 bg-slate-800 rounded-full hover:bg-slate-700"><X size={20} /></button>
+              <h3 className="text-2xl font-black text-white mb-4 uppercase">Trading Post</h3>
+              <div className="bg-slate-800/80 p-3 rounded-xl mb-4 border border-slate-700">
+                <div className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest text-center">Your Exchange Rates</div>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {Object.keys(getTradeRatios(user.uid, gameState.board)).map((k) => {
+                    const ratio = getTradeRatios(user.uid, gameState.board)[k];
+                    const ResDef = RESOURCES[k];
+                    return (
+                      <div key={k} className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-black ${ratio < 4 ? "bg-cyan-900/50 text-cyan-200 border border-cyan-700 shadow-[0_0_10px_rgba(6,182,212,0.3)]" : "bg-slate-900 text-slate-400 border border-slate-700"}`}>
+                        <ResDef.icon size={12} /> {k} {ratio}:1
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="bg-black/30 p-4 rounded-xl mb-4 border border-white/5">
+                <div className="flex gap-4">
+                  <div className="flex-1">
+                    <div className="text-xs text-slate-400 font-bold mb-2 uppercase">You Offer</div>
+                    <div className="flex flex-col gap-2">
+                      {["WOOD", "BRICK", "SHEEP", "WHEAT", "ORE"].map((res) => {
+                        const IconComponent = RESOURCES[res].icon;
+                        return (
+                          <div key={res} className="flex items-center gap-2">
+                            <div className={`p-1.5 rounded bg-slate-800 border ${RESOURCES[res].border} w-8 flex justify-center`}><IconComponent size={16} /></div>
+                            <input type="number" min="0" max={me.resources[res]} value={offerTokens[res]} onChange={(e) => setOfferTokens({ ...offerTokens, [res]: parseInt(e.target.value) || 0 })} className="w-12 bg-black border border-slate-700 rounded text-center text-white p-1" />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-center"><ArrowRightLeft className="text-slate-600" /></div>
+                  <div className="flex-1">
+                    <div className="text-xs text-slate-400 font-bold mb-2 uppercase">You Want</div>
+                    <div className="flex flex-col gap-2">
+                      {["WOOD", "BRICK", "SHEEP", "WHEAT", "ORE"].map((res) => {
+                        const IconComponent = RESOURCES[res].icon;
+                        return (
+                          <div key={res} className="flex items-center gap-2">
+                            <input type="number" min="0" value={requestTokens[res]} onChange={(e) => setRequestTokens({ ...requestTokens, [res]: parseInt(e.target.value) || 0 })} className="w-12 bg-black border border-slate-700 rounded text-center text-white p-1" />
+                            <div className={`p-1.5 rounded bg-slate-800 border ${RESOURCES[res].border} w-8 flex justify-center`}><IconComponent size={16} /></div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button onClick={executeBankTrade} className="flex-1 py-3 bg-emerald-700 hover:bg-emerald-600 rounded-xl font-bold text-white flex items-center justify-center gap-2"><Anchor size={18} /> Bank Trade</button>
+                <button onClick={proposeDomesticTrade} className="flex-1 py-3 bg-blue-700 hover:bg-blue-600 rounded-xl font-bold text-white flex items-center justify-center gap-2"><Handshake size={18} /> Propose</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* DEV CARDS MODAL */}
+        {showDevModal && me && (
+          <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-slate-900 border border-slate-700 p-6 rounded-2xl max-w-lg w-full shadow-2xl relative overflow-y-auto max-h-[90vh] custom-scrollbar">
+              <button onClick={() => setShowDevCards(false)} className="absolute top-4 right-4 p-2 bg-slate-800 rounded-full hover:bg-slate-700"><X size={20} /></button>
+              <h3 className="text-2xl font-black text-white mb-6 uppercase flex items-center gap-2"><Scroll className="text-purple-400" /> Development Cards</h3>
+
+              {gameState.turnPhase === "MAIN" && (
+                <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 mb-6 flex justify-between items-center">
+                  <div>
+                    <div className="font-bold text-white mb-1">Buy Card</div>
+                    <div className="flex gap-1 text-xs">
+                      <span className="bg-lime-900/50 text-lime-200 px-1 rounded flex items-center"><PawPrint size={10} />1</span>
+                      <span className="bg-yellow-900/50 text-yellow-200 px-1 rounded flex items-center"><Leaf size={10} />1</span>
+                      <span className="bg-slate-700 text-slate-200 px-1 rounded flex items-center"><Mountain size={10} />1</span>
+                    </div>
+                  </div>
+                  <button onClick={handleBuyDevCard} className="bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2 rounded-lg shadow-lg">Draw</button>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <div className="text-xs text-slate-400 font-bold uppercase tracking-widest border-b border-slate-800 pb-1 flex justify-between">
+                  <span>Your Hand</span>
+                  <span>{me.hasPlayedDevCard ? "Card Played this Turn" : "1 Play per Turn"}</span>
+                </div>
+                {Object.keys(DEV_CARD_TYPES).map((type) => {
+                  const count = me.devCards[type];
+                  const newCount = me.newDevCards[type];
+                  const total = count + newCount;
+                  if (total === 0) return null;
+                  const def = DEV_CARD_TYPES[type];
+
+                  return (
+                    <div key={type} className="bg-slate-800/80 p-3 rounded-xl border border-slate-700 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-slate-900 p-2 rounded-lg"><def.icon className="text-purple-400" size={20} /></div>
+                        <div>
+                          <div className="font-bold text-white">{def.name} x{total}</div>
+                          <div className="text-xs text-slate-400">{def.desc}</div>
+                          {newCount > 0 && type !== "VP" && <div className="text-[10px] text-amber-500">({newCount} bought this turn, cannot play)</div>}
+                        </div>
+                      </div>
+                      {count > 0 && (
+                        <button onClick={() => playDevCard(type)} disabled={type !== "VP" && me.hasPlayedDevCard} className="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:hover:bg-emerald-600 text-white font-bold px-3 py-1.5 rounded-lg text-sm whitespace-nowrap shadow-lg">
+                          {type === "VP" && count > 1 ? `Play All (${count})` : "Play"}
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+                {Object.values(me.devCards).reduce((a, b) => a + b, 0) + Object.values(me.newDevCards).reduce((a, b) => a + b, 0) === 0 && (
+                  <div className="text-center text-slate-500 text-sm py-4 italic">No cards in hand.</div>
+                )}
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-slate-800">
+                <div className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-3">Cards Played</div>
+                <div className="space-y-3">
+                  {gameState.players.map((p) => {
+                    const playedCards = p.usedDevCards || { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 };
+                    if (Object.values(playedCards).reduce((a, b) => a + b, 0) === 0) return null;
+                    return (
+                      <div key={p.id} className="bg-slate-800/40 p-2 rounded-lg border border-slate-700/50">
+                        <span className="text-xs font-bold uppercase mb-2 block" style={{ color: PLAYER_COLORS[p.colorIdx].fill }}>{p.name}</span>
+                        <div className="flex gap-2 flex-wrap">
+                          {Object.keys(playedCards).map((type) => {
+                            if (playedCards[type] > 0) {
+                              const Icon = DEV_CARD_TYPES[type].icon;
+                              return (
+                                <div key={type} className="flex items-center gap-1 bg-slate-900 px-2 py-1 rounded text-xs text-slate-300 font-bold border border-slate-700">
+                                  <Icon size={12} className="text-purple-400" /> {DEV_CARD_TYPES[type].name} x{playedCards[type]}
+                                </div>
+                              );
+                            }
+                            return null;
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* END GAME MODAL */}
+        {gameState.status === "finished" && (
+          <div className="fixed inset-0 z-[250] bg-black/90 flex items-center justify-center backdrop-blur-md pt-20 pb-10 px-4">
+            <div className="bg-slate-900 p-6 md:p-8 rounded-2xl border-2 border-yellow-500 text-center shadow-2xl animate-in zoom-in max-w-lg w-full flex flex-col relative">
+              <div className="shrink-0 mb-4">
+                <Trophy size={64} className="text-yellow-400 mx-auto mb-2 animate-bounce" />
+                <h2 className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-500 uppercase mb-2 leading-tight">
+                  {gameState.players.slice().sort((a,b) => getTotalScore(b, gameState) - getTotalScore(a, gameState))[0]?.name}
+                </h2>
+                <p className="text-emerald-400 font-bold tracking-widest text-sm uppercase">
+                  Is the Lord of Settlers!
+                </p>
+              </div>
+              <div className="space-y-3 mb-4 text-sm flex-1">
+                 {gameState.players.slice().sort((a,b) => getTotalScore(b, gameState) - getTotalScore(a, gameState)).map((p, i) => (
+                    <div key={p.id} className={`p-3 rounded-xl border flex justify-between items-center ${i === 0 ? "bg-slate-800 border-yellow-500" : "bg-slate-800/50 border-slate-700"}`}>
+                       <span className="font-bold text-lg" style={{ color: PLAYER_COLORS[p.colorIdx].fill }}>{p.name}</span>
+                       <span className="font-black text-2xl text-yellow-500">{getTotalScore(p, gameState)}</span>
+                    </div>
+                 ))}
+              </div>
+              {gameState.hostId === user.uid ? (
+                <div className="shrink-0 pt-2">
+                  <button onClick={returnToLobby} className="bg-slate-700 hover:bg-slate-600 px-6 py-3 rounded-xl font-bold w-full text-emerald-400 transition-colors">
+                    Return All to Lobby
+                  </button>
+                </div>
+              ) : (
+                <div className="shrink-0 pt-2">
+                  <button disabled className="bg-slate-700/60 px-6 py-3 rounded-xl font-bold w-full text-slate-400">
+                    Waiting for Host...
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
       </div>
     );
   }
 
   return null;
 }
-//fixed
