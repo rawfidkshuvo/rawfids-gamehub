@@ -49,7 +49,10 @@ import {
   Trash2,
   LogOut,
   Loader,
-  Hammer
+  Hammer,
+  BookOpen,
+  History,
+  BarChart2,
 } from "lucide-react";
 
 // ---------------------------------------------------------------------------
@@ -68,8 +71,8 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const APP_ID = typeof __app_id !== "undefined" ? __app_id : "catan-clone";
-const GAME_ID = "catan";
+const APP_ID = typeof __app_id !== "undefined" ? __app_id : "colony-game";
+const GAME_ID = "colony";
 
 // ---------------------------------------------------------------------------
 // STYLES & VISUALS
@@ -176,10 +179,7 @@ const COSTS = {
   DEV_CARD: { WOOD: 0, BRICK: 0, SHEEP: 1, WHEAT: 1, ORE: 1 },
 };
 
-const getHexCenter = (q, r) => ({
-  x: HEX_SIZE * Math.sqrt(3) * (q + r / 2),
-  y: HEX_SIZE * (3 / 2) * r,
-});
+const getHexCenter = (q, r) => ({ x: HEX_SIZE * Math.sqrt(3) * (q + r / 2), y: HEX_SIZE * (3 / 2) * r });
 const getDistance = (x1, y1, x2, y2) => Math.hypot(x2 - x1, y2 - y1);
 
 const GENERATE_DECK = () => {
@@ -200,9 +200,7 @@ const getLongestRoad = (pId, board) => {
     maxLen = Math.max(maxLen, visitedEdges.size);
     const node = board.nodes[currentNodeId];
     if (node.owner && node.owner !== pId && visitedEdges.size > 0) return;
-    const connectedEdges = playerEdges.filter(
-      (e) => e.n1 === currentNodeId || e.n2 === currentNodeId
-    );
+    const connectedEdges = playerEdges.filter((e) => e.n1 === currentNodeId || e.n2 === currentNodeId);
     for (const edge of connectedEdges) {
       if (!visitedEdges.has(edge.id)) {
         visitedEdges.add(edge.id);
@@ -213,10 +211,7 @@ const getLongestRoad = (pId, board) => {
     }
   };
   const relevantNodes = new Set();
-  playerEdges.forEach((e) => {
-    relevantNodes.add(e.n1);
-    relevantNodes.add(e.n2);
-  });
+  playerEdges.forEach((e) => { relevantNodes.add(e.n1); relevantNodes.add(e.n2); });
   relevantNodes.forEach((startNodeId) => dfs(startNodeId, new Set()));
   return maxLen;
 };
@@ -229,9 +224,7 @@ const getTotalScore = (p, gameState) => {
 };
 
 const GENERATE_BOARD = () => {
-  const hexes = {};
-  const nodes = {};
-  const edges = {};
+  const hexes = {}; const nodes = {}; const edges = {};
   const gridShape = [
     { r: -2, qStart: 0, qEnd: 2 },
     { r: -1, qStart: -1, qEnd: 2 },
@@ -246,9 +239,7 @@ const GENERATE_BOARD = () => {
     "ORE", "ORE", "ORE",
   ].sort(() => Math.random() - 0.5);
 
-  const numberPool = [
-    2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12,
-  ].sort(() => Math.random() - 0.5);
+  const numberPool = [2, 3, 3, 4, 4, 5, 5, 6, 6, 8, 8, 9, 9, 10, 10, 11, 11, 12].sort(() => Math.random() - 0.5);
 
   gridShape.forEach(({ r, qStart, qEnd }) => {
     for (let q = qStart; q <= qEnd; q++) {
@@ -269,23 +260,18 @@ const GENERATE_BOARD = () => {
 
       corners.forEach((c) => {
         const id = `${c.x.toFixed(1)},${c.y.toFixed(1)}`;
-        if (!nodes[id])
-          nodes[id] = { id, x: c.x, y: c.y, owner: null, type: null, port: null };
+        if (!nodes[id]) nodes[id] = { id, x: c.x, y: c.y, owner: null, type: null, port: null };
       });
 
       for (let i = 0; i < 6; i++) {
-        const c1 = corners[i];
-        const c2 = corners[(i + 1) % 6];
-        const mx = (c1.x + c2.x) / 2;
-        const my = (c1.y + c2.y) / 2;
+        const c1 = corners[i]; const c2 = corners[(i + 1) % 6];
+        const mx = (c1.x + c2.x) / 2; const my = (c1.y + c2.y) / 2;
         const angle = Math.atan2(c2.y - c1.y, c2.x - c1.x) * (180 / Math.PI);
         const id = `${mx.toFixed(1)},${my.toFixed(1)}`;
         const id1 = `${c1.x.toFixed(1)},${c1.y.toFixed(1)}`;
         const id2 = `${c2.x.toFixed(1)},${c2.y.toFixed(1)}`;
 
-        if (!edges[id]) {
-          edges[id] = { id, x: mx, y: my, angle, owner: null, hexes: [], n1: id1, n2: id2, port: null };
-        }
+        if (!edges[id]) edges[id] = { id, x: mx, y: my, angle, owner: null, hexes: [], n1: id1, n2: id2, port: null };
         if (!edges[id].hexes.includes(`${q},${r}`)) edges[id].hexes.push(`${q},${r}`);
       }
     }
@@ -294,10 +280,7 @@ const GENERATE_BOARD = () => {
   const outerEdges = Object.values(edges).filter((e) => e.hexes.length === 1);
   outerEdges.sort((a, b) => Math.atan2(a.y, a.x) - Math.atan2(b.y, b.x));
 
-  const ports = [
-    "3:1", "3:1", "3:1", "3:1",
-    "WOOD_2:1", "BRICK_2:1", "SHEEP_2:1", "WHEAT_2:1", "ORE_2:1",
-  ].sort(() => Math.random() - 0.5);
+  const ports = ["3:1", "3:1", "3:1", "3:1", "WOOD_2:1", "BRICK_2:1", "SHEEP_2:1", "WHEAT_2:1", "ORE_2:1"].sort(() => Math.random() - 0.5);
 
   let portIdx = 0;
   for (let i = 0; i < outerEdges.length; i += 3) {
@@ -314,18 +297,126 @@ const GENERATE_BOARD = () => {
 };
 
 // ---------------------------------------------------------------------------
-// COMPONENTS
+// SUBCOMPONENTS (Modals & UI)
 // ---------------------------------------------------------------------------
+const FeedbackOverlay = ({ type, message, subtext, icon: Icon }) => (
+  <div className="fixed inset-0 z-[300] flex items-center justify-center pointer-events-none animate-in fade-in zoom-in duration-300">
+    <div className={`flex flex-col items-center justify-center p-8 md:p-12 rounded-3xl border-4 shadow-2xl backdrop-blur-xl max-w-sm md:max-w-xl mx-4 text-center ${
+        type === "success" ? "bg-orange-900/90 border-orange-500 text-orange-100" :
+        type === "failure" ? "bg-red-900/90 border-red-500 text-red-100" :
+        "bg-amber-900/90 border-amber-500 text-amber-100"
+      }`}
+    >
+      {Icon && <div className="mb-4 p-4 bg-black/20 rounded-full"><Icon size={64} className="animate-bounce" /></div>}
+      <h2 className="text-3xl md:text-5xl font-black uppercase tracking-widest drop-shadow-md mb-2">{message}</h2>
+      {subtext && <p className="text-lg md:text-xl font-bold opacity-90 tracking-wide">{subtext}</p>}
+    </div>
+  </div>
+);
+
+const RulesModal = ({ onClose }) => (
+  <div className="fixed inset-0 z-[200] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4">
+    <div className="bg-slate-900 border border-orange-900/50 w-full max-w-3xl rounded-3xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors">
+        <X size={24} className="text-white" />
+      </button>
+      <h2 className="text-3xl font-black text-center mb-6 text-orange-400">Settler's Guide</h2>
+      <div className="space-y-6">
+        <section>
+          <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+            <Hexagon className="text-orange-500" /> Building Costs
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-300">
+            <div className="bg-slate-800 p-4 rounded-xl border border-orange-900/30">
+              <strong className="text-orange-400 block mb-1">Roads</strong>
+              <div className="flex gap-2 mb-2">
+                <span className="bg-emerald-900/50 px-2 py-1 rounded">1 Wood</span>
+                <span className="bg-red-900/50 px-2 py-1 rounded">1 Brick</span>
+              </div>
+              <p className="text-xs">Connects your settlements. Longest continuous road (5+) earns 2 VP.</p>
+            </div>
+            <div className="bg-slate-800 p-4 rounded-xl border border-orange-900/30">
+              <strong className="text-orange-400 block mb-1">Settlement (1 VP)</strong>
+              <div className="flex gap-2 mb-2 flex-wrap">
+                <span className="bg-emerald-900/50 px-2 py-1 rounded">1 Wood</span>
+                <span className="bg-red-900/50 px-2 py-1 rounded">1 Brick</span>
+                <span className="bg-lime-900/50 px-2 py-1 rounded">1 Sheep</span>
+                <span className="bg-yellow-900/50 px-2 py-1 rounded">1 Wheat</span>
+              </div>
+              <p className="text-xs">Must be placed at least 2 edges away from any other settlement.</p>
+            </div>
+            <div className="bg-slate-800 p-4 rounded-xl border border-orange-900/30">
+              <strong className="text-orange-400 block mb-1">City (2 VP)</strong>
+              <div className="flex gap-2 mb-2">
+                <span className="bg-yellow-900/50 px-2 py-1 rounded">2 Wheat</span>
+                <span className="bg-slate-700/50 px-2 py-1 rounded">3 Ore</span>
+              </div>
+              <p className="text-xs">Upgrades a settlement. Yields double resources from hexes.</p>
+            </div>
+            <div className="bg-slate-800 p-4 rounded-xl border border-orange-900/30">
+              <strong className="text-orange-400 block mb-1">Dev Card</strong>
+              <div className="flex gap-2 mb-2">
+                <span className="bg-lime-900/50 px-2 py-1 rounded">1 Sheep</span>
+                <span className="bg-yellow-900/50 px-2 py-1 rounded">1 Wheat</span>
+                <span className="bg-slate-700/50 px-2 py-1 rounded">1 Ore</span>
+              </div>
+              <p className="text-xs">Grants Knights, special abilities, or hidden Victory Points.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+      <div className="mt-8 flex flex-col items-center gap-2">
+        <button onClick={onClose} className="px-8 py-3 rounded-xl font-bold text-lg shadow-lg transition-all bg-gradient-to-br from-orange-600 to-amber-700 text-white hover:bg-orange-400 hover:scale-105">
+          Return to Game
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+const ScoreboardModal = ({ gameState, onClose }) => (
+  <div className="fixed inset-0 z-[200] bg-slate-950/95 backdrop-blur-md flex items-center justify-center pt-20 pb-10 px-4">
+    <div className="bg-slate-900 border border-orange-900/50 w-full max-w-lg rounded-3xl shadow-2xl p-6 relative flex flex-col max-h-full">
+      <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors z-10"><X size={24} className="text-white" /></button>
+      <div className="shrink-0 mb-6">
+        <h2 className="text-2xl font-black text-center text-orange-400 flex items-center justify-center gap-2"><BarChart2 /> Live Scores</h2>
+      </div>
+      <div className="space-y-4 overflow-y-auto custom-scrollbar flex-1 pr-2">
+        {gameState.players.slice().sort((a,b) => getTotalScore(b, gameState) - getTotalScore(a, gameState)).map((p) => {
+          const totalScore = getTotalScore(p, gameState);
+          const hasLongestRoad = gameState.longestRoad?.playerId === p.id;
+          const hasLargestArmy = gameState.largestArmy?.playerId === p.id;
+          return (
+            <div key={p.id} className="bg-slate-800 p-4 rounded-xl border border-slate-700">
+              <div className="flex justify-between items-center border-b border-slate-700 pb-2 mb-2">
+                <span className="font-bold text-lg" style={{color: PLAYER_COLORS[p.colorIdx].fill}}>{p.name}</span>
+                <span className="text-2xl font-black text-yellow-500">{totalScore}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-slate-400">
+                <div className="flex justify-between text-slate-300"><span>VP (Buildings):</span><span className="font-bold text-white">{p.score}</span></div>
+                <div className="flex justify-between text-slate-300"><span>Knights Played:</span><span className="font-bold text-white">{p.playedKnights}</span></div>
+                <div className="flex justify-between text-slate-300"><span>Road Length:</span><span className="font-bold text-white">{p.roadLength}</span></div>
+                <div className="flex justify-between text-slate-300"><span>Dev Cards (Hidden):</span><span className="font-bold text-white">{Object.values(p.devCards).reduce((a,b)=>a+b,0) + Object.values(p.newDevCards).reduce((a,b)=>a+b,0)}</span></div>
+                
+                {hasLongestRoad && <div className="col-span-2 flex justify-between text-orange-400 font-bold bg-orange-900/20 px-2 py-1 rounded mt-1"><span className="flex items-center gap-1"><Grip size={12}/> Longest Road</span><span>+2</span></div>}
+                {hasLargestArmy && <div className="col-span-2 flex justify-between text-red-400 font-bold bg-red-900/20 px-2 py-1 rounded mt-1"><span className="flex items-center gap-1"><Swords size={12}/> Largest Army</span><span>+2</span></div>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </div>
+);
+
 const SplashScreen = ({ onStart }) => {
   const [hasSession, setHasSession] = useState(false);
   const [showButton, setShowButton] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem("catan_roomId");
+    const saved = localStorage.getItem("colony_roomId");
     setHasSession(!!saved);
-    setTimeout(() => {
-      setShowButton(true);
-    }, 1500);
+    setTimeout(() => setShowButton(true), 1000);
   }, []);
 
   return (
@@ -333,20 +424,17 @@ const SplashScreen = ({ onStart }) => {
       <GlobalStyles />
       <FloatingBackground />
       <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
-        <div className="text-center mb-10">
+        <div className="text-center mb-10 mt-8">
           <Hexagon size={80} className="text-orange-500 mx-auto mb-4 animate-spin-slow" />
           <h1 className="text-5xl md:text-7xl font-thin text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-amber-600 tracking-tighter drop-shadow-md">
-            SETTLERS
+            COLONY
           </h1>
           <p className="text-orange-200/40 tracking-[0.5em] uppercase mt-2 text-xs">
             Trade. Build. Survive.
           </p>
         </div>
         <div className={`transform transition-all duration-1000 ease-out ${showButton ? "translate-y-0 opacity-100" : "translate-y-32 opacity-0"}`}>
-          <button
-            onClick={onStart}
-            className="group relative px-12 py-5 bg-orange-600/20 hover:bg-orange-600/40 border border-orange-500/50 hover:border-orange-400 text-orange-300 font-black text-2xl tracking-widest rounded-none transform transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(249,115,22,0.4)] backdrop-blur-md overflow-hidden"
-          >
+          <button onClick={onStart} className="group relative px-12 py-5 bg-orange-600/20 hover:bg-orange-600/40 border border-orange-500/50 hover:border-orange-400 text-orange-300 font-black text-2xl tracking-widest rounded-none transform transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(249,115,22,0.4)] backdrop-blur-md overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-orange-400/10 to-transparent translate-y-[-100%] animate-[scan_2s_infinite_linear]" />
             <span className="relative z-10 flex items-center gap-3 animate-pulse">
               {hasSession ? <><RotateCcw className="animate-spin-slow" /> RESUME</> : <><Play /> PLAY</>}
@@ -354,12 +442,18 @@ const SplashScreen = ({ onStart }) => {
           </button>
         </div>
       </div>
+      <div className="absolute bottom-4 text-slate-600 text-xs text-center z-10">
+        Inspired by Catan. A tribute game.<br/>Developed by <strong>RAWFID K SHUVO</strong>.
+      </div>
       <style>{`@keyframes scan { 0% { transform: translateY(-100%); } 100% { transform: translateY(200%); } }`}</style>
     </div>
   );
 };
 
-export default function CatanClone() {
+// ---------------------------------------------------------------------------
+// MAIN COMPONENT
+// ---------------------------------------------------------------------------
+export default function ColonyGame() {
   const [user, setUser] = useState(null);
   const [view, setView] = useState("splash");
   const [playerName, setPlayerName] = useState("");
@@ -370,50 +464,44 @@ export default function CatanClone() {
   const [loading, setLoading] = useState(false);
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
   // Modals & UI States
+  const [showLogs, setShowLogs] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+  const [showScoreboard, setShowScoreboard] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [feedback, setFeedback] = useState(null);
+
   const [showTradeModal, setShowTradeModal] = useState(false);
   const [showDevModal, setShowDevCards] = useState(false);
   const [activeBuildMode, setActiveBuildMode] = useState(null);
   const [popupContent, setPopupContent] = useState(null);
-
-  // Animations & Effects States
   const [resourceAnimations, setResourceAnimations] = useState({});
   const [flashDice, setFlashDice] = useState(false);
-
-  // Trades & Discard
   const [offerTokens, setOfferTokens] = useState({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 });
   const [requestTokens, setRequestTokens] = useState({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 });
   const [discardTokens, setDiscardTokens] = useState({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 });
   const [showDiscardModal, setShowDiscardModal] = useState(false);
   const [mustDiscardAmount, setMustDiscardAmount] = useState(0);
 
-  // Gamehub Maintenance Listener
   useEffect(() => {
-    const unsub = onSnapshot(
-      doc(db, "game_hub_settings", "config"),
-      (doc) => {
-        if (doc.exists() && doc.data()[GAME_ID]?.maintenance) setIsMaintenance(true);
-        else setIsMaintenance(false);
-      },
-      (err) => console.log("Config Read Error (Safe to ignore):", err)
-    );
+    const unsub = onSnapshot(doc(db, "game_hub_settings", "config"), (doc) => {
+      if (doc.exists() && doc.data()[GAME_ID]?.maintenance) setIsMaintenance(true);
+      else setIsMaintenance(false);
+    }, (err) => console.log("Config Read Error (Safe to ignore):", err));
     return () => unsub();
   }, []);
 
   useEffect(() => {
     const initAuth = async () => {
-      if (typeof __initial_auth_token !== "undefined" && __initial_auth_token)
-        await signInWithCustomToken(auth, __initial_auth_token);
+      if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
       else await signInAnonymously(auth);
     };
     initAuth();
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
       if (u) {
-        const savedName = localStorage.getItem("gameHub_playerName") || localStorage.getItem("catan_playerName");
+        const savedName = localStorage.getItem("gameHub_playerName") || localStorage.getItem("colony_playerName");
         if (savedName) setPlayerName(savedName);
       }
     });
@@ -423,58 +511,42 @@ export default function CatanClone() {
   useEffect(() => {
     if (!roomId || !user) return;
     const roomRef = doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId);
-    const unsub = onSnapshot(
-      roomRef,
-      (snap) => {
-        if (snap.exists()) {
-          const data = snap.data();
-          if (!data.players.some((p) => p.id === user.uid)) {
-            setRoomId("");
-            localStorage.removeItem("catan_roomId");
-            setView("menu");
-            setError("You were removed from the world.");
-            return;
-          }
-          setGameState(data);
-          if (data.status === "playing" || data.status === "finished") setView("game");
-          else if (data.status === "lobby") setView("lobby");
-
-          handleGamePopups(data);
-          handleDiscardPhase(data);
-        } else {
-          setView("menu");
+    const unsub = onSnapshot(roomRef, (snap) => {
+      if (snap.exists()) {
+        const data = snap.data();
+        if (!data.players.some((p) => p.id === user.uid)) {
           setRoomId("");
-          localStorage.removeItem("catan_roomId");
-          setError("World collapsed.");
+          localStorage.removeItem("colony_roomId");
+          setView("menu");
+          setError("You were removed from the world.");
+          return;
         }
-      },
-      (err) => {
-        console.error(err);
-        setError("Connection lost.");
+        setGameState(data);
+        if (data.status === "playing" || data.status === "finished") setView("game");
+        else if (data.status === "lobby") setView("lobby");
+
+        handleGamePopups(data);
+        handleDiscardPhase(data);
+      } else {
+        setView("menu");
+        setRoomId("");
+        localStorage.removeItem("colony_roomId");
+        setError("World collapsed.");
       }
-    );
+    }, (err) => { console.error(err); setError("Connection lost."); });
     return () => unsub();
   }, [roomId, user]);
 
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("catan_roomId");
-    if (savedRoomId) {
-      setLoading(true);
-      setRoomId(savedRoomId);
-      setView("menu");
-    } else {
-      setView("menu");
-    }
+    const savedRoomId = localStorage.getItem("colony_roomId");
+    if (savedRoomId) { setLoading(true); setRoomId(savedRoomId); setView("menu"); }
+    else { setView("menu"); }
   };
 
   const prevDice = useRef(null);
   useEffect(() => {
     if (gameState?.dice && prevDice.current) {
-      if (
-        (gameState.hasRolled && !prevDice.current.hasRolled) ||
-        gameState.dice[0] !== prevDice.current.dice[0] ||
-        gameState.dice[1] !== prevDice.current.dice[1]
-      ) {
+      if ((gameState.hasRolled && !prevDice.current.hasRolled) || gameState.dice[0] !== prevDice.current.dice[0] || gameState.dice[1] !== prevDice.current.dice[1]) {
         setFlashDice(true);
         setTimeout(() => setFlashDice(false), 3000);
       }
@@ -516,10 +588,7 @@ export default function CatanClone() {
   useEffect(() => {
     if (!gameState?.logs || gameState.logs.length === 0) return;
     const latestLog = gameState.logs[gameState.logs.length - 1];
-    if (lastLogIdRef.current === null) {
-      lastLogIdRef.current = latestLog.id;
-      return;
-    }
+    if (lastLogIdRef.current === null) { lastLogIdRef.current = latestLog.id; return; }
     if (latestLog.id <= lastLogIdRef.current) return;
     lastLogIdRef.current = latestLog.id;
 
@@ -544,48 +613,31 @@ export default function CatanClone() {
         setMustDiscardAmount(toLose);
         setShowDiscardModal(true);
         setDiscardTokens({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 });
-      } else if (!needsToDiscard) {
-        setShowDiscardModal(false);
-      }
-    } else {
-      setShowDiscardModal(false);
-    }
+      } else if (!needsToDiscard) setShowDiscardModal(false);
+    } else setShowDiscardModal(false);
   };
 
   const handleGamePopups = (data) => {
     const idx = data.players.findIndex((p) => p.id === user?.uid);
     if (idx === -1) return;
-
     if (data.turnPhase === "ROBBER_STEAL" && data.turnIndex === idx) {
       const hexNodes = getHexVertices(data.robberTarget.q, data.robberTarget.r, data.board.nodes);
       const victims = [...new Set(hexNodes.filter((n) => n.owner && n.owner !== user.uid).map((n) => n.owner))];
-      if (victims.length > 0) {
-        setPopupContent({ type: "STEAL", victims });
-        return;
-      } else {
+      if (victims.length > 0) { setPopupContent({ type: "STEAL", victims }); return; }
+      else {
         const nextPhase = data.hasRolled ? "MAIN" : "ROLL";
         updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), { turnPhase: nextPhase });
       }
     }
-
     if (data.activeTrade && data.activeTrade.senderId !== user.uid && !data.activeTrade.responses?.[user.uid]) {
-      setPopupContent({ type: "INCOMING_TRADE", trade: data.activeTrade });
-      return;
+      setPopupContent({ type: "INCOMING_TRADE", trade: data.activeTrade }); return;
     }
-    if (data.turnPhase === "YEAR_OF_PLENTY" && data.turnIndex === idx) {
-      setPopupContent({ type: "YEAR_OF_PLENTY" });
-      return;
-    }
-    if (data.turnPhase === "MONOPOLY" && data.turnIndex === idx) {
-      setPopupContent({ type: "MONOPOLY" });
-      return;
-    }
+    if (data.turnPhase === "YEAR_OF_PLENTY" && data.turnIndex === idx) { setPopupContent({ type: "YEAR_OF_PLENTY" }); return; }
+    if (data.turnPhase === "MONOPOLY" && data.turnIndex === idx) { setPopupContent({ type: "MONOPOLY" }); return; }
     setPopupContent(null);
   };
 
-  const triggerLog = (text, type = "neutral", important = false, title = "") => ({
-    text, type, important, title, id: Date.now() + Math.random()
-  });
+  const triggerLog = (text, type = "neutral", important = false, title = "") => ({ text, type, important, title, id: Date.now() + Math.random() });
 
   const getHexVertices = (q, r, allNodes) => {
     const center = getHexCenter(q, r);
@@ -604,95 +656,59 @@ export default function CatanClone() {
   const createRoom = async () => {
     if (!playerName) return setError("Enter Name");
     localStorage.setItem("gameHub_playerName", playerName);
-    localStorage.setItem("catan_playerName", playerName);
+    localStorage.setItem("colony_playerName", playerName);
     setLoading(true);
     const newId = Math.random().toString(36).substring(2, 8).toUpperCase();
     const initialData = {
-      roomId: newId,
-      hostId: user.uid,
-      status: "lobby",
-      players: [
-        {
-          id: user.uid,
-          name: playerName,
-          colorIdx: 0,
-          score: 0,
-          resources: { WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 },
-          devCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
-          newDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
-          usedDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
-          playedKnights: 0,
-          hasPlayedDevCard: false,
-          roadLength: 0,
-        },
-      ],
+      roomId: newId, hostId: user.uid, status: "lobby",
+      players: [{
+        id: user.uid, name: playerName, colorIdx: 0, score: 0,
+        resources: { WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 },
+        devCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
+        newDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
+        usedDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
+        playedKnights: 0, hasPlayedDevCard: false, roadLength: 0,
+      }],
       longestRoad: { playerId: null, length: 4 },
       largestArmy: { playerId: null, size: 2 },
-      hasRolled: false,
-      board: null,
-      devDeck: [],
-      activeTrade: null,
-      turnIndex: 0,
-      turnPhase: "SETUP_SETTLEMENT",
-      setupRound: 1,
-      dice: [1, 1],
-      robberHex: null,
-      logs: [],
-      discardingPlayers: [],
+      hasRolled: false, board: null, devDeck: [], activeTrade: null,
+      turnIndex: 0, turnPhase: "SETUP_SETTLEMENT", setupRound: 1, dice: [1, 1], robberHex: null, logs: [], discardingPlayers: [],
     };
-
     try {
       await setDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", newId), initialData);
       setRoomId(newId);
-      localStorage.setItem("catan_roomId", newId);
-    } catch (e) {
-      setError("Failed to create world.");
-    }
+      localStorage.setItem("colony_roomId", newId);
+    } catch (e) { setError("Failed to create world."); }
     setLoading(false);
   };
 
   const joinRoom = async () => {
     if (!roomCode || !playerName) return setError("Enter details");
     localStorage.setItem("gameHub_playerName", playerName);
-    localStorage.setItem("catan_playerName", playerName);
+    localStorage.setItem("colony_playerName", playerName);
     setLoading(true);
     try {
       const code = roomCode.toUpperCase().trim();
       const ref = doc(db, "artifacts", APP_ID, "public", "data", "rooms", code);
       const snap = await getDoc(ref);
-
       if (snap.exists() && snap.data().status === "lobby") {
         const data = snap.data();
         if (!data.players.some((p) => p.id === user.uid)) {
-          if (data.players.length >= 4) {
-            setError("World is full.");
-            setLoading(false);
-            return;
-          }
-          const newPlayers = [
-            ...data.players,
-            {
-              id: user.uid,
-              name: playerName,
-              colorIdx: data.players.length,
-              score: 0,
-              resources: { WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 },
-              devCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
-              newDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
-              usedDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
-              playedKnights: 0,
-              hasPlayedDevCard: false,
-              roadLength: 0,
-            },
-          ];
+          if (data.players.length >= 4) { setError("World is full."); setLoading(false); return; }
+          const newPlayers = [...data.players, {
+            id: user.uid, name: playerName, colorIdx: data.players.length, score: 0,
+            resources: { WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 },
+            devCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
+            newDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
+            usedDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
+            playedKnights: 0, hasPlayedDevCard: false, roadLength: 0,
+          }];
           await updateDoc(ref, { players: newPlayers });
         }
         setRoomId(code);
-        localStorage.setItem("catan_roomId", code);
+        localStorage.setItem("colony_roomId", code);
       } else setError("Room not found or in progress");
-    } catch (e) {
-      setError(e.message);
-    }
+    } catch (e) { setError(e.message); }
     setLoading(false);
   };
 
@@ -701,42 +717,20 @@ export default function CatanClone() {
     const desertEntry = Object.entries(board.hexes).find(([_, h]) => h.resource === "DESERT");
     const robberHex = desertEntry ? desertEntry[0] : "0,0";
     const devDeck = GENERATE_DECK();
-
     await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
-      status: "playing",
-      board,
-      robberHex,
-      devDeck,
-      turnIndex: 0,
-      turnPhase: "SETUP_SETTLEMENT",
-      setupRound: 1,
-      dice: [1, 1],
-      hasRolled: false,
-      longestRoad: { playerId: null, length: 4 },
-      largestArmy: { playerId: null, size: 2 },
-      logs: arrayUnion({
-        text: "The settlement begins.",
-        important: true,
-        type: "success",
-        id: Date.now(),
-      }),
+      status: "playing", board, robberHex, devDeck, turnIndex: 0, turnPhase: "SETUP_SETTLEMENT", setupRound: 1, dice: [1, 1],
+      hasRolled: false, longestRoad: { playerId: null, length: 4 }, largestArmy: { playerId: null, size: 2 },
+      logs: arrayUnion({ text: "The settlement begins.", important: true, type: "success", id: Date.now() }),
       discardingPlayers: [],
     });
   };
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(roomId).then(() => {
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      setIsCopied(true); setTimeout(() => setIsCopied(false), 2000);
     }).catch(err => {
-      const el = document.createElement("textarea");
-      el.value = roomId;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand("copy");
-      document.body.removeChild(el);
-      setIsCopied(true);
-      setTimeout(() => setIsCopied(false), 2000);
+      const el = document.createElement("textarea"); el.value = roomId; document.body.appendChild(el); el.select(); document.execCommand("copy"); document.body.removeChild(el);
+      setIsCopied(true); setTimeout(() => setIsCopied(false), 2000);
     });
   };
 
@@ -749,66 +743,36 @@ export default function CatanClone() {
         const newPlayers = gameState.players.filter((p) => p.id !== user.uid);
         await updateDoc(ref, { players: newPlayers });
       }
-    } catch (e) {
-      console.log("Room gone");
-    }
-    localStorage.removeItem("catan_roomId");
-    setRoomId("");
-    setView("menu");
-    setShowLeaveConfirm(false);
-    setGameState(null);
+    } catch (e) { console.log("Room gone"); }
+    localStorage.removeItem("colony_roomId");
+    setRoomId(""); setView("menu"); setShowLeaveConfirm(false); setGameState(null);
   };
 
   const kickPlayer = async (targetId) => {
     if (!gameState || gameState.hostId !== user.uid) return;
     try {
       const newPlayers = gameState.players.filter((p) => p.id !== targetId);
-      await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
-        players: newPlayers,
-        logs: arrayUnion(triggerLog("A player was removed from the world.", "warning"))
-      });
-    } catch (e) {
-      console.error("Error kicking player:", e);
-    }
+      await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), { players: newPlayers, logs: arrayUnion(triggerLog("A player was removed from the world.", "warning")) });
+    } catch (e) { console.error("Error kicking player:", e); }
   };
 
   const returnToLobby = async () => {
     if (gameState.hostId !== user.uid) return;
     const players = gameState.players.map((p) => ({
-      ...p,
-      score: 0,
-      resources: { WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 },
-      devCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
-      newDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
-      usedDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
-      playedKnights: 0,
-      hasPlayedDevCard: false,
-      roadLength: 0,
+      ...p, score: 0, resources: { WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 },
+      devCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 }, newDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 },
+      usedDevCards: { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 }, playedKnights: 0, hasPlayedDevCard: false, roadLength: 0,
     }));
     await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
-      status: "lobby",
-      players,
-      board: null,
-      longestRoad: { playerId: null, length: 4 },
-      largestArmy: { playerId: null, size: 2 },
-      hasRolled: false,
-      devDeck: [],
-      activeTrade: null,
-      turnIndex: 0,
-      turnPhase: "SETUP_SETTLEMENT",
-      setupRound: 1,
-      dice: [1, 1],
-      robberHex: null,
-      logs: [],
-      discardingPlayers: [],
+      status: "lobby", players, board: null, longestRoad: { playerId: null, length: 4 }, largestArmy: { playerId: null, size: 2 },
+      hasRolled: false, devDeck: [], activeTrade: null, turnIndex: 0, turnPhase: "SETUP_SETTLEMENT", setupRound: 1,
+      dice: [1, 1], robberHex: null, logs: [], discardingPlayers: [],
     });
   };
 
   const handleRollDice = async () => {
     if (gameState.turnIndex !== pIdx || gameState.turnPhase !== "ROLL" || gameState.hasRolled) return;
-    const d1 = Math.floor(Math.random() * 6) + 1;
-    const d2 = Math.floor(Math.random() * 6) + 1;
-    const total = d1 + d2;
+    const d1 = Math.floor(Math.random() * 6) + 1; const d2 = Math.floor(Math.random() * 6) + 1; const total = d1 + d2;
     let updates = { dice: [d1, d2], hasRolled: true };
     let logs = [triggerLog(`${me.name} rolled a ${total}!`)];
     let players = JSON.parse(JSON.stringify(gameState.players));
@@ -820,18 +784,11 @@ export default function CatanClone() {
         const count = Object.values(p.resources).reduce((a, b) => a + b, 0);
         if (count > 7) playersToDiscard.push(p.id);
       });
-      if (playersToDiscard.length > 0) {
-        updates.turnPhase = "DISCARD";
-        updates.discardingPlayers = playersToDiscard;
-        logs.push(triggerLog(`Waiting for players to discard cards...`));
-      } else {
-        updates.turnPhase = "ROBBER";
-      }
+      if (playersToDiscard.length > 0) { updates.turnPhase = "DISCARD"; updates.discardingPlayers = playersToDiscard; logs.push(triggerLog(`Waiting for players to discard cards...`)); }
+      else { updates.turnPhase = "ROBBER"; }
     } else {
       updates.turnPhase = "MAIN";
-      const producingHexes = Object.values(gameState.board.hexes).filter(
-        (h) => h.number === total && `${h.q},${h.r}` !== gameState.robberHex
-      );
+      const producingHexes = Object.values(gameState.board.hexes).filter((h) => h.number === total && `${h.q},${h.r}` !== gameState.robberHex);
       let produced = false;
       producingHexes.forEach((hex) => {
         const hexCorners = getHexVertices(hex.q, hex.r, gameState.board.nodes);
@@ -856,8 +813,7 @@ export default function CatanClone() {
   const submitDiscard = async () => {
     const totalDiscarded = Object.values(discardTokens).reduce((a, b) => a + b, 0);
     if (totalDiscarded !== mustDiscardAmount) return alert(`You must discard exactly ${mustDiscardAmount} cards.`);
-    let valid = true;
-    Object.keys(discardTokens).forEach((k) => { if (me.resources[k] < discardTokens[k]) valid = false; });
+    let valid = true; Object.keys(discardTokens).forEach((k) => { if (me.resources[k] < discardTokens[k]) valid = false; });
     if (!valid) return alert("You don't have those resources!");
 
     let players = JSON.parse(JSON.stringify(gameState.players));
@@ -866,10 +822,7 @@ export default function CatanClone() {
     let updates = { players, discardingPlayers };
     let logs = [triggerLog(`${me.name} discarded ${mustDiscardAmount} cards.`)];
 
-    if (discardingPlayers.length === 0) {
-      updates.turnPhase = "ROBBER";
-      logs.push(triggerLog(`All players discarded. Place the robber!`));
-    }
+    if (discardingPlayers.length === 0) { updates.turnPhase = "ROBBER"; logs.push(triggerLog(`All players discarded. Place the robber!`)); }
     updates.logs = arrayUnion(...logs);
     await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), updates);
     setShowDiscardModal(false);
@@ -892,12 +845,8 @@ export default function CatanClone() {
     const resKeys = Object.keys(v.resources).filter((k) => v.resources[k] > 0);
     if (resKeys.length > 0) {
       const stolenRes = resKeys[Math.floor(Math.random() * resKeys.length)];
-      v.resources[stolenRes]--;
-      players[pIdx].resources[stolenRes]++;
-      logs.push(triggerLog(`Stole a resource from ${v.name}.`));
-    } else {
-      logs.push(triggerLog(`${v.name} had no resources to steal.`));
-    }
+      v.resources[stolenRes]--; players[pIdx].resources[stolenRes]++; logs.push(triggerLog(`Stole a resource from ${v.name}.`));
+    } else { logs.push(triggerLog(`${v.name} had no resources to steal.`)); }
     let nextPhase = gameState.hasRolled ? "MAIN" : "ROLL";
     let updates = { players, turnPhase: nextPhase };
     if (logs.length > 0) updates.logs = arrayUnion(...logs);
@@ -919,8 +868,7 @@ export default function CatanClone() {
   const executeBankTrade = async () => {
     let players = JSON.parse(JSON.stringify(gameState.players));
     const ratios = getTradeRatios(user.uid, gameState.board);
-    let allowedPicks = 0;
-    let validOffer = true;
+    let allowedPicks = 0; let validOffer = true;
     Object.keys(offerTokens).forEach((res) => {
       if (offerTokens[res] > 0) {
         if (players[pIdx].resources[res] < offerTokens[res]) validOffer = false;
@@ -938,32 +886,24 @@ export default function CatanClone() {
     await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
       players, logs: arrayUnion(triggerLog(`${me.name} traded with the bank.`)),
     });
-    setShowTradeModal(false);
-    setOfferTokens({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 });
-    setRequestTokens({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 });
+    setShowTradeModal(false); setOfferTokens({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 }); setRequestTokens({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 });
   };
 
   const proposeDomesticTrade = async () => {
-    let hasOffer = Object.values(offerTokens).some((v) => v > 0);
-    let hasReq = Object.values(requestTokens).some((v) => v > 0);
+    let hasOffer = Object.values(offerTokens).some((v) => v > 0); let hasReq = Object.values(requestTokens).some((v) => v > 0);
     if (!hasOffer || !hasReq) return alert("Must offer and request something.");
-    let valid = true;
-    Object.keys(offerTokens).forEach((k) => { if (me.resources[k] < offerTokens[k]) valid = false; });
+    let valid = true; Object.keys(offerTokens).forEach((k) => { if (me.resources[k] < offerTokens[k]) valid = false; });
     if (!valid) return alert("You don't have those resources!");
 
     const trade = { id: Date.now(), senderId: user.uid, senderName: me.name, offer: offerTokens, request: requestTokens, responses: {} };
-    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
-      activeTrade: trade, logs: arrayUnion(triggerLog(`${me.name} proposed a domestic trade.`)),
-    });
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), { activeTrade: trade, logs: arrayUnion(triggerLog(`${me.name} proposed a domestic trade.`)) });
     setShowTradeModal(false);
   };
 
   const respondToTrade = async (accept) => {
-    const active = gameState.activeTrade;
-    if (!active) return;
+    const active = gameState.activeTrade; if (!active) return;
     if (accept) {
-      let valid = true;
-      Object.keys(active.request).forEach((k) => { if (me.resources[k] < active.request[k]) valid = false; });
+      let valid = true; Object.keys(active.request).forEach((k) => { if (me.resources[k] < active.request[k]) valid = false; });
       if (!valid) return alert("You don't have the resources to accept this trade.");
 
       let players = JSON.parse(JSON.stringify(gameState.players));
@@ -971,62 +911,46 @@ export default function CatanClone() {
       Object.keys(active.offer).forEach((k) => { players[senderIdx].resources[k] -= active.offer[k]; players[pIdx].resources[k] += active.offer[k]; });
       Object.keys(active.request).forEach((k) => { players[pIdx].resources[k] -= active.request[k]; players[senderIdx].resources[k] += active.request[k]; });
 
-      await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
-        players, activeTrade: null, logs: arrayUnion(triggerLog(`${me.name} accepted ${active.senderName}'s trade!`, "success")),
-      });
+      await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), { players, activeTrade: null, logs: arrayUnion(triggerLog(`${me.name} accepted ${active.senderName}'s trade!`, "success")) });
     } else {
-      await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
-        [`activeTrade.responses.${user.uid}`]: "rejected",
-      });
+      await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), { [`activeTrade.responses.${user.uid}`]: "rejected" });
     }
     setPopupContent(null);
   };
 
   const handleBuyDevCard = async () => {
     if (gameState.turnIndex !== pIdx || gameState.turnPhase !== "MAIN") return;
-    let players = JSON.parse(JSON.stringify(gameState.players));
-    let deck = [...gameState.devDeck];
+    let players = JSON.parse(JSON.stringify(gameState.players)); let deck = [...gameState.devDeck];
     const cost = COSTS.DEV_CARD;
     if (Object.keys(cost).some((k) => players[pIdx].resources[k] < cost[k])) return alert("Not enough resources!");
     if (deck.length === 0) return alert("Deck is empty!");
 
     Object.keys(cost).forEach((k) => (players[pIdx].resources[k] -= cost[k]));
-    const card = deck.pop();
-    let updates = { devDeck: deck };
-    let logs = [triggerLog(`${me.name} bought a Development Card.`)];
-    if (card === "VP") players[pIdx].devCards["VP"]++;
-    else players[pIdx].newDevCards[card]++;
+    const card = deck.pop(); let updates = { devDeck: deck }; let logs = [triggerLog(`${me.name} bought a Development Card.`)];
+    if (card === "VP") players[pIdx].devCards["VP"]++; else players[pIdx].newDevCards[card]++;
 
-    updates.players = players;
-    updates.logs = arrayUnion(...logs);
+    updates.players = players; updates.logs = arrayUnion(...logs);
     await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), updates);
   };
 
   const playDevCard = async (type) => {
     if (gameState.turnIndex !== pIdx) return;
     if (type !== "VP" && gameState.players[pIdx].hasPlayedDevCard) return alert("You can only play one Development Card per turn.");
-    let players = JSON.parse(JSON.stringify(gameState.players));
-    let updates = {};
-    let logs = [];
+    let players = JSON.parse(JSON.stringify(gameState.players)); let updates = {}; let logs = [];
 
     if (type === "VP") {
-      const vpCount = players[pIdx].devCards["VP"];
-      players[pIdx].devCards["VP"] = 0;
+      const vpCount = players[pIdx].devCards["VP"]; players[pIdx].devCards["VP"] = 0;
       if (!players[pIdx].usedDevCards) players[pIdx].usedDevCards = { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 };
-      players[pIdx].usedDevCards["VP"] += vpCount;
-      players[pIdx].score += vpCount;
+      players[pIdx].usedDevCards["VP"] += vpCount; players[pIdx].score += vpCount;
       logs.push(triggerLog(`${players[pIdx].name} revealed ${vpCount} Victory Point Card${vpCount > 1 ? "s" : ""}!`, "important", true));
     } else {
-      players[pIdx].devCards[type]--;
-      players[pIdx].hasPlayedDevCard = true;
+      players[pIdx].devCards[type]--; players[pIdx].hasPlayedDevCard = true;
       if (!players[pIdx].usedDevCards) players[pIdx].usedDevCards = { KNIGHT: 0, VP: 0, ROAD: 0, PLENTY: 0, MONOPOLY: 0 };
-      players[pIdx].usedDevCards[type]++;
-      logs.push(triggerLog(`${players[pIdx].name} played a ${DEV_CARD_TYPES[type].name} Card!`, "important", true));
+      players[pIdx].usedDevCards[type]++; logs.push(triggerLog(`${players[pIdx].name} played a ${DEV_CARD_TYPES[type].name} Card!`, "important", true));
 
       if (type === "KNIGHT") {
         players[pIdx].playedKnights++;
-        const currentArmySize = gameState.largestArmy?.size || 2;
-        const currentArmyHolder = gameState.largestArmy?.playerId;
+        const currentArmySize = gameState.largestArmy?.size || 2; const currentArmyHolder = gameState.largestArmy?.playerId;
         if (players[pIdx].playedKnights > currentArmySize) {
           updates.largestArmy = { playerId: user.uid, size: players[pIdx].playedKnights };
           if (currentArmyHolder !== user.uid) logs.push(triggerLog(`${players[pIdx].name} took the Largest Army!`, "important", true));
@@ -1038,42 +962,32 @@ export default function CatanClone() {
     }
 
     if (checkVictory(players, gameState.longestRoad, updates.largestArmy || gameState.largestArmy)) {
-      updates.status = "finished";
-      logs.push(triggerLog(`${players[pIdx].name} wins the game!`, "important", true, "VICTORY"));
+      updates.status = "finished"; logs.push(triggerLog(`${players[pIdx].name} wins the game!`, "important", true, "VICTORY"));
     }
 
-    updates.players = players;
-    updates.logs = arrayUnion(...logs);
+    updates.players = players; updates.logs = arrayUnion(...logs);
     await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), updates);
     setShowDevCards(false);
   };
 
   const handleYearOfPlenty = async (res1, res2) => {
-    let players = JSON.parse(JSON.stringify(gameState.players));
-    players[pIdx].resources[res1]++;
-    players[pIdx].resources[res2]++;
+    let players = JSON.parse(JSON.stringify(gameState.players)); players[pIdx].resources[res1]++; players[pIdx].resources[res2]++;
     let nextPhase = gameState.hasRolled ? "MAIN" : "ROLL";
-    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
-      players, turnPhase: nextPhase, logs: arrayUnion(triggerLog(`${me.name} took ${res1} and ${res2} via Year of Plenty.`)),
-    });
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), { players, turnPhase: nextPhase, logs: arrayUnion(triggerLog(`${me.name} took ${res1} and ${res2} via Year of Plenty.`)) });
     setPopupContent(null);
   };
 
   const handleMonopoly = async (res) => {
-    let players = JSON.parse(JSON.stringify(gameState.players));
-    let totalStolen = 0;
+    let players = JSON.parse(JSON.stringify(gameState.players)); let totalStolen = 0;
     players.forEach((p, i) => { if (i !== pIdx) { totalStolen += p.resources[res]; p.resources[res] = 0; } });
     players[pIdx].resources[res] += totalStolen;
     let nextPhase = gameState.hasRolled ? "MAIN" : "ROLL";
-    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
-      players, turnPhase: nextPhase, logs: arrayUnion(triggerLog(`${me.name} stole ${totalStolen} ${res} via Monopoly!`)),
-    });
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), { players, turnPhase: nextPhase, logs: arrayUnion(triggerLog(`${me.name} stole ${totalStolen} ${res} via Monopoly!`)) });
     setPopupContent(null);
   };
 
   const isValidSettlement = (nodeId) => {
-    const node = gameState.board.nodes[nodeId];
-    if (node.owner) return false;
+    const node = gameState.board.nodes[nodeId]; if (node.owner) return false;
     const tooClose = Object.values(gameState.board.nodes).some((n) => n.owner && getDistance(n.x, n.y, node.x, node.y) < HEX_SIZE + 5);
     if (tooClose) return false;
     if (gameState.turnPhase.startsWith("SETUP_")) return true;
@@ -1082,18 +996,12 @@ export default function CatanClone() {
   };
 
   const isValidRoad = (edgeId) => {
-    const edge = gameState.board.edges[edgeId];
-    if (edge.owner) return false;
+    const edge = gameState.board.edges[edgeId]; if (edge.owner) return false;
     const connectedToMyNode = Object.values(gameState.board.nodes).some((n) => n.owner === user.uid && getDistance(n.x, n.y, edge.x, edge.y) < HEX_SIZE / 2 + 5);
     const myRoads = Object.values(gameState.board.edges).filter((e) => e.owner === user.uid);
     const validConnectedRoad = myRoads.some((myRoad) => {
       const sharedNodeId = [myRoad.n1, myRoad.n2].find((n) => n === edge.n1 || n === edge.n2);
-      if (sharedNodeId) {
-        const node = gameState.board.nodes[sharedNodeId];
-        if (node.owner && node.owner !== user.uid) return false;
-        return true;
-      }
-      return false;
+      if (sharedNodeId) { const node = gameState.board.nodes[sharedNodeId]; if (node.owner && node.owner !== user.uid) return false; return true; } return false;
     });
     if (gameState.turnPhase.startsWith("SETUP_ROAD")) return connectedToMyNode;
     return connectedToMyNode || validConnectedRoad;
@@ -1101,10 +1009,7 @@ export default function CatanClone() {
 
   const handleBuildNode = async (nodeId) => {
     if (gameState.turnIndex !== pIdx) return;
-    let updates = {};
-    let players = JSON.parse(JSON.stringify(gameState.players));
-    let board = JSON.parse(JSON.stringify(gameState.board));
-    let logs = [];
+    let updates = {}; let players = JSON.parse(JSON.stringify(gameState.players)); let board = JSON.parse(JSON.stringify(gameState.board)); let logs = [];
 
     if (activeBuildMode === "SETTLEMENT" || gameState.turnPhase === "SETUP_SETTLEMENT") {
       if (!isValidSettlement(nodeId)) return;
@@ -1114,46 +1019,33 @@ export default function CatanClone() {
         Object.keys(cost).forEach((k) => (players[pIdx].resources[k] -= cost[k]));
       }
 
-      board.nodes[nodeId].owner = user.uid;
-      board.nodes[nodeId].type = "SETTLEMENT";
-      players[pIdx].score += 1;
+      board.nodes[nodeId].owner = user.uid; board.nodes[nodeId].type = "SETTLEMENT"; players[pIdx].score += 1;
 
-      let maxRoadLength = 4;
-      let maxPlayers = [];
+      let maxRoadLength = 4; let maxPlayers = [];
       players.forEach((p) => {
-        const pRoadLen = getLongestRoad(p.id, board);
-        p.roadLength = pRoadLen;
+        const pRoadLen = getLongestRoad(p.id, board); p.roadLength = pRoadLen;
         if (pRoadLen > maxRoadLength) { maxRoadLength = pRoadLen; maxPlayers = [p.id]; }
         else if (pRoadLen === maxRoadLength && pRoadLen > 4) { maxPlayers.push(p.id); }
       });
 
-      let currentLongestPlayer = null;
-      const previousOwner = gameState.longestRoad?.playerId;
-      const previousLength = gameState.longestRoad?.length || 4;
+      let currentLongestPlayer = null; const previousOwner = gameState.longestRoad?.playerId; const previousLength = gameState.longestRoad?.length || 4;
       if (maxPlayers.length === 1) currentLongestPlayer = maxPlayers[0];
       else if (maxPlayers.length > 1) {
-        if (maxPlayers.includes(previousOwner) && maxRoadLength === previousLength) currentLongestPlayer = previousOwner;
-        else currentLongestPlayer = null;
+        if (maxPlayers.includes(previousOwner) && maxRoadLength === previousLength) currentLongestPlayer = previousOwner; else currentLongestPlayer = null;
       }
 
       if (currentLongestPlayer !== previousOwner || maxRoadLength !== previousLength) {
         updates.longestRoad = { playerId: currentLongestPlayer, length: maxRoadLength };
         if (currentLongestPlayer) {
-          if (currentLongestPlayer !== previousOwner) {
-            const newOwnerName = players.find((p) => p.id === currentLongestPlayer).name;
-            logs.push(triggerLog(`Longest road updated! ${newOwnerName} holds it.`, "important", true));
-          }
+          if (currentLongestPlayer !== previousOwner) { const newOwnerName = players.find((p) => p.id === currentLongestPlayer).name; logs.push(triggerLog(`Longest road updated! ${newOwnerName} holds it.`, "important", true)); }
         } else {
-          updates.longestRoad = { playerId: null, length: maxRoadLength };
-          logs.push(triggerLog(`The Longest Road has been broken! No one holds it.`, "important", true));
+          updates.longestRoad = { playerId: null, length: maxRoadLength }; logs.push(triggerLog(`The Longest Road has been broken! No one holds it.`, "important", true));
         }
       }
 
       if (gameState.turnPhase === "SETUP_SETTLEMENT") {
         if (gameState.setupRound === 2) {
-          const adjHexes = Object.values(board.hexes).filter(
-            (h) => getDistance(h.center.x, h.center.y, board.nodes[nodeId].x, board.nodes[nodeId].y) < HEX_SIZE + 5
-          );
+          const adjHexes = Object.values(board.hexes).filter((h) => getDistance(h.center.x, h.center.y, board.nodes[nodeId].x, board.nodes[nodeId].y) < HEX_SIZE + 5);
           adjHexes.forEach((h) => { if (h.resource !== "DESERT") players[pIdx].resources[h.resource]++; });
         }
         updates.turnPhase = "SETUP_ROAD";
@@ -1161,27 +1053,20 @@ export default function CatanClone() {
 
       logs.push(triggerLog(`${me.name} built a Settlement.`, "success"));
     } else if (activeBuildMode === "CITY") {
-      const node = board.nodes[nodeId];
-      if (node.owner !== user.uid || node.type !== "SETTLEMENT") return;
+      const node = board.nodes[nodeId]; if (node.owner !== user.uid || node.type !== "SETTLEMENT") return;
       const cost = COSTS.CITY;
       if (Object.keys(cost).some((k) => players[pIdx].resources[k] < cost[k])) return alert("Not enough resources!");
       Object.keys(cost).forEach((k) => (players[pIdx].resources[k] -= cost[k]));
 
-      board.nodes[nodeId].type = "CITY";
-      players[pIdx].score += 1;
-      setActiveBuildMode(null);
-      logs.push(triggerLog(`${me.name} upgraded to a City.`, "success"));
+      board.nodes[nodeId].type = "CITY"; players[pIdx].score += 1; setActiveBuildMode(null); logs.push(triggerLog(`${me.name} upgraded to a City.`, "success"));
     }
 
     if (checkVictory(players, updates.longestRoad || gameState.longestRoad, gameState.largestArmy)) {
-      updates.status = "finished";
-      logs.push(triggerLog(`${me.name} wins the game!`, "important", true, "VICTORY"));
+      updates.status = "finished"; logs.push(triggerLog(`${me.name} wins the game!`, "important", true, "VICTORY"));
     }
 
     if (logs.length === 0) return;
-    updates.players = players;
-    updates.board = board;
-    updates.logs = arrayUnion(...logs);
+    updates.players = players; updates.board = board; updates.logs = arrayUnion(...logs);
     await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), updates);
   };
 
@@ -1191,10 +1076,7 @@ export default function CatanClone() {
     if (activeBuildMode !== "ROAD" && !isSpecialBuildPhase) return;
     if (!isValidRoad(edgeId)) return;
 
-    let updates = {};
-    let players = JSON.parse(JSON.stringify(gameState.players));
-    let board = JSON.parse(JSON.stringify(gameState.board));
-    let logs = [];
+    let updates = {}; let players = JSON.parse(JSON.stringify(gameState.players)); let board = JSON.parse(JSON.stringify(gameState.board)); let logs = [];
 
     if (!gameState.turnPhase.includes("SETUP_") && !gameState.turnPhase.includes("ROAD_BUILDING")) {
       const cost = COSTS.ROAD;
@@ -1202,14 +1084,10 @@ export default function CatanClone() {
       Object.keys(cost).forEach((k) => (players[pIdx].resources[k] -= cost[k]));
     }
 
-    board.edges[edgeId].owner = user.uid;
-    logs.push(triggerLog(`${me.name} built a Road.`));
-    setActiveBuildMode(null);
+    board.edges[edgeId].owner = user.uid; logs.push(triggerLog(`${me.name} built a Road.`)); setActiveBuildMode(null);
 
-    const currentLen = getLongestRoad(user.uid, board);
-    players[pIdx].roadLength = currentLen;
-    const currentRecord = gameState.longestRoad?.length || 4;
-    const currentHolder = gameState.longestRoad?.playerId;
+    const currentLen = getLongestRoad(user.uid, board); players[pIdx].roadLength = currentLen;
+    const currentRecord = gameState.longestRoad?.length || 4; const currentHolder = gameState.longestRoad?.playerId;
 
     if (currentLen > currentRecord) {
       updates.longestRoad = { playerId: user.uid, length: currentLen };
@@ -1229,21 +1107,17 @@ export default function CatanClone() {
     else if (gameState.turnPhase === "ROAD_BUILDING_2") { updates.turnPhase = gameState.hasRolled ? "MAIN" : "ROLL"; }
 
     if (checkVictory(players, updates.longestRoad || gameState.longestRoad, gameState.largestArmy)) {
-      updates.status = "finished";
-      logs.push(triggerLog(`${me.name} wins the game!`, "important", true, "VICTORY"));
+      updates.status = "finished"; logs.push(triggerLog(`${me.name} wins the game!`, "important", true, "VICTORY"));
     }
 
     if (logs.length === 0) return;
-    updates.players = players;
-    updates.board = board;
-    updates.logs = arrayUnion(...logs);
+    updates.players = players; updates.board = board; updates.logs = arrayUnion(...logs);
     await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), updates);
   };
 
   const skipRoadBuilding = async () => {
     let nextPhase = gameState.turnPhase === "ROAD_BUILDING_1" ? "ROAD_BUILDING_2" : gameState.hasRolled ? "MAIN" : "ROLL";
-    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), { turnPhase: nextPhase });
-    setActiveBuildMode(null);
+    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), { turnPhase: nextPhase }); setActiveBuildMode(null);
   };
 
   const handleEndTurn = async () => {
@@ -1254,11 +1128,7 @@ export default function CatanClone() {
 
     const nextIdx = (gameState.turnIndex + 1) % gameState.players.length;
     await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
-      turnIndex: nextIdx,
-      turnPhase: "ROLL",
-      players,
-      hasRolled: false,
-      logs: arrayUnion(triggerLog(`Turn passed to ${gameState.players[nextIdx].name}.`)),
+      turnIndex: nextIdx, turnPhase: "ROLL", players, hasRolled: false, logs: arrayUnion(triggerLog(`Turn passed to ${gameState.players[nextIdx].name}.`)),
     });
     setActiveBuildMode(null);
   };
@@ -1310,65 +1180,33 @@ export default function CatanClone() {
         <GlobalStyles />
         <FloatingBackground />
         
-        {/* Back to Gamehub Nav */}
         <nav className="absolute top-0 left-0 w-full p-4 z-50">
-          <a
-            href={import.meta.env.BASE_URL}
-            className="flex items-center gap-2 text-orange-600/80 rounded-lg font-bold shadow-md hover:text-orange-400 transition-colors w-fit animate-pulse"
-          >
-            <StepBack />
-            <span>Back to Gamehub</span>
+          <a href={import.meta.env.BASE_URL} className="flex items-center gap-2 text-orange-600/80 rounded-lg font-bold shadow-md hover:text-orange-400 transition-colors w-fit animate-pulse">
+            <StepBack /><span>Back to Gamehub</span>
           </a>
         </nav>
+
+        {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
 
         <div className="z-10 text-center mb-10 mt-8">
           <Hexagon size={64} className="text-orange-400 mx-auto mb-4 animate-spin-slow" />
           <h1 className="text-5xl md:text-7xl font-thin text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-amber-600 tracking-tighter drop-shadow-md">
-            SETTLERS
+            COLONY
           </h1>
-          <p className="text-orange-200/40 tracking-[0.5em] uppercase mt-2 text-xs">
-            Trade. Build. Survive.
-          </p>
+          <p className="text-orange-200/40 tracking-[0.5em] uppercase mt-2 text-xs">Trade. Build. Survive.</p>
         </div>
         <div className="bg-slate-900/80 backdrop-blur-md border border-orange-500/30 p-8 rounded-2xl w-full max-w-md shadow-2xl z-10 relative">
-          {error && (
-            <div className="bg-red-500/20 border border-red-500/50 text-red-200 p-3 mb-4 rounded text-center text-sm font-bold flex items-center justify-center gap-2">
-              <AlertTriangle size={16} /> {error}
-            </div>
-          )}
+          {error && <div className="bg-red-500/20 border border-red-500/50 text-red-200 p-3 mb-4 rounded text-center text-sm font-bold flex items-center justify-center gap-2"><AlertTriangle size={16} /> {error}</div>}
           <div className="space-y-4">
-            <input
-              className="w-full bg-black/50 border border-orange-700 focus:border-orange-500 p-4 rounded-xl text-white outline-none transition-all text-lg font-bold text-center"
-              placeholder="YOUR NAME"
-              value={playerName}
-              onChange={(e) => setPlayerName(e.target.value)}
-              maxLength={12}
-            />
+            <input className="w-full bg-black/50 border border-orange-700 focus:border-orange-500 p-4 rounded-xl text-white outline-none transition-all text-lg font-bold text-center" placeholder="YOUR NAME" value={playerName} onChange={(e) => setPlayerName(e.target.value)} maxLength={12} />
             <div className="grid grid-cols-2 gap-3 pt-2">
-              <button
-                onClick={createRoom}
-                disabled={loading}
-                className="bg-gradient-to-br from-orange-600 to-amber-700 hover:from-orange-500 hover:to-amber-600 p-4 rounded-xl font-bold flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-lg shadow-orange-900/50"
-              >
-                <Earth size={24} /> <span>Create</span>
-              </button>
+              <button onClick={createRoom} disabled={loading} className="bg-gradient-to-br from-orange-600 to-amber-700 hover:from-orange-500 hover:to-amber-600 p-4 rounded-xl font-bold flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-lg shadow-orange-900/50"><Earth size={24} /> <span>Create</span></button>
               <div className="flex flex-col gap-2">
-                <input
-                  className="bg-black/50 border border-orange-700 focus:border-orange-500 p-2 rounded-xl text-white text-center uppercase font-mono font-bold tracking-widest outline-none h-12"
-                  placeholder="CODE"
-                  value={roomCode}
-                  onChange={(e) => setRoomCode(e.target.value)}
-                  maxLength={6}
-                />
-                <button
-                  onClick={joinRoom}
-                  disabled={loading}
-                  className="bg-slate-800 hover:bg-slate-700 p-2 rounded-xl font-bold text-slate-300 transition-all active:scale-95 h-full"
-                >
-                  Join
-                </button>
+                <input className="bg-black/50 border border-orange-700 focus:border-orange-500 p-2 rounded-xl text-white text-center uppercase font-mono font-bold tracking-widest outline-none h-12" placeholder="CODE" value={roomCode} onChange={(e) => setRoomCode(e.target.value)} maxLength={6} />
+                <button onClick={joinRoom} disabled={loading} className="bg-slate-800 hover:bg-slate-700 p-2 rounded-xl font-bold text-slate-300 transition-all active:scale-95 h-full">Join</button>
               </div>
             </div>
+            <button onClick={() => setShowGuide(true)} className="w-full mt-4 text-orange-400 hover:text-orange-300 text-sm font-bold flex items-center justify-center gap-2 transition-colors py-2"><BookOpen size={16} /> Settler's Guide</button>
           </div>
         </div>
       </div>
@@ -1383,91 +1221,56 @@ export default function CatanClone() {
       <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative">
         <GlobalStyles />
         <FloatingBackground />
+        {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
         <div className="z-10 w-full max-w-lg bg-slate-900/90 backdrop-blur p-8 rounded-2xl border border-orange-500/30 shadow-2xl animate-in slide-in-from-bottom-8 mt-6">
-          
           <div className="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
             <div>
-              <h2 className="text-lg md:text-xl flex items-center gap-2 text-orange-500 font-bold uppercase">
-                <Earth size={24} /> Island Code:
-              </h2>
+              <h2 className="text-lg md:text-xl flex items-center gap-2 text-orange-500 font-bold uppercase"><Earth size={24} /> Island Code:</h2>
               <div className="flex items-center gap-3 mt-1">
-                <div className="text-3xl md:text-4xl font-mono text-white font-black">
-                  {roomId}
-                </div>
+                <div className="text-3xl md:text-4xl font-mono text-white font-black">{roomId}</div>
                 <div className="relative">
-                  <button onClick={copyToClipboard} className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white">
-                    {isCopied ? <CheckCircle size={20} className="text-green-500" /> : <Copy size={20} />}
-                  </button>
-                  {isCopied && (
-                    <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-orange-500 text-black text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">
-                      Copied!
-                    </div>
-                  )}
+                  <button onClick={copyToClipboard} className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white">{isCopied ? <CheckCircle size={20} className="text-green-500" /> : <Copy size={20} />}</button>
+                  {isCopied && <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-orange-500 text-black text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">Copied!</div>}
                 </div>
               </div>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setShowLeaveConfirm(true)} className="p-2 hover:bg-red-900/30 rounded text-red-400 transition-colors">
-                <LogOut size={24} />
-              </button>
+              <button onClick={() => setShowLeaveConfirm(true)} className="p-2 hover:bg-red-900/30 rounded text-red-400 transition-colors"><LogOut size={24} /></button>
             </div>
           </div>
 
           <div className="space-y-3 mb-8">
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">
-              Settlers ({gameState.players.length}/4)
-            </h3>
+            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Settlers ({gameState.players.length}/4)</h3>
             {gameState.players.map((p) => (
               <div key={p.id} className="flex justify-between items-center bg-slate-800 p-4 rounded-xl border border-slate-700">
                 <span className="font-bold flex items-center gap-3 text-lg">
-                  <div className={`w-4 h-4 rounded-full ${PLAYER_COLORS[p.colorIdx].bg}`} />
-                  {p.name}
-                  {p.id === gameState.hostId && <Crown size={16} className="text-yellow-500" />}
+                  <div className={`w-4 h-4 rounded-full ${PLAYER_COLORS[p.colorIdx].bg}`} /> {p.name} {p.id === gameState.hostId && <Crown size={16} className="text-yellow-500" />}
                 </span>
                 {gameState.hostId === user.uid && p.id !== user.uid && (
-                  <button onClick={() => kickPlayer(p.id)} className="p-2 bg-red-900/20 hover:bg-red-900/50 text-red-500 rounded-lg transition-colors border border-red-900/30" title="Kick Player">
-                    <Trash2 size={16} />
-                  </button>
+                  <button onClick={() => kickPlayer(p.id)} className="p-2 bg-red-900/20 hover:bg-red-900/50 text-red-500 rounded-lg transition-colors border border-red-900/30" title="Kick Player"><Trash2 size={16} /></button>
                 )}
               </div>
             ))}
             {Array.from({ length: 4 - gameState.players.length }).map((_, i) => (
-              <div key={i} className="border-2 border-dashed border-slate-700 rounded-xl p-4 flex items-center justify-center text-slate-600 font-bold uppercase text-sm">
-                Empty Slot
-              </div>
+              <div key={i} className="border-2 border-dashed border-slate-700 rounded-xl p-4 flex items-center justify-center text-slate-600 font-bold uppercase text-sm">Empty Slot</div>
             ))}
           </div>
 
           {isHost ? (
             <div className="flex flex-col gap-2">
-              <button
-                onClick={startGame}
-                disabled={!canStart}
-                className="w-full flex justify-center items-center gap-2 px-8 py-4 rounded-xl font-bold text-lg shadow-lg transition-all bg-gradient-to-br from-orange-600 to-amber-700 text-white hover:bg-orange-400 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"
-              >
-                <Earth size={24} /> Generate Island
-              </button>
-              {!canStart && (
-                <div className="text-center text-xs font-bold text-amber-500 uppercase tracking-wider mt-1">
-                  Requires 3 or 4 players to start
-                </div>
-              )}
+              <button onClick={startGame} disabled={!canStart} className="w-full flex justify-center items-center gap-2 px-8 py-4 rounded-xl font-bold text-lg shadow-lg transition-all bg-gradient-to-br from-orange-600 to-amber-700 text-white hover:bg-orange-400 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"><Earth size={24} /> Generate Island</button>
+              {!canStart && <div className="text-center text-xs font-bold text-amber-500 uppercase tracking-wider mt-1">Requires 3 or 4 players to start</div>}
             </div>
           ) : (
-            <div className="text-center text-slate-500 text-sm font-bold uppercase tracking-widest animate-pulse">
-              Waiting for host...
-            </div>
+            <div className="text-center text-slate-500 text-sm font-bold uppercase tracking-widest animate-pulse">Waiting for host...</div>
           )}
         </div>
 
-        {/* Leave Confirmation Modal */}
         {showLeaveConfirm && (
           <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl max-w-xs w-full text-center shadow-2xl">
               <h3 className="text-xl font-bold text-white mb-2 uppercase">Leave World?</h3>
-              <p className="text-slate-400 mb-6 text-sm">
-                {gameState.hostId === user.uid ? "As Host, leaving ends the session for everyone." : "You will disconnect from this session."}
-              </p>
+              <p className="text-slate-400 mb-6 text-sm">{gameState.hostId === user.uid ? "As Host, leaving ends the session for everyone." : "You will disconnect from this session."}</p>
               <div className="flex gap-2">
                 <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-slate-800 hover:bg-slate-700 py-2 rounded font-bold text-slate-300">Stay</button>
                 <button onClick={handleLeave} className="flex-1 bg-red-600 hover:bg-red-500 py-2 rounded font-bold text-white">Leave</button>
@@ -1481,25 +1284,18 @@ export default function CatanClone() {
 
   if (view === "game" && gameState) {
     const isMyTurn = gameState.turnIndex === pIdx;
-
-    const getHexClasses = (hId) => {
-      if (gameState.turnPhase === "ROBBER" && isMyTurn) return "cursor-pointer hover:scale-105 hover:brightness-125 z-20";
-      return "opacity-100";
-    };
+    const getHexClasses = (hId) => { if (gameState.turnPhase === "ROBBER" && isMyTurn) return "cursor-pointer hover:scale-105 hover:brightness-125 z-20"; return "opacity-100"; };
 
     return (
       <div className="fixed inset-0 bg-slate-950 text-white flex flex-col overflow-hidden font-sans select-none">
         <GlobalStyles />
         <FloatingBackground />
 
-        {/* Leave Confirmation Modal (In Game) */}
         {showLeaveConfirm && (
           <div className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl max-w-xs w-full text-center shadow-2xl">
               <h3 className="text-xl font-bold text-white mb-2 uppercase">Abandon Game?</h3>
-              <p className="text-slate-400 mb-6 text-sm">
-                {gameState.hostId === user.uid ? "Leaving deletes the game for everyone." : "You will leave this ongoing game."}
-              </p>
+              <p className="text-slate-400 mb-6 text-sm">{gameState.hostId === user.uid ? "Leaving deletes the game for everyone." : "You will leave this ongoing game."}</p>
               <div className="flex gap-2">
                 <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-slate-800 hover:bg-slate-700 py-2 rounded font-bold text-slate-300">Stay</button>
                 <button onClick={handleLeave} className="flex-1 bg-red-600 hover:bg-red-500 py-2 rounded font-bold text-white">Leave</button>
@@ -1508,27 +1304,10 @@ export default function CatanClone() {
           </div>
         )}
 
-        {/* Dynamic Overlays and Popups */}
-        {feedback && (
-          <div className="fixed inset-0 z-[160] flex items-center justify-center pointer-events-none animate-in fade-in zoom-in duration-300">
-            <div className={`flex flex-col items-center justify-center p-8 md:p-12 rounded-3xl border-4 shadow-2xl backdrop-blur-xl max-w-sm md:max-w-xl mx-4 text-center ${
-                feedback.type === "success" ? "bg-orange-900/90 border-orange-500 text-orange-100" :
-                feedback.type === "failure" ? "bg-red-900/90 border-red-500 text-red-100" :
-                "bg-amber-900/90 border-amber-500 text-amber-100"
-              }`}
-            >
-              {feedback.icon && (
-                <div className="mb-4 p-4 bg-black/20 rounded-full">
-                  <feedback.icon size={64} className="animate-bounce" />
-                </div>
-              )}
-              <h2 className="text-3xl md:text-5xl font-black uppercase tracking-widest drop-shadow-md mb-2">{feedback.message}</h2>
-              {feedback.subtext && <p className="text-lg md:text-xl font-bold opacity-90 tracking-wide">{feedback.subtext}</p>}
-            </div>
-          </div>
-        )}
+        {feedback && <FeedbackOverlay type={feedback.type} message={feedback.message} subtext={feedback.subtext} icon={feedback.icon} />}
+        {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
+        {showScoreboard && <ScoreboardModal gameState={gameState} onClose={() => setShowScoreboard(false)} />}
 
-        {/* Discard Modal */}
         {showDiscardModal && me && (
           <div className="fixed inset-0 z-[200] bg-black/90 flex items-center justify-center p-4 backdrop-blur-md">
             <div className="bg-slate-900 border-2 border-red-500 p-6 rounded-2xl max-w-sm w-full text-center shadow-[0_0_50px_rgba(239,68,68,0.3)] relative">
@@ -1538,37 +1317,23 @@ export default function CatanClone() {
               <div className="bg-black/50 p-4 rounded-xl mb-6">
                 <div className="flex flex-col gap-3">
                   {["WOOD", "BRICK", "SHEEP", "WHEAT", "ORE"].map((res) => {
-                    const count = me.resources[res];
-                    if (count === 0) return null;
+                    const count = me.resources[res]; if (count === 0) return null;
                     const IconComponent = RESOURCES[res].icon;
                     return (
                       <div key={res} className="flex items-center justify-between bg-slate-800 p-2 rounded-lg border border-slate-700">
-                        <div className="flex items-center gap-2">
-                          <div className={`p-1.5 rounded ${RESOURCES[res].color} w-8 flex justify-center`}><IconComponent size={16} /></div>
-                          <span className="font-bold text-sm">{res} (Have: {count})</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <button onClick={() => setDiscardTokens({ ...discardTokens, [res]: Math.max(0, discardTokens[res] - 1) })} className="w-8 h-8 rounded-full bg-slate-700 hover:bg-slate-600 font-bold">-</button>
-                          <span className="w-4 text-center font-black text-red-400">{discardTokens[res]}</span>
-                          <button onClick={() => setDiscardTokens({ ...discardTokens, [res]: Math.min(count, discardTokens[res] + 1) })} className="w-8 h-8 rounded-full bg-slate-700 hover:bg-slate-600 font-bold">+</button>
-                        </div>
+                        <div className="flex items-center gap-2"><div className={`p-1.5 rounded ${RESOURCES[res].color} w-8 flex justify-center`}><IconComponent size={16} /></div><span className="font-bold text-sm">{res} (Have: {count})</span></div>
+                        <div className="flex items-center gap-3"><button onClick={() => setDiscardTokens({ ...discardTokens, [res]: Math.max(0, discardTokens[res] - 1) })} className="w-8 h-8 rounded-full bg-slate-700 hover:bg-slate-600 font-bold">-</button><span className="w-4 text-center font-black text-red-400">{discardTokens[res]}</span><button onClick={() => setDiscardTokens({ ...discardTokens, [res]: Math.min(count, discardTokens[res] + 1) })} className="w-8 h-8 rounded-full bg-slate-700 hover:bg-slate-600 font-bold">+</button></div>
                       </div>
                     );
                   })}
                 </div>
               </div>
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-slate-400 font-bold">Selected:</span>
-                <span className={`text-xl font-black ${Object.values(discardTokens).reduce((a, b) => a + b, 0) === mustDiscardAmount ? "text-orange-500" : "text-red-500"}`}>
-                  {Object.values(discardTokens).reduce((a, b) => a + b, 0)} / {mustDiscardAmount}
-                </span>
-              </div>
+              <div className="flex justify-between items-center mb-4"><span className="text-slate-400 font-bold">Selected:</span><span className={`text-xl font-black ${Object.values(discardTokens).reduce((a, b) => a + b, 0) === mustDiscardAmount ? "text-orange-500" : "text-red-500"}`}>{Object.values(discardTokens).reduce((a, b) => a + b, 0)} / {mustDiscardAmount}</span></div>
               <button onClick={submitDiscard} disabled={Object.values(discardTokens).reduce((a, b) => a + b, 0) !== mustDiscardAmount} className="w-full py-3 bg-red-600 hover:bg-red-500 disabled:opacity-50 disabled:hover:bg-red-600 rounded-xl font-black text-white transition-all uppercase tracking-widest shadow-lg">Confirm Discard</button>
             </div>
           </div>
         )}
 
-        {/* Steal Target Modal */}
         {popupContent && popupContent.type === "STEAL" && (
           <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4">
             <div className="bg-slate-900 border-2 border-red-500 p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl">
@@ -1584,7 +1349,6 @@ export default function CatanClone() {
           </div>
         )}
 
-        {/* Incoming Trade Modal */}
         {popupContent && popupContent.type === "INCOMING_TRADE" && (
           <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4">
             <div className="bg-slate-900 border-2 border-blue-500 p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl">
@@ -1592,13 +1356,9 @@ export default function CatanClone() {
               <h3 className="text-xl font-black text-white mb-2 uppercase">{popupContent.trade.senderName} Proposes a Trade</h3>
               <div className="bg-black/30 p-4 rounded-xl mb-4">
                 <div className="text-xs text-orange-400 font-bold mb-1 uppercase">You Receive:</div>
-                <div className="flex justify-center gap-2 mb-4">
-                  {Object.keys(popupContent.trade.offer).map((k) => popupContent.trade.offer[k] > 0 && <span key={k} className="bg-orange-900/50 px-2 py-1 rounded text-xs border border-orange-800">{popupContent.trade.offer[k]} {k}</span>)}
-                </div>
+                <div className="flex justify-center gap-2 mb-4">{Object.keys(popupContent.trade.offer).map((k) => popupContent.trade.offer[k] > 0 && <span key={k} className="bg-orange-900/50 px-2 py-1 rounded text-xs border border-orange-800">{popupContent.trade.offer[k]} {k}</span>)}</div>
                 <div className="text-xs text-red-400 font-bold mb-1 uppercase">You Give:</div>
-                <div className="flex justify-center gap-2">
-                  {Object.keys(popupContent.trade.request).map((k) => popupContent.trade.request[k] > 0 && <span key={k} className="bg-red-900/50 px-2 py-1 rounded text-xs border border-red-800">{popupContent.trade.request[k]} {k}</span>)}
-                </div>
+                <div className="flex justify-center gap-2">{Object.keys(popupContent.trade.request).map((k) => popupContent.trade.request[k] > 0 && <span key={k} className="bg-red-900/50 px-2 py-1 rounded text-xs border border-red-800">{popupContent.trade.request[k]} {k}</span>)}</div>
               </div>
               <div className="flex gap-2">
                 <button onClick={() => respondToTrade(false)} className="flex-1 py-3 bg-red-900/50 rounded-xl font-bold text-red-200 hover:bg-red-800">Reject</button>
@@ -1608,7 +1368,6 @@ export default function CatanClone() {
           </div>
         )}
 
-        {/* Year of Plenty Modal */}
         {popupContent && popupContent.type === "YEAR_OF_PLENTY" && (
           <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4">
             <div className="bg-slate-900 border-2 border-yellow-500 p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl">
@@ -1617,16 +1376,13 @@ export default function CatanClone() {
               <p className="text-slate-300 text-sm mb-4">Select two resources to add to your hand.</p>
               <div className="grid grid-cols-5 gap-2 mb-6">
                 {["WOOD", "BRICK", "SHEEP", "WHEAT", "ORE"].map((res) => (
-                  <button key={res} onClick={() => { if (!popupContent.res1) setPopupContent({ ...popupContent, res1: res }); else handleYearOfPlenty(popupContent.res1, res); }} className={`p-2 rounded-lg border-2 flex justify-center items-center ${popupContent.res1 === res ? "border-yellow-500 bg-yellow-900/50" : "border-slate-700 hover:border-slate-500"}`}>
-                    {React.createElement(RESOURCES[res].icon, { size: 24, className: "text-white" })}
-                  </button>
+                  <button key={res} onClick={() => { if (!popupContent.res1) setPopupContent({ ...popupContent, res1: res }); else handleYearOfPlenty(popupContent.res1, res); }} className={`p-2 rounded-lg border-2 flex justify-center items-center ${popupContent.res1 === res ? "border-yellow-500 bg-yellow-900/50" : "border-slate-700 hover:border-slate-500"}`}>{React.createElement(RESOURCES[res].icon, { size: 24, className: "text-white" })}</button>
                 ))}
               </div>
             </div>
           </div>
         )}
 
-        {/* Monopoly Modal */}
         {popupContent && popupContent.type === "MONOPOLY" && (
           <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4">
             <div className="bg-slate-900 border-2 border-purple-500 p-6 rounded-2xl max-w-sm w-full text-center shadow-2xl">
@@ -1635,9 +1391,7 @@ export default function CatanClone() {
               <p className="text-slate-300 text-sm mb-4">Declare a resource. All players must give you all of that resource.</p>
               <div className="grid grid-cols-5 gap-2 mb-6">
                 {["WOOD", "BRICK", "SHEEP", "WHEAT", "ORE"].map((res) => (
-                  <button key={res} onClick={() => handleMonopoly(res)} className="p-2 rounded-lg border-2 border-slate-700 flex justify-center items-center hover:border-purple-500 hover:bg-purple-900/30">
-                    {React.createElement(RESOURCES[res].icon, { size: 24, className: "text-white" })}
-                  </button>
+                  <button key={res} onClick={() => handleMonopoly(res)} className="p-2 rounded-lg border-2 border-slate-700 flex justify-center items-center hover:border-purple-500 hover:bg-purple-900/30">{React.createElement(RESOURCES[res].icon, { size: 24, className: "text-white" })}</button>
                 ))}
               </div>
             </div>
@@ -1645,26 +1399,41 @@ export default function CatanClone() {
         )}
 
         {/* TOP BAR */}
-        <div className="h-16 bg-slate-900 border-b border-orange-900/30 flex items-center justify-between px-4 z-[160] shadow-lg shrink-0">
+        <div className="h-14 md:h-16 bg-slate-900 border-b border-orange-900/30 flex items-center justify-between px-2 z-[160] shrink-0 shadow-lg">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-orange-900/50 rounded-lg flex items-center justify-center border border-orange-700">
+            <div className="w-10 h-10 bg-orange-900/50 rounded-lg flex items-center justify-center border border-orange-700 ml-2">
               <Hexagon className="text-orange-400" size={20} />
             </div>
-            <div className="hidden sm:block">
-              <div className="font-bold text-sm tracking-wider text-orange-100">SETTLERS</div>
-              <div className="text-[10px] font-mono uppercase text-orange-400">{gameState.turnPhase.startsWith("SETUP") ? "SETUP PHASE" : "MAIN GAME"}</div>
+            <div>
+              <div className="font-bold text-sm tracking-wider text-orange-100">COLONY</div>
+              <div className="text-[10px] font-mono uppercase">{gameState.status === "finished" ? <span className="text-red-400">GAME OVER</span> : <><span className="text-white-400">Turn:</span> <span className="text-orange-400">{gameState.players[gameState.turnIndex].name}</span></>}</div>
             </div>
             <div className={`flex items-center gap-1.5 bg-slate-800 p-1.5 rounded-lg border border-slate-700 shadow-inner ml-2 ${flashDice ? "animate-flash-red" : ""}`}>
-              <div className={`w-7 h-7 rounded flex items-center justify-center font-black text-lg shadow-inner ${gameState.dice[0] + gameState.dice[1] === 7 ? "bg-red-500 text-white" : "bg-slate-200 text-slate-900"}`}>{gameState.dice[0]}</div>
-              <div className={`w-7 h-7 rounded flex items-center justify-center font-black text-lg shadow-inner ${gameState.dice[0] + gameState.dice[1] === 7 ? "bg-red-500 text-white" : "bg-slate-200 text-slate-900"}`}>{gameState.dice[1]}</div>
+              <div className={`w-6 h-6 rounded flex items-center justify-center font-black text-sm shadow-inner ${gameState.dice[0] + gameState.dice[1] === 7 ? "bg-red-500 text-white" : "bg-slate-200 text-slate-900"}`}>{gameState.dice[0]}</div>
+              <div className={`w-6 h-6 rounded flex items-center justify-center font-black text-sm shadow-inner ${gameState.dice[0] + gameState.dice[1] === 7 ? "bg-red-500 text-white" : "bg-slate-200 text-slate-900"}`}>{gameState.dice[1]}</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setShowLeaveConfirm(true)} className="p-2 hover:bg-red-900/30 rounded text-red-400 transition-colors">
-              <LogOut size={20} />
-            </button>
+            <button onClick={() => setShowScoreboard(true)} className="p-2 hover:bg-slate-800 rounded text-yellow-500 hover:text-white"><BarChart2 size={18} /></button>
+            <button onClick={() => setShowGuide(true)} className="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-white"><BookOpen size={18} /></button>
+            <button onClick={() => setShowLogs(!showLogs)} className={`p-2 rounded-full ${showLogs ? "bg-orange-900 text-orange-400" : "text-gray-400 hover:bg-gray-800"}`}><History size={18} /></button>
+            <button onClick={() => setShowLeaveConfirm(true)} className="p-2 hover:bg-red-900/30 rounded text-red-400"><LogOut size={18} /></button>
           </div>
         </div>
+
+        {/* LOGS OVERLAY */}
+        {showLogs && (
+          <div className="fixed top-16 right-4 w-64 max-h-60 bg-slate-900/95 border border-slate-700 rounded-xl z-[155] overflow-y-auto p-2 shadow-2xl custom-scrollbar">
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 sticky top-0 bg-slate-900/95 py-2">World History</h4>
+            <div className="space-y-2">
+              {gameState.logs.slice().reverse().map((log) => (
+                <div key={log.id} className={`text-xs p-2 rounded border-l-2 ${log.type === "success" ? "border-orange-500 bg-orange-900/10" : log.type === "warning" ? "border-amber-500 bg-amber-900/10" : log.type === "failure" ? "border-red-500 bg-red-900/10" : "border-slate-500 bg-slate-800/30"}`}>
+                  {log.text}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* GAME BOARD AREA */}
         <div className="flex-1 relative bg-transparent overflow-hidden flex items-center justify-center touch-none">
@@ -1722,19 +1491,13 @@ export default function CatanClone() {
               );
             })}
 
-            {/* HARBOR VISUALS UPDATED */}
             {Object.values(gameState.board.edges).filter((e) => e.port).map((e) => {
               const edgeAngleRad = e.angle * (Math.PI / 180);
-              const nx1 = Math.cos(edgeAngleRad + Math.PI / 2);
-              const ny1 = Math.sin(edgeAngleRad + Math.PI / 2);
-              const nx2 = Math.cos(edgeAngleRad - Math.PI / 2);
-              const ny2 = Math.sin(edgeAngleRad - Math.PI / 2);
+              const nx1 = Math.cos(edgeAngleRad + Math.PI / 2); const ny1 = Math.sin(edgeAngleRad + Math.PI / 2);
+              const nx2 = Math.cos(edgeAngleRad - Math.PI / 2); const ny2 = Math.sin(edgeAngleRad - Math.PI / 2);
               const isN1Outward = (nx1 * e.x + ny1 * e.y) > (nx2 * e.x + ny2 * e.y);
-              const outX = isN1Outward ? nx1 : nx2;
-              const outY = isN1Outward ? ny1 : ny2;
-              const pushDistance = 28;
-              const portX = e.x + (outX * pushDistance);
-              const portY = e.y + (outY * pushDistance);
+              const outX = isN1Outward ? nx1 : nx2; const outY = isN1Outward ? ny1 : ny2;
+              const pushDistance = 28; const portX = e.x + (outX * pushDistance); const portY = e.y + (outY * pushDistance);
               const pierAngle = Math.atan2(-outY, -outX) * (180 / Math.PI);
 
               return (
@@ -1803,18 +1566,10 @@ export default function CatanClone() {
                 <>
                   {gameState.turnPhase === "MAIN" && (
                     <>
-                      <button onClick={() => setActiveBuildMode(activeBuildMode === "ROAD" ? null : "ROAD")} className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold flex flex-col items-center border-2 transition-all text-xs md:text-base ${activeBuildMode === "ROAD" ? "bg-blue-600 border-blue-400 scale-105 shadow-[0_0_10px_rgba(59,130,246,0.5)]" : "bg-slate-800 border-slate-600 hover:bg-slate-700"}`}>
-                        <Grip size={16} /> Road
-                      </button>
-                      <button onClick={() => setActiveBuildMode(activeBuildMode === "SETTLEMENT" ? null : "SETTLEMENT")} className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold flex flex-col items-center border-2 transition-all text-xs md:text-base ${activeBuildMode === "SETTLEMENT" ? "bg-orange-600 border-orange-400 scale-105 shadow-[0_0_10px_rgba(249,115,22,0.5)]" : "bg-slate-800 border-slate-600 hover:bg-slate-700"}`}>
-                        <Home size={16} /> Set
-                      </button>
-                      <button onClick={() => setActiveBuildMode(activeBuildMode === "CITY" ? null : "CITY")} className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold flex flex-col items-center border-2 transition-all text-xs md:text-base ${activeBuildMode === "CITY" ? "bg-indigo-600 border-indigo-400 scale-105 shadow-[0_0_10px_rgba(79,70,229,0.5)]" : "bg-slate-800 border-slate-600 hover:bg-slate-700"}`}>
-                        <Building2 size={16} /> City
-                      </button>
-                      <button onClick={() => setShowTradeModal(true)} className="px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold flex flex-col items-center border-2 bg-slate-800 border-slate-600 hover:bg-slate-700 transition-all text-xs md:text-base">
-                        <Handshake size={16} /> Trade
-                      </button>
+                      <button onClick={() => setActiveBuildMode(activeBuildMode === "ROAD" ? null : "ROAD")} className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold flex flex-col items-center border-2 transition-all text-xs md:text-base ${activeBuildMode === "ROAD" ? "bg-blue-600 border-blue-400 scale-105 shadow-[0_0_10px_rgba(59,130,246,0.5)]" : "bg-slate-800 border-slate-600 hover:bg-slate-700"}`}><Grip size={16} /> Road</button>
+                      <button onClick={() => setActiveBuildMode(activeBuildMode === "SETTLEMENT" ? null : "SETTLEMENT")} className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold flex flex-col items-center border-2 transition-all text-xs md:text-base ${activeBuildMode === "SETTLEMENT" ? "bg-orange-600 border-orange-400 scale-105 shadow-[0_0_10px_rgba(249,115,22,0.5)]" : "bg-slate-800 border-slate-600 hover:bg-slate-700"}`}><Home size={16} /> Set</button>
+                      <button onClick={() => setActiveBuildMode(activeBuildMode === "CITY" ? null : "CITY")} className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold flex flex-col items-center border-2 transition-all text-xs md:text-base ${activeBuildMode === "CITY" ? "bg-indigo-600 border-indigo-400 scale-105 shadow-[0_0_10px_rgba(79,70,229,0.5)]" : "bg-slate-800 border-slate-600 hover:bg-slate-700"}`}><Building2 size={16} /> City</button>
+                      <button onClick={() => setShowTradeModal(true)} className="px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold flex flex-col items-center border-2 bg-slate-800 border-slate-600 hover:bg-slate-700 transition-all text-xs md:text-base"><Handshake size={16} /> Trade</button>
                     </>
                   )}
                   {!gameState.turnPhase.startsWith("SETUP") && (
@@ -1827,16 +1582,10 @@ export default function CatanClone() {
               )}
 
               {isMyTurn && gameState.turnPhase === "ROAD_BUILDING_1" && (
-                <div className="flex gap-2">
-                  <div className="bg-blue-900/50 px-2 py-1 md:px-4 md:py-2 rounded border border-blue-500 text-blue-200 font-bold animate-pulse flex items-center text-xs md:text-base">Place 1st Free Road</div>
-                  <button onClick={skipRoadBuilding} className="bg-slate-800 hover:bg-slate-700 px-2 py-1 md:px-3 md:py-2 rounded text-slate-300 font-bold text-xs">Skip</button>
-                </div>
+                <div className="flex gap-2"><div className="bg-blue-900/50 px-2 py-1 md:px-4 md:py-2 rounded border border-blue-500 text-blue-200 font-bold animate-pulse flex items-center text-xs md:text-base">Place 1st Free Road</div><button onClick={skipRoadBuilding} className="bg-slate-800 hover:bg-slate-700 px-2 py-1 md:px-3 md:py-2 rounded text-slate-300 font-bold text-xs">Skip</button></div>
               )}
               {isMyTurn && gameState.turnPhase === "ROAD_BUILDING_2" && (
-                <div className="flex gap-2">
-                  <div className="bg-blue-900/50 px-2 py-1 md:px-4 md:py-2 rounded border border-blue-500 text-blue-200 font-bold animate-pulse flex items-center text-xs md:text-base">Place 2nd Free Road</div>
-                  <button onClick={skipRoadBuilding} className="bg-slate-800 hover:bg-slate-700 px-2 py-1 md:px-3 md:py-2 rounded text-slate-300 font-bold text-xs">Skip</button>
-                </div>
+                <div className="flex gap-2"><div className="bg-blue-900/50 px-2 py-1 md:px-4 md:py-2 rounded border border-blue-500 text-blue-200 font-bold animate-pulse flex items-center text-xs md:text-base">Place 2nd Free Road</div><button onClick={skipRoadBuilding} className="bg-slate-800 hover:bg-slate-700 px-2 py-1 md:px-3 md:py-2 rounded text-slate-300 font-bold text-xs">Skip</button></div>
               )}
             </div>
 
@@ -1860,17 +1609,11 @@ export default function CatanClone() {
                 <div className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest text-center">Your Exchange Rates</div>
                 <div className="flex flex-wrap justify-center gap-2">
                   {Object.keys(getTradeRatios(user.uid, gameState.board)).map((k) => {
-                    const ratio = getTradeRatios(user.uid, gameState.board)[k];
-                    const ResDef = RESOURCES[k];
-                    return (
-                      <div key={k} className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-black ${ratio < 4 ? "bg-cyan-900/50 text-cyan-200 border border-cyan-700 shadow-[0_0_10px_rgba(6,182,212,0.3)]" : "bg-slate-900 text-slate-400 border border-slate-700"}`}>
-                        <ResDef.icon size={12} /> {k} {ratio}:1
-                      </div>
-                    );
+                    const ratio = getTradeRatios(user.uid, gameState.board)[k]; const ResDef = RESOURCES[k];
+                    return <div key={k} className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-black ${ratio < 4 ? "bg-cyan-900/50 text-cyan-200 border border-cyan-700 shadow-[0_0_10px_rgba(6,182,212,0.3)]" : "bg-slate-900 text-slate-400 border border-slate-700"}`}><ResDef.icon size={12} /> {k} {ratio}:1</div>;
                   })}
                 </div>
               </div>
-
               <div className="bg-black/30 p-4 rounded-xl mb-4 border border-white/5">
                 <div className="flex gap-4">
                   <div className="flex-1">
@@ -1904,7 +1647,6 @@ export default function CatanClone() {
                   </div>
                 </div>
               </div>
-
               <div className="flex gap-2">
                 <button onClick={executeBankTrade} className="flex-1 py-3 bg-emerald-700 hover:bg-emerald-600 rounded-xl font-bold text-white flex items-center justify-center gap-2"><Anchor size={18} /> Bank Trade</button>
                 <button onClick={proposeDomesticTrade} className="flex-1 py-3 bg-blue-700 hover:bg-blue-600 rounded-xl font-bold text-white flex items-center justify-center gap-2"><Handshake size={18} /> Propose</button>
@@ -1919,7 +1661,6 @@ export default function CatanClone() {
             <div className="bg-slate-900 border border-slate-700 p-6 rounded-2xl max-w-lg w-full shadow-2xl relative overflow-y-auto max-h-[90vh] custom-scrollbar">
               <button onClick={() => setShowDevCards(false)} className="absolute top-4 right-4 p-2 bg-slate-800 rounded-full hover:bg-slate-700"><X size={20} /></button>
               <h3 className="text-2xl font-black text-white mb-6 uppercase flex items-center gap-2"><Scroll className="text-purple-400" /> Development Cards</h3>
-
               {gameState.turnPhase === "MAIN" && (
                 <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 mb-6 flex justify-between items-center">
                   <div>
@@ -1933,19 +1674,11 @@ export default function CatanClone() {
                   <button onClick={handleBuyDevCard} className="bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 py-2 rounded-lg shadow-lg">Draw</button>
                 </div>
               )}
-
               <div className="space-y-3">
-                <div className="text-xs text-slate-400 font-bold uppercase tracking-widest border-b border-slate-800 pb-1 flex justify-between">
-                  <span>Your Hand</span>
-                  <span>{me.hasPlayedDevCard ? "Card Played this Turn" : "1 Play per Turn"}</span>
-                </div>
+                <div className="text-xs text-slate-400 font-bold uppercase tracking-widest border-b border-slate-800 pb-1 flex justify-between"><span>Your Hand</span><span>{me.hasPlayedDevCard ? "Card Played this Turn" : "1 Play per Turn"}</span></div>
                 {Object.keys(DEV_CARD_TYPES).map((type) => {
-                  const count = me.devCards[type];
-                  const newCount = me.newDevCards[type];
-                  const total = count + newCount;
-                  if (total === 0) return null;
-                  const def = DEV_CARD_TYPES[type];
-
+                  const count = me.devCards[type]; const newCount = me.newDevCards[type]; const total = count + newCount;
+                  if (total === 0) return null; const def = DEV_CARD_TYPES[type];
                   return (
                     <div key={type} className="bg-slate-800/80 p-3 rounded-xl border border-slate-700 flex items-center justify-between">
                       <div className="flex items-center gap-3">
@@ -1964,11 +1697,8 @@ export default function CatanClone() {
                     </div>
                   );
                 })}
-                {Object.values(me.devCards).reduce((a, b) => a + b, 0) + Object.values(me.newDevCards).reduce((a, b) => a + b, 0) === 0 && (
-                  <div className="text-center text-slate-500 text-sm py-4 italic">No cards in hand.</div>
-                )}
+                {Object.values(me.devCards).reduce((a, b) => a + b, 0) + Object.values(me.newDevCards).reduce((a, b) => a + b, 0) === 0 && <div className="text-center text-slate-500 text-sm py-4 italic">No cards in hand.</div>}
               </div>
-
               <div className="mt-8 pt-4 border-t border-slate-800">
                 <div className="text-xs text-slate-400 font-bold uppercase tracking-widest mb-3">Cards Played</div>
                 <div className="space-y-3">
@@ -1980,14 +1710,7 @@ export default function CatanClone() {
                         <span className="text-xs font-bold uppercase mb-2 block" style={{ color: PLAYER_COLORS[p.colorIdx].fill }}>{p.name}</span>
                         <div className="flex gap-2 flex-wrap">
                           {Object.keys(playedCards).map((type) => {
-                            if (playedCards[type] > 0) {
-                              const Icon = DEV_CARD_TYPES[type].icon;
-                              return (
-                                <div key={type} className="flex items-center gap-1 bg-slate-900 px-2 py-1 rounded text-xs text-slate-300 font-bold border border-slate-700">
-                                  <Icon size={12} className="text-purple-400" /> {DEV_CARD_TYPES[type].name} x{playedCards[type]}
-                                </div>
-                              );
-                            }
+                            if (playedCards[type] > 0) { const Icon = DEV_CARD_TYPES[type].icon; return <div key={type} className="flex items-center gap-1 bg-slate-900 px-2 py-1 rounded text-xs text-slate-300 font-bold border border-slate-700"><Icon size={12} className="text-purple-400" /> {DEV_CARD_TYPES[type].name} x{playedCards[type]}</div>; }
                             return null;
                           })}
                         </div>
@@ -2009,9 +1732,7 @@ export default function CatanClone() {
                 <h2 className="text-2xl md:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 to-amber-500 uppercase mb-2 leading-tight">
                   {gameState.players.slice().sort((a,b) => getTotalScore(b, gameState) - getTotalScore(a, gameState))[0]?.name}
                 </h2>
-                <p className="text-emerald-400 font-bold tracking-widest text-sm uppercase">
-                  Is the Lord of Settlers!
-                </p>
+                <p className="text-orange-400 font-bold tracking-widest text-sm uppercase">Is the Lord of Settlers!</p>
               </div>
               <div className="space-y-3 mb-4 text-sm flex-1">
                  {gameState.players.slice().sort((a,b) => getTotalScore(b, gameState) - getTotalScore(a, gameState)).map((p, i) => (
@@ -2023,15 +1744,11 @@ export default function CatanClone() {
               </div>
               {gameState.hostId === user.uid ? (
                 <div className="shrink-0 pt-2">
-                  <button onClick={returnToLobby} className="bg-slate-700 hover:bg-slate-600 px-6 py-3 rounded-xl font-bold w-full text-emerald-400 transition-colors">
-                    Return All to Lobby
-                  </button>
+                  <button onClick={returnToLobby} className="bg-slate-700 hover:bg-slate-600 px-6 py-3 rounded-xl font-bold w-full text-orange-400 transition-colors">Return All to Lobby</button>
                 </div>
               ) : (
                 <div className="shrink-0 pt-2">
-                  <button disabled className="bg-slate-700/60 px-6 py-3 rounded-xl font-bold w-full text-slate-400">
-                    Waiting for Host...
-                  </button>
+                  <button disabled className="bg-slate-700/60 px-6 py-3 rounded-xl font-bold w-full text-slate-400">Waiting for Host...</button>
                 </div>
               )}
             </div>
