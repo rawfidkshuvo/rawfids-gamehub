@@ -34,7 +34,8 @@ import {
   BookOpen,
   History,
   ShieldAlert,
-  Swords
+  Swords,
+  Loader
 } from "lucide-react";
 import CoverImage from "./assets/skull.png";
 
@@ -114,6 +115,24 @@ const FloatingBackground = React.memo(() => {
     </div>
   );
 });
+
+const GameLogo = () => (
+  <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10">
+    <Skull size={12} className="text-rose-500" />
+    <span className="text-[10px] font-black tracking-widest text-rose-400 uppercase">
+      CRYPT & CRIMSON
+    </span>
+  </div>
+);
+
+const GameLogoBig = () => (
+  <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10">
+    <Skull size={20} className="text-rose-500" />
+    <span className="text-[20px] font-black tracking-widest text-rose-500 uppercase">
+      CRYPT & CRIMSON
+    </span>
+  </div>
+);
 
 // ---------------------------------------------------------------------------
 // GAME LOGIC HELPERS & COMPONENTS
@@ -679,6 +698,7 @@ export default function CryptGame() {
     return (
       <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4 text-center">
         <GlobalStyles />
+        <GameLogoBig />
         <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10 mb-8">
           <Skull size={48} className="text-rose-600 animate-pulse-red" />
         </div>
@@ -695,6 +715,7 @@ export default function CryptGame() {
             </div>
           </div>
         </a>
+        <GameLogo />
       </div>
     );
   }
@@ -749,6 +770,7 @@ export default function CryptGame() {
       <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6 relative">
         <GlobalStyles />
         <FloatingBackground />
+        <GameLogoBig />
         {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
         <div className="z-10 w-full max-w-lg bg-zinc-900/90 backdrop-blur p-8 rounded-2xl border border-rose-900/30 shadow-2xl animate-in slide-in-from-bottom-8 mt-6">
           <div className="flex justify-between items-center mb-8 border-b border-zinc-800 pb-4">
@@ -802,6 +824,7 @@ export default function CryptGame() {
             </div>
           </div>
         )}
+        <GameLogo />
       </div>
     );
   }
@@ -1038,6 +1061,7 @@ export default function CryptGame() {
             </div>
           </div>
         )}
+        <GameLogo />
 
       </div>
     );
