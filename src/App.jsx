@@ -539,6 +539,22 @@ const INITIAL_GAMES = [
     duration: "40-60m",
     link: "./colony/",
   },
+  {
+    id: 22,
+    title: "Crypt and Crimson",
+    description:
+      "Play your roses, hide your skull, and bid on how many you can flip. Bluff your rivals into traps, or risk it all to claim victory twice.",
+    icon: <Hexagon className="w-12 h-12 text-white" />,
+    color: "from-rose-500 to-rose-900",
+    shadow: "shadow-rose-500/50",
+    categories: ["bluffing"],
+    minPlayers: 3,
+    maxPlayers: 6,
+    hasBots: false,
+    complexity: "Easy",
+    duration: "10-20m",
+    link: "./crypt-and-crimson/",
+  },
 ];
 
 // ---------------------------------------------------------------------------
