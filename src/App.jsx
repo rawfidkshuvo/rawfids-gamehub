@@ -529,7 +529,7 @@ const INITIAL_GAMES = [
     id: 21,
     title: "Colony",
     description:
-      "Gather resources, trade with your neighbors, and build your settlements. Strategize wisely to expand your empire and conquer the island.",
+      "A strategic game of resource management and expansion. Build your colony, gather resources, and outmaneuver your opponents to thrive in a competitive world.",
     icon: <Home className="w-12 h-12 text-white" />,
     color: "from-orange-600 to-amber-950",
     shadow: "shadow-orange-500/50",
@@ -545,7 +545,7 @@ const INITIAL_GAMES = [
     id: 22,
     title: "Crypt and Crimson",
     description:
-      "Play your roses, hide your skull, and bid on how many you can flip. Bluff your rivals into traps, or risk it all to claim victory twice.",
+      "A dark and mysterious world awaits. Navigate the crypts, uncover secrets, and outwit your opponents in a game of strategy and deception.",
     icon: <Flower className="w-12 h-12 text-white" />,
     color: "from-rose-600 to-rose-950",
     shadow: "shadow-rose-500/50",
@@ -556,6 +556,22 @@ const INITIAL_GAMES = [
     complexity: "Easy",
     duration: "10-20m",
     link: "./crypt-and-crimson/",
+  },
+  {
+    id: 23,
+    title: "Reverie",
+    description:
+      "Embark on a journey through the realm of dreams, where imagination meets reality in a dance of wonder.",
+    icon: <Sparkles className="w-12 h-12 text-white" />,
+    color: "from-fuchsia-600 to-indigo-950",
+    shadow: "shadow-fuchsia-500/50",
+    categories: ["bluffing"],
+    minPlayers: 3,
+    maxPlayers: 6,
+    hasBots: false,
+    complexity: "Medium",
+    duration: "20-40m",
+    link: "./reverie/",
   },
 ];
 
