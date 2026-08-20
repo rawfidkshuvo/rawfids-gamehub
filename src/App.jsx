@@ -544,8 +544,8 @@ const INITIAL_GAMES = [
     title: "Crypt and Crimson",
     description:
       "Play your roses, hide your skull, and bid on how many you can flip. Bluff your rivals into traps, or risk it all to claim victory twice.",
-    icon: <Hexagon className="w-12 h-12 text-white" />,
-    color: "from-rose-500 to-rose-900",
+    icon: <Skull className="w-12 h-12 text-white" />,
+    color: "from-rose-600 to-rose-950",
     shadow: "shadow-rose-500/50",
     categories: ["bluffing"],
     minPlayers: 3,
