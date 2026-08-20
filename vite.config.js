@@ -29,6 +29,7 @@ export default defineConfig({
         policeHunt: resolve(__dirname, 'police-hunt/index.html'),
         pirates: resolve(__dirname, 'pirates/index.html'),
         protocol: resolve(__dirname, 'protocol/index.html'),
+        reverie: resolve(__dirname, 'reverie/index.html'),
         royalMenagerie: resolve(__dirname, 'royal-menagerie/index.html'),
         spectrum: resolve(__dirname, 'spectrum/index.html'),
         together: resolve(__dirname, 'together/index.html'),
