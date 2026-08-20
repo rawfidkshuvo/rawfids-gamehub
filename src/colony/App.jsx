@@ -1273,7 +1273,7 @@ export default function ColonyGame() {
         {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
 
         <div className="z-10 text-center mb-10 mt-8">
-          <Home size={64} className="text-orange-400 mx-auto mb-4 animate-spin-slow" />
+          <Home size={64} className="text-orange-400 mx-auto mb-4 animate-bounce" />
           <h1 className="text-5xl md:text-7xl font-thin text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-amber-600 tracking-tighter drop-shadow-md">
             COLONY
           </h1>

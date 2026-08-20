@@ -740,7 +740,7 @@ export default function CryptGame() {
         </nav>
         {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
         <div className="z-10 text-center mb-10 mt-8">
-          <Flower size={64} className="text-rose-600 mx-auto mb-4" />
+          <Flower size={64} className="text-rose-600 mx-auto mb-4 animate-spin-slow" />
           <h1 className="text-5xl md:text-7xl font-thin text-transparent bg-clip-text bg-gradient-to-b from-rose-500 to-rose-900 tracking-tighter drop-shadow-md">CRYPT & CRIMSON</h1>
           <p className="text-rose-200/40 tracking-[0.5em] uppercase mt-2 text-xs">Deceive. Reveal. Survive.</p>
         </div>
