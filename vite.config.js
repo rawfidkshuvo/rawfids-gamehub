@@ -14,6 +14,7 @@ export default defineConfig({
         colony: resolve(__dirname, 'colony/index.html'),
         conspiracy: resolve(__dirname, 'conspiracy/index.html'),
         contraband: resolve(__dirname, 'contraband/index.html'),
+        cryptAndCrimson: resolve(__dirname, 'crypt-and-crimson/index.html'),
         emperor: resolve(__dirname, 'emperor/index.html'),
         equilibrium: resolve(__dirname, 'equilibrium/index.html'),
         fructoseFury: resolve(__dirname, 'fructose-fury/index.html'),
