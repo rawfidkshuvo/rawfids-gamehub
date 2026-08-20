@@ -65,6 +65,8 @@ import {
   Play,
   RotateCcw,
   RefreshCw,
+  Home,
+  Flower,
 } from "lucide-react";
 import CoverImage from "./assets/gamehub_cover.png";
 
@@ -528,7 +530,7 @@ const INITIAL_GAMES = [
     title: "Colony",
     description:
       "Gather resources, trade with your neighbors, and build your settlements. Strategize wisely to expand your empire and conquer the island.",
-    icon: <Hexagon className="w-12 h-12 text-white" />,
+    icon: <Home className="w-12 h-12 text-white" />,
     color: "from-orange-600 to-amber-950",
     shadow: "shadow-orange-500/50",
     categories: ["Strategy"],
@@ -544,7 +546,7 @@ const INITIAL_GAMES = [
     title: "Crypt and Crimson",
     description:
       "Play your roses, hide your skull, and bid on how many you can flip. Bluff your rivals into traps, or risk it all to claim victory twice.",
-    icon: <Skull className="w-12 h-12 text-white" />,
+    icon: <Flower className="w-12 h-12 text-white" />,
     color: "from-rose-600 to-rose-950",
     shadow: "shadow-rose-500/50",
     categories: ["bluffing"],

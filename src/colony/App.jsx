@@ -18,7 +18,6 @@ import {
 } from "firebase/firestore";
 import {
   Earth,
-  Hexagon,
   TreeDeciduous,
   Mountain,
   Sun,
@@ -148,7 +147,7 @@ const FloatingBackground = React.memo(() => {
 
 const GameLogo = () => (
   <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10">
-    <Hexagon size={12} className="text-orange-500" />
+    <Home size={12} className="text-orange-500" />
     <span className="text-[10px] font-black tracking-widest text-orange-400 uppercase">
       COLONY
     </span>
@@ -157,7 +156,7 @@ const GameLogo = () => (
 
 const GameLogoBig = () => (
   <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10">
-    <Hexagon size={20} className="text-orange-500" />
+    <Home size={20} className="text-orange-500" />
     <span className="text-[20px] font-black tracking-widest text-orange-500 uppercase">
       COLONY
     </span>
@@ -344,7 +343,7 @@ const RulesModal = ({ onClose }) => (
       <div className="space-y-6">
         <section>
           <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
-            <Hexagon className="text-orange-500" /> Building Costs
+            <Home className="text-orange-500" /> Building Costs
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-300">
             <div className="bg-slate-800 p-4 rounded-xl border border-orange-900/30">
@@ -1225,7 +1224,7 @@ export default function ColonyGame() {
         <GlobalStyles />
         <GameLogoBig />
         <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10 mb-8">
-          <Hexagon size={32} className="text-orange-500 animate-spin-slow" />
+          <Home size={32} className="text-orange-500 animate-spin-slow" />
         </div>
         <div className="bg-orange-500/10 p-8 rounded-2xl border border-orange-500/30">
           <Hammer size={64} className="text-orange-500 mx-auto mb-4 animate-bounce" />
@@ -1274,7 +1273,7 @@ export default function ColonyGame() {
         {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
 
         <div className="z-10 text-center mb-10 mt-8">
-          <Hexagon size={64} className="text-orange-400 mx-auto mb-4 animate-spin-slow" />
+          <Home size={64} className="text-orange-400 mx-auto mb-4 animate-spin-slow" />
           <h1 className="text-5xl md:text-7xl font-thin text-transparent bg-clip-text bg-gradient-to-b from-orange-400 to-amber-600 tracking-tighter drop-shadow-md">
             COLONY
           </h1>
@@ -1512,7 +1511,7 @@ export default function ColonyGame() {
         <div className="h-14 md:h-16 bg-slate-900 border-b border-orange-900/30 flex items-center justify-between px-2 z-[160] shrink-0 shadow-lg">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 bg-orange-900/50 rounded-lg flex items-center justify-center border border-orange-700 ml-2">
-              <Hexagon className="text-orange-400" size={20} />
+              <Home className="text-orange-400" size={20} />
             </div>
             <div>
               <div className="font-bold text-sm tracking-wider text-orange-100">COLONY</div>

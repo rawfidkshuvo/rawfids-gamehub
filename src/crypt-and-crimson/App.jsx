@@ -118,7 +118,7 @@ const FloatingBackground = React.memo(() => {
 
 const GameLogo = () => (
   <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10">
-    <Skull size={12} className="text-rose-500" />
+    <Flower size={12} className="text-rose-500" />
     <span className="text-[10px] font-black tracking-widest text-rose-400 uppercase">
       CRYPT & CRIMSON
     </span>
@@ -127,7 +127,7 @@ const GameLogo = () => (
 
 const GameLogoBig = () => (
   <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10">
-    <Skull size={20} className="text-rose-500" />
+    <Flower size={20} className="text-rose-500" />
     <span className="text-[20px] font-black tracking-widest text-rose-500 uppercase">
       CRYPT & CRIMSON
     </span>
@@ -700,7 +700,7 @@ export default function CryptGame() {
         <GlobalStyles />
         <GameLogoBig />
         <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10 mb-8">
-          <Skull size={48} className="text-rose-600 animate-pulse-red" />
+          <Flower size={48} className="text-rose-600 animate-pulse-red" />
         </div>
         <div className="bg-rose-900/10 p-8 rounded-2xl border border-rose-900/30">
           <Hammer size={64} className="text-rose-600 mx-auto mb-4 animate-bounce" />
@@ -740,7 +740,7 @@ export default function CryptGame() {
         </nav>
         {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
         <div className="z-10 text-center mb-10 mt-8">
-          <Skull size={64} className="text-rose-600 mx-auto mb-4" />
+          <Flower size={64} className="text-rose-600 mx-auto mb-4" />
           <h1 className="text-5xl md:text-7xl font-thin text-transparent bg-clip-text bg-gradient-to-b from-rose-500 to-rose-900 tracking-tighter drop-shadow-md">CRYPT & CRIMSON</h1>
           <p className="text-rose-200/40 tracking-[0.5em] uppercase mt-2 text-xs">Deceive. Reveal. Survive.</p>
         </div>
@@ -881,7 +881,7 @@ export default function CryptGame() {
         <div className="h-14 md:h-16 bg-zinc-900 border-b border-rose-900/50 flex items-center justify-between px-2 z-[160] shrink-0 shadow-lg relative">
           <div className="absolute inset-0 bg-rose-900/10 pointer-events-none" />
           <div className="flex items-center gap-4 relative z-10">
-            <div className="w-10 h-10 bg-rose-900/50 rounded-lg flex items-center justify-center border border-rose-700 ml-2 shadow-[0_0_10px_rgba(225,29,72,0.3)]"><Skull className="text-rose-500" size={20} /></div>
+            <div className="w-10 h-10 bg-rose-900/50 rounded-lg flex items-center justify-center border border-rose-700 ml-2 shadow-[0_0_10px_rgba(225,29,72,0.3)]"><Flower className="text-rose-500" size={20} /></div>
             <div>
               <div className="font-bold text-sm tracking-wider text-rose-100">CRYPT & CRIMSON</div>
               <div className="text-[10px] font-mono uppercase">{gameState.status === "finished" ? <span className="text-rose-400">GAME OVER</span> : <><span className="text-zinc-400">Turn:</span> <span className="text-rose-400">{gameState.players[gameState.turnIndex].name}</span></>}</div>
