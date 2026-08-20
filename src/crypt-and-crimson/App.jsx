@@ -138,12 +138,12 @@ const GameLogoBig = () => (
 // GAME LOGIC HELPERS & COMPONENTS
 // ---------------------------------------------------------------------------
 const PLAYER_COLORS = [
-  { bg: "bg-rose-600", border: "border-rose-500", fill: "#e11d48", text: "text-rose-500" },
-  { bg: "bg-indigo-600", border: "border-indigo-500", fill: "#4f46e5", text: "text-indigo-500" },
-  { bg: "bg-emerald-600", border: "border-emerald-500", fill: "#10b981", text: "text-emerald-500" },
-  { bg: "bg-amber-600", border: "border-amber-500", fill: "#d97706", text: "text-amber-500" },
-  { bg: "bg-fuchsia-600", border: "border-fuchsia-500", fill: "#c026d3", text: "text-fuchsia-500" },
-  { bg: "bg-cyan-600", border: "border-cyan-500", fill: "#0891b2", text: "text-cyan-500" },
+  { bg: "bg-rose-600", matBg: "bg-rose-600/20", border: "border-rose-500", fill: "#e11d48", text: "text-rose-500" },
+  { bg: "bg-indigo-600", matBg: "bg-indigo-600/20", border: "border-indigo-500", fill: "#4f46e5", text: "text-indigo-500" },
+  { bg: "bg-emerald-600", matBg: "bg-emerald-600/20", border: "border-emerald-500", fill: "#10b981", text: "text-emerald-500" },
+  { bg: "bg-amber-600", matBg: "bg-amber-600/20", border: "border-amber-500", fill: "#d97706", text: "text-amber-500" },
+  { bg: "bg-fuchsia-600", matBg: "bg-fuchsia-600/20", border: "border-fuchsia-500", fill: "#c026d3", text: "text-fuchsia-500" },
+  { bg: "bg-cyan-600", matBg: "bg-cyan-600/20", border: "border-cyan-500", fill: "#0891b2", text: "text-cyan-500" },
 ];
 
 const INITIAL_HAND = ["ROSE", "ROSE", "ROSE", "SKULL"];
@@ -740,7 +740,7 @@ export default function CryptGame() {
         </nav>
         {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
         <div className="z-10 text-center mb-10 mt-8">
-          <Skull size={64} className="text-rose-600 mx-auto mb-4 animate-pulse-red" />
+          <Skull size={64} className="text-rose-600 mx-auto mb-4" />
           <h1 className="text-5xl md:text-7xl font-thin text-transparent bg-clip-text bg-gradient-to-b from-rose-500 to-rose-900 tracking-tighter drop-shadow-md">CRYPT & CRIMSON</h1>
           <p className="text-rose-200/40 tracking-[0.5em] uppercase mt-2 text-xs">Deceive. Reveal. Survive.</p>
         </div>
@@ -924,7 +924,7 @@ export default function CryptGame() {
                 key={p.id} 
                 onClick={() => { if (canRevealThis) revealCard(p.id); }}
                 className={`relative w-28 h-36 sm:w-40 sm:h-48 rounded-xl border-4 flex flex-col items-center justify-end p-2 transition-all 
-                  ${PLAYER_COLORS[p.colorIdx].bg} bg-opacity-20 backdrop-blur-sm
+                  ${PLAYER_COLORS[p.colorIdx].matBg} backdrop-blur-sm
                   ${isTurn ? `${PLAYER_COLORS[p.colorIdx].border} shadow-[0_0_20px_${PLAYER_COLORS[p.colorIdx].fill}80] scale-105` : "border-zinc-800/50"}
                   ${p.isEliminated ? "opacity-30 grayscale" : ""}
                   ${canRevealThis ? "cursor-pointer hover:border-white hover:scale-110" : ""}
