@@ -23,6 +23,7 @@ export default defineConfig({
         guildOfShadows: resolve(__dirname, 'guild-of-shadows/index.html'),
         investigation: resolve(__dirname, 'investigation/index.html'),
         lastOfUs: resolve(__dirname, 'last-of-us/index.html'),
+        luckySeven: resolve(__dirname, 'lucky-seven/index.html'),
         masqueradeProtocol: resolve(__dirname, 'masquerade-protocol/index.html'),
         neonDraft: resolve(__dirname, 'neon-draft/index.html'),
         paperOceans: resolve(__dirname, 'paper-oceans/index.html'),
