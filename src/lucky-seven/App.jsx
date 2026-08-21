@@ -368,7 +368,7 @@ const SplashScreen = ({ onStart }) => {
       {/* --- NEW: LOADING INDICATOR --- */}
       {/* This shows only while the image is NOT loaded yet */}
       {!isLoaded && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center z-50 text-rose-500/50">
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-50 text-cyan-500/50">
           <Loader size={48} className="animate-spin mb-4" />
           <div className="font-mono text-xs tracking-[0.3em] animate-pulse">
             INITIALIZING SYSTEM...
