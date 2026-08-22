@@ -21,6 +21,7 @@ export default defineConfig({
         fruitSeller: resolve(__dirname, 'fruit-seller/index.html'),
         ghostDice: resolve(__dirname, 'ghost-dice/index.html'),
         guildOfShadows: resolve(__dirname, 'guild-of-shadows/index.html'),
+        immune: resolve(__dirname, 'immune/index.html'),
         investigation: resolve(__dirname, 'investigation/index.html'),
         lastOfUs: resolve(__dirname, 'last-of-us/index.html'),
         luckySeven: resolve(__dirname, 'lucky-seven/index.html'),

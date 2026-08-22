@@ -35,7 +35,6 @@ import {
   Trash2,
   Smartphone,
   Heart,
-  Shuffle,
   Zap,
   Server,
   History,
@@ -43,7 +42,6 @@ import {
   ChevronLeft,
   ChevronRight,
   PieChart as PieIcon,
-  Laptop,
   Cpu,
   Banana,
   Biohazard,
@@ -55,18 +53,16 @@ import {
   QrCode,
   Megaphone,
   Search,
-  TrendingUp,
   X,
   ArrowDownAZ,
   Star,
   ChevronDown,
   Hexagon,
   Loader,
-  Play,
-  RotateCcw,
   RefreshCw,
   Home,
   Flower,
+  HeartPulse,
 } from "lucide-react";
 import CoverImage from "./assets/gamehub_cover.png";
 
@@ -589,6 +585,23 @@ const INITIAL_GAMES = [
     duration: "10-20m",
     link: "./lucky-seven/",
   },
+  {
+    id: 25,
+    title: "Immune",
+    description:
+      "Isolate four healthy organs, infect your opponents, and cure your own body. Play your viruses, defend your immune system, and be the first to survive!",
+    icon: <HeartPulse className="w-12 h-12 text-white" />,
+    color: "from-green-600 to-emerald-950",
+    shadow: "shadow-green-500/50",
+    categories: ["Strategy"],
+    minPlayers: 2,
+    maxPlayers: 6,
+    hasBots: false,
+    complexity: "Medium",
+    duration: "20-30m",
+    link: "./immune/",
+  }
+
 ];
 
 // ---------------------------------------------------------------------------
