@@ -63,6 +63,7 @@ import {
   Home,
   Flower,
   HeartPulse,
+  BugPlay,
 } from "lucide-react";
 import CoverImage from "./assets/gamehub_cover.png";
 
@@ -533,6 +534,7 @@ const INITIAL_GAMES = [
     minPlayers: 3,
     maxPlayers: 4,
     hasBots: false,
+    betaTesting: true,
     complexity: "Medium",
     duration: "40-60m",
     link: "./colony/",
@@ -549,6 +551,7 @@ const INITIAL_GAMES = [
     minPlayers: 3,
     maxPlayers: 6,
     hasBots: false,
+    betaTesting: true,
     complexity: "Easy",
     duration: "10-20m",
     link: "./crypt-and-crimson/",
@@ -565,6 +568,7 @@ const INITIAL_GAMES = [
     minPlayers: 3,
     maxPlayers: 6,
     hasBots: false,
+    betaTesting: true,
     complexity: "Medium",
     duration: "20-40m",
     link: "./reverie/",
@@ -581,6 +585,7 @@ const INITIAL_GAMES = [
     minPlayers: 2,
     maxPlayers: 6,
     hasBots: false,
+    betaTesting: true,
     complexity: "Easy",
     duration: "10-20m",
     link: "./lucky-seven/",
@@ -597,6 +602,7 @@ const INITIAL_GAMES = [
     minPlayers: 2,
     maxPlayers: 6,
     hasBots: false,
+    betaTesting: true,
     complexity: "Medium",
     duration: "20-30m",
     link: "./immune/",
@@ -1029,6 +1035,12 @@ const GameCard = ({
                 <div className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-medium flex items-center gap-1">
                   <Bot className="w-3 h-3" />
                   +Bot
+                </div>
+              )}
+              {game.betaTesting && (
+                <div className="px-2 py-0.5 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[10px] font-medium flex items-center gap-1 animate-pulse">
+                  <BugPlay className="w-3 h-3" />
+                  BETA TEST
                 </div>
               )}
             </div>
