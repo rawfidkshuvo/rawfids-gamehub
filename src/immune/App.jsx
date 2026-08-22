@@ -950,7 +950,6 @@ export default function ImmuneGame() {
         <GlobalStyles/>
         <LogoBig />
         <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10 mb-8">
-          <HeartPulse className="text-emerald-500 animate-pulse-glow" size={48}/>
         </div>
         <div className="bg-emerald-900/10 p-6 sm:p-8 rounded-2xl border border-emerald-900/30 max-w-sm w-full">
           <Hammer className="w-12 h-12 sm:w-16 sm:h-16 text-emerald-500 mx-auto mb-4 animate-bounce"/>
