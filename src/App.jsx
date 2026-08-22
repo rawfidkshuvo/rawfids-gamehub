@@ -593,7 +593,7 @@ const INITIAL_GAMES = [
     icon: <HeartPulse className="w-12 h-12 text-white" />,
     color: "from-green-600 to-emerald-950",
     shadow: "shadow-green-500/50",
-    categories: ["Strategy"],
+    categories: ["Set Collection", "Party"],
     minPlayers: 2,
     maxPlayers: 6,
     hasBots: false,
