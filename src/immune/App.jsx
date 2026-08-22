@@ -1228,7 +1228,7 @@ export default function ImmuneGame() {
              </div>
           </div>
           
-          <div className="flex flex-nowrap overflow-x-auto custom-scrollbar justify-start lg:justify-center items-center gap-3 sm:gap-6 w-full max-w-5xl mx-auto px-4 mt-auto mb-auto pt-4 pb-8">
+          <div className="flex flex-nowrap overflow-x-auto custom-scrollbar justify-center items-center gap-3 sm:gap-6 w-full max-w-5xl mx-auto px-4 mt-auto mb-auto pt-4 pb-8">
              {me?.body.map(organ => (
                 <div key={organ.id} className="shrink-0">
                     <OrganView 
