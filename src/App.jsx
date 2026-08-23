@@ -64,6 +64,7 @@ import {
   Flower,
   HeartPulse,
   BugPlay,
+  Moon,
 } from "lucide-react";
 import CoverImage from "./assets/gamehub_cover.png";
 
@@ -606,7 +607,25 @@ const INITIAL_GAMES = [
     complexity: "Medium",
     duration: "20-30m",
     link: "./immune/",
-  }
+  },
+  {
+    id: 25,
+    title: "Dark",
+    description:
+      "A game of shadows and strategy. Navigate the darkness, outwit your opponents, and emerge victorious in a world where light is scarce.",
+    icon: <Moon className="w-12 h-12 text-white" />,
+    color: "from-fuchsia-600 to-purple-950",
+    shadow: "shadow-fuchsia-500/50",
+    categories: ["Set Collection"],
+    minPlayers: 2,
+    maxPlayers: 6,
+    hasBots: false,
+    betaTesting: true,
+    complexity: "Medium",
+    duration: "20-30m",
+    link: "./dark/",
+  },
+  
 
 ];
 
