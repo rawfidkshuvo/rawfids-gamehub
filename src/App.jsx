@@ -609,7 +609,7 @@ const INITIAL_GAMES = [
     link: "./immune/",
   },
   {
-    id: 25,
+    id: 26,
     title: "Dark",
     description:
       "A game of shadows and strategy. Navigate the darkness, outwit your opponents, and emerge victorious in a world where light is scarce.",
