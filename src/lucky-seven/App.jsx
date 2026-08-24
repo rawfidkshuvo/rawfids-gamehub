@@ -101,6 +101,30 @@ const FloatingBackground = React.memo(() => {
   );
 });
 
+const DarkAtmosphere = React.memo(() => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-slate-950">
+    <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black opacity-90" />
+    <div className="absolute inset-0 opacity-20 mix-blend-overlay bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')]" />
+    {[...Array(25)].map((_, i) => (
+      <div
+        key={i}
+        className="absolute rounded-full animate-float opacity-30"
+        style={{
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          width: `${Math.random() * 4 + 1}px`,
+          height: `${Math.random() * 4 + 1}px`,
+          backgroundColor: Math.random() > 0.5 ? "#d946ef" : "#8b5cf6",
+          animationDuration: `${10 + Math.random() * 20}s`,
+          animationDelay: `${Math.random() * -20}s`,
+          boxShadow: "0 0 15px 2px rgba(217,70,239,0.4)",
+        }}
+      />
+    ))}
+    <style>{`@keyframes float { 0%, 100% { transform: translate(0,0) scale(1); opacity:0.1; } 50% { transform: translate(${Math.random() * 40 - 20}px, -60px) scale(1.5); opacity:0.6; } } .animate-float { animation: float infinite ease-in-out; }`}</style>
+  </div>
+));
+
 const GameLogo = () => (
   <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10">
     <Zap size={12} className="text-cyan-500" />
@@ -882,7 +906,7 @@ export default function Lucky7Game() {
     return (
       <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans select-none">
         <GlobalStyles/>
-        <FloatingBackground/>
+        <DarkAtmosphere/>
         <nav className="absolute top-0 left-0 w-full p-4 z-50">
           <a href={import.meta.env.BASE_URL} className="flex items-center gap-2 text-cyan-800 rounded-lg font-bold shadow-md hover:text-cyan-400 transition-colors w-fit animate-pulse text-sm sm:text-base"><StepBack className="w-4 h-4 sm:w-6 sm:h-6"/><span>Back to Gamehub</span></a>
         </nav>
@@ -917,7 +941,7 @@ export default function Lucky7Game() {
     return (
       <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-4 sm:p-6 relative">
         <GlobalStyles/>
-        <FloatingBackground/>
+        <DarkAtmosphere/>
         <GameLogoBig />
         {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
         <div className="z-10 w-full max-w-lg bg-slate-900/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl animate-in slide-in-from-bottom-8 mt-6">
@@ -987,7 +1011,7 @@ export default function Lucky7Game() {
     return (
       <div className="fixed inset-0 bg-zinc-950 text-white flex flex-col overflow-hidden font-sans select-none">
         <GlobalStyles/>
-        <FloatingBackground/>
+        <DarkAtmosphere/>
 
         {showLeaveConfirm && (
           <div className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
