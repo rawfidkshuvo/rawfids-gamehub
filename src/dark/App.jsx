@@ -918,7 +918,7 @@ export default function DarkFolkloreGame() {
   useEffect(() => {
     if (gameState?.logs?.length > 0) {
       const latestLog = gameState.logs[gameState.logs.length - 1];
-      
+
       // If this is the initial load, just record the ID silently and don't pop up
       if (!lastSeenLogId.current) {
         lastSeenLogId.current = latestLog.id;
@@ -929,12 +929,12 @@ export default function DarkFolkloreGame() {
       if (latestLog.id !== lastSeenLogId.current) {
         lastSeenLogId.current = latestLog.id;
         setBroadcastLog(latestLog);
-        
+
         // Auto-dismiss after 3.5 seconds
         const timer = setTimeout(() => {
           setBroadcastLog(null);
-        }, 3500); 
-        
+        }, 3500);
+
         return () => clearTimeout(timer);
       }
     }
@@ -1155,11 +1155,11 @@ export default function DarkFolkloreGame() {
         // because this was just their normal turn. They still get one more!
       }
 
-      // 3. Resolve Skips FIRST 
+      // 3. Resolve Skips FIRST
       let nextIdx = (pIdx + 1) % players.length;
       while (players[nextIdx].skipNextTurn) {
         players[nextIdx].skipNextTurn = false;
-        
+
         // If they are skipped during the final round, they miss their last turn!
         if (isFinal) {
           players[nextIdx].finalTurnTaken = true;
@@ -1179,12 +1179,12 @@ export default function DarkFolkloreGame() {
           isFinalRound: true,
           winnerId: sorted[0].id,
         };
-        
+
         updates.logs = log(
           `${sorted[0].name} commands the shadows and wins!`,
-          "success"
+          "success",
         );
-        
+
         return updates;
       }
 
@@ -1440,7 +1440,7 @@ export default function DarkFolkloreGame() {
           targetId: targetData.targetPlayerId,
           sourceId: me.id,
         };
-        ctx.logsText += ` They scanned all minds and targeted ${players.find(p => p.id === targetData.targetPlayerId).name}.`;
+        ctx.logsText += ` They scanned all minds and targeted ${players.find((p) => p.id === targetData.targetPlayerId).name}.`;
         break;
       case "SUP_BLOODFIEND":
         let bfCardsGained = 0;
@@ -1456,7 +1456,10 @@ export default function DarkFolkloreGame() {
             ctx.discardPile.push(t.hand.splice(aIdx, 1)[0]);
             bfBlocked.push(t.name);
           } else {
-            const stolen = t.hand.splice(Math.floor(Math.random() * t.hand.length), 1)[0];
+            const stolen = t.hand.splice(
+              Math.floor(Math.random() * t.hand.length),
+              1,
+            )[0];
             if (stolen) {
               me.hand.push(stolen);
               bfCardsGained++;
@@ -1474,18 +1477,26 @@ export default function DarkFolkloreGame() {
 
         let bfLog = [];
         if (Object.keys(bfStolen).length > 0) {
-          bfLog.push(Object.entries(bfStolen).map(([n, c]) => `${c} from ${n}`).join(", "));
+          bfLog.push(
+            Object.entries(bfStolen)
+              .map(([n, c]) => `${c} from ${n}`)
+              .join(", "),
+          );
         }
         if (bfDeck > 0) bfLog.push(`${bfDeck} from the deck`);
-        
-        ctx.logsText += ` Bloodfiend ripped ${bfLog.join(" and ")}.` + (bfBlocked.length > 0 ? ` (${bfBlocked.join(", ")} blocked!)` : "");
+
+        ctx.logsText +=
+          ` Bloodfiend ripped ${bfLog.join(" and ")}.` +
+          (bfBlocked.length > 0 ? ` (${bfBlocked.join(", ")} blocked!)` : "");
         break;
       case "SUP_SERPENT":
         ctx.logsText += ` They glared into ${players.find((p) => p.id === targetData.targetPlayerId).name}'s hand.`;
         break;
       case "SUP_DESTROYER":
         const tOpp = players.find((p) => p.id === targetData.targetPlayerId);
-        const tSetIdx = tOpp.tableau.findIndex((s) => s.id === targetData.targetSetId);
+        const tSetIdx = tOpp.tableau.findIndex(
+          (s) => s.id === targetData.targetSetId,
+        );
         if (tSetIdx > -1) {
           const destroyedSet = tOpp.tableau.splice(tSetIdx, 1)[0];
           ctx.discardPile.push(...destroyedSet.cards);
@@ -1525,7 +1536,9 @@ export default function DarkFolkloreGame() {
         break;
       case "SUP_RELIC":
         if (targetData.discardUids && targetData.discardUids.length > 0) {
-          const rIdx = ctx.discardPile.findIndex((c) => c.uid === targetData.discardUids[0]);
+          const rIdx = ctx.discardPile.findIndex(
+            (c) => c.uid === targetData.discardUids[0],
+          );
           if (rIdx > -1) {
             const drawn = ctx.discardPile.splice(rIdx, 1)[0];
             me.hand.push(drawn);
@@ -1550,7 +1563,9 @@ export default function DarkFolkloreGame() {
               ctx.discardPile.push(t.hand.splice(aIdx, 1)[0]);
               hBlocked.push(t.name);
             } else if (t && t.hand.length > 0) {
-              me.hand.push(t.hand.splice(Math.floor(Math.random() * t.hand.length), 1)[0]);
+              me.hand.push(
+                t.hand.splice(Math.floor(Math.random() * t.hand.length), 1)[0],
+              );
               hStolen[t.name] = (hStolen[t.name] || 0) + 1;
             }
           }
@@ -1560,15 +1575,23 @@ export default function DarkFolkloreGame() {
           me.hand.push(ctx.deck.pop());
           hDeck++;
         }
-        
+
         let hLog = [];
         if (hDeck > 0) hLog.push(`${hDeck} from the deck`);
         if (Object.keys(hStolen).length > 0) {
-          hLog.push(Object.entries(hStolen).map(([n, c]) => `${c} from ${n}`).join(", "));
+          hLog.push(
+            Object.entries(hStolen)
+              .map(([n, c]) => `${c} from ${n}`)
+              .join(", "),
+          );
         }
 
-        ctx.logsText += hLog.length > 0 ? ` They hoarded ${hLog.join(" and ")}.` : ` They tried to hoard but found nothing.`;
-        if (hBlocked.length > 0) ctx.logsText += ` (${hBlocked.join(" and ")} blocked!)`;
+        ctx.logsText +=
+          hLog.length > 0
+            ? ` They hoarded ${hLog.join(" and ")}.`
+            : ` They tried to hoard but found nothing.`;
+        if (hBlocked.length > 0)
+          ctx.logsText += ` (${hBlocked.join(" and ")} blocked!)`;
         break;
       case "SUP_HEXWITCH":
         const hMySetIdx = me.tableau.findIndex(
@@ -1605,13 +1628,16 @@ export default function DarkFolkloreGame() {
         let ravTargets = [];
         players.forEach((p) => {
           if (p.id !== me.id && p.hand.length > 0) {
-            ctx.discardPile.push(p.hand.splice(Math.floor(Math.random() * p.hand.length), 1)[0]);
+            ctx.discardPile.push(
+              p.hand.splice(Math.floor(Math.random() * p.hand.length), 1)[0],
+            );
             ravTargets.push(p.name);
           }
         });
-        ctx.logsText += ravTargets.length > 0 
-          ? ` A swarm devoured 1 card from ${ravTargets.join(", ")}.` 
-          : ` A swarm appeared, but there was nothing to devour.`;
+        ctx.logsText +=
+          ravTargets.length > 0
+            ? ` A swarm devoured 1 card from ${ravTargets.join(", ")}.`
+            : ` A swarm appeared, but there was nothing to devour.`;
         break;
       case "SUP_REDEEMER":
         if (ctx.discardPile.length > 0) {
@@ -1636,17 +1662,19 @@ export default function DarkFolkloreGame() {
           });
         }
         if (twinsPulled.length > 0) {
-           ctx.logsText += ` They resurrected ${twinsPulled.join(" and ")} from the void.`;
+          ctx.logsText += ` They resurrected ${twinsPulled.join(" and ")} from the void.`;
         }
         break;
       case "SUP_SUMMONER":
         let summonedCount = 0;
         let summonedFrom = [];
         const namedCard = ALL_CARDS[targetData.namedCardId]?.name || "a card";
-        
+
         players.forEach((p) => {
           if (p.id !== me.id && targetData.namedCardId) {
-            const matchIdx = p.hand.findIndex((c) => c.cardId === targetData.namedCardId);
+            const matchIdx = p.hand.findIndex(
+              (c) => c.cardId === targetData.namedCardId,
+            );
             if (matchIdx > -1) {
               me.hand.push(p.hand.splice(matchIdx, 1)[0]);
               summonedCount++;
@@ -1654,13 +1682,18 @@ export default function DarkFolkloreGame() {
             }
           }
         });
-        
-        ctx.logsText += summonedCount > 0 
-            ? ` They compelled '${namedCard}' from ${summonedFrom.join(" and ")}!` 
+
+        ctx.logsText +=
+          summonedCount > 0
+            ? ` They compelled '${namedCard}' from ${summonedFrom.join(" and ")}!`
             : ` They called for '${namedCard}' but no one answered.`;
         break;
       case "SUP_BROKER":
-        ctx.discardPile.splice(0, ctx.discardPile.length, ...(targetData.updatedDiscard || ctx.discardPile));
+        ctx.discardPile.splice(
+          0,
+          ctx.discardPile.length,
+          ...(targetData.updatedDiscard || ctx.discardPile),
+        );
         if (targetData.keptCard) me.hand.push(targetData.keptCard);
         const opps = players.filter((p) => p.id !== me.id);
         if (targetData.scatterCards) {
@@ -1668,8 +1701,12 @@ export default function DarkFolkloreGame() {
             opps[i % opps.length].hand.push(c);
           });
         }
-        const keptName = targetData.keptCard ? ALL_CARDS[targetData.keptCard.cardId].name : "nothing";
-        const scatterCount = targetData.scatterCards ? targetData.scatterCards.length : 0;
+        const keptName = targetData.keptCard
+          ? ALL_CARDS[targetData.keptCard.cardId].name
+          : "nothing";
+        const scatterCount = targetData.scatterCards
+          ? targetData.scatterCards.length
+          : 0;
         ctx.logsText += ` Grave Broker kept '${keptName}' and scattered ${scatterCount} cards to opponents.`;
         break;
       case "SUP_NIGHTWALKER":
@@ -1833,12 +1870,12 @@ export default function DarkFolkloreGame() {
         setModalState(null);
         setSelectedHandCards([]);
         // Use the helper here too!
-        const successLog = getAttackSuccessLog(ctx.pendingData.type, ctx.me.name, target.name);
-        return executeAction(
-          updates,
-          successLog,
-          "success",
+        const successLog = getAttackSuccessLog(
+          ctx.pendingData.type,
+          ctx.me.name,
+          target.name,
         );
+        return executeAction(updates, successLog, "success");
       }
     }
 
@@ -1935,12 +1972,12 @@ export default function DarkFolkloreGame() {
         setModalState(null);
         setSelectedHandCards([]);
         // Use the helper here too!
-        const successLog = getAttackSuccessLog(ctx.pendingData.type, ctx.me.name, target.name);
-        return executeAction(
-          updates,
-          successLog,
-          "success",
+        const successLog = getAttackSuccessLog(
+          ctx.pendingData.type,
+          ctx.me.name,
+          target.name,
         );
+        return executeAction(updates, successLog, "success");
       }
     }
 
@@ -2022,11 +2059,16 @@ export default function DarkFolkloreGame() {
   };
 
   const getAttackSuccessLog = (type, sourceName, targetName) => {
-    if (type === "STEAL") return `${sourceName} stole a card from ${targetName}.`;
-    if (type === "SUP_HEADLESS") return `${sourceName}'s Headless stole 2 cards from ${targetName}.`;
-    if (type === "SUP_DEVOURER") return `${sourceName}'s Devourer ripped a card from ${targetName}'s hand into the void.`;
-    if (type === "SUP_GRIM") return `${sourceName}'s Grim Goblin drew from the deck and stole a card from ${targetName}.`;
-    if (type === "SUP_CHAINBINDER") return `${sourceName}'s Chainbinder stole a card from ${targetName}.`;
+    if (type === "STEAL")
+      return `${sourceName} stole a card from ${targetName}.`;
+    if (type === "SUP_HEADLESS")
+      return `${sourceName}'s Headless stole 2 cards from ${targetName}.`;
+    if (type === "SUP_DEVOURER")
+      return `${sourceName}'s Devourer ripped a card from ${targetName}'s hand into the void.`;
+    if (type === "SUP_GRIM")
+      return `${sourceName}'s Grim Goblin drew from the deck and stole a card from ${targetName}.`;
+    if (type === "SUP_CHAINBINDER")
+      return `${sourceName}'s Chainbinder stole a card from ${targetName}.`;
     return `${sourceName} struck ${targetName} successfully.`;
   };
 
@@ -2042,7 +2084,10 @@ export default function DarkFolkloreGame() {
       const aIdx = me.hand.findIndex((c) => c.cardId === "AMULET");
       discardPile.push(me.hand.splice(aIdx, 1)[0]);
       // Make the block log detailed too:
-      const attackName = pending.type === "STEAL" ? "A steal" : ALL_CARDS[pending.type]?.name || "An attack";
+      const attackName =
+        pending.type === "STEAL"
+          ? "A steal"
+          : ALL_CARDS[pending.type]?.name || "An attack";
       logText = `${me.name} burned an Amulet! ${attackName} from ${source.name} was nullified.`;
     } else {
       resolveOffensiveAction(pending, players, discardPile, gameState.deck);
@@ -2218,19 +2263,18 @@ export default function DarkFolkloreGame() {
         <LogoBig />
         <div className="z-10 w-full max-w-md bg-slate-900/90 p-8 rounded-3xl border border-fuchsia-900/50 shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-md">
           <div className="flex justify-between items-center border-b border-slate-800 pb-4 mb-6">
-            
             {/* Ritual Code Section */}
             <div className="flex flex-col gap-1">
               <span className="text-xs text-fuchsia-400 font-bold uppercase tracking-widest">
                 Ritual Code
               </span>
-              
+
               <div className="flex items-center gap-3">
                 {/* Smaller Room Code */}
                 <span className="text-2xl sm:text-3xl font-black tracking-[0.2em] text-slate-100 drop-shadow-md">
                   {gameState.roomId}
                 </span>
-                
+
                 {/* Inline Copy Button (No Box) */}
                 <button
                   onClick={copyToClipboard}
@@ -2244,7 +2288,10 @@ export default function DarkFolkloreGame() {
                       </span>
                     </div>
                   ) : (
-                    <Copy size={20} className="hover:scale-110 transition-transform" />
+                    <Copy
+                      size={20}
+                      className="hover:scale-110 transition-transform"
+                    />
                   )}
                 </button>
               </div>
@@ -2260,7 +2307,6 @@ export default function DarkFolkloreGame() {
                 <LogOut size={24} className="text-red-400" />
               </button>
             </div>
-
           </div>
           <div className="space-y-3 mb-8">
             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
@@ -2358,20 +2404,36 @@ export default function DarkFolkloreGame() {
         {/* Cinematic Broadcast Banner */}
         {broadcastLog && (
           <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[400] w-[90%] max-w-2xl pointer-events-none animate-in zoom-in-95 fade-in duration-300">
-            <div className={`p-6 md:p-8 rounded-3xl shadow-2xl border backdrop-blur-xl flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 ${
-              broadcastLog.type === "success" 
-                ? "bg-emerald-950/95 border-emerald-500/50 shadow-[0_0_80px_rgba(16,185,129,0.5)]" 
-                : broadcastLog.type === "failure"
-                ? "bg-red-950/95 border-red-500/50 shadow-[0_0_80px_rgba(239,68,68,0.5)]"
-                : broadcastLog.type === "warning"
-                ? "bg-yellow-950/95 border-yellow-500/50 shadow-[0_0_80px_rgba(234,179,8,0.5)]"
-                : "bg-fuchsia-950/95 border-fuchsia-500/50 shadow-[0_0_80px_rgba(192,38,211,0.5)]"
-            }`}>
+            <div
+              className={`p-6 md:p-8 rounded-3xl shadow-2xl border backdrop-blur-xl flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 ${
+                broadcastLog.type === "success"
+                  ? "bg-emerald-950/95 border-emerald-500/50 shadow-[0_0_80px_rgba(16,185,129,0.5)]"
+                  : broadcastLog.type === "failure"
+                    ? "bg-red-950/95 border-red-500/50 shadow-[0_0_80px_rgba(239,68,68,0.5)]"
+                    : broadcastLog.type === "warning"
+                      ? "bg-yellow-950/95 border-yellow-500/50 shadow-[0_0_80px_rgba(234,179,8,0.5)]"
+                      : "bg-fuchsia-950/95 border-fuchsia-500/50 shadow-[0_0_80px_rgba(192,38,211,0.5)]"
+              }`}
+            >
               <div className="text-white drop-shadow-lg shrink-0">
-                 {broadcastLog.type === "success" ? <CheckCircle size={48} className="text-emerald-400 animate-pulse" />
-                  : broadcastLog.type === "failure" ? <AlertTriangle size={48} className="text-red-400 animate-bounce" />
-                  : broadcastLog.type === "warning" ? <Flame size={48} className="text-yellow-400 animate-pulse" />
-                  : <Sparkles size={48} className="text-fuchsia-400 animate-pulse" />}
+                {broadcastLog.type === "success" ? (
+                  <CheckCircle
+                    size={48}
+                    className="text-emerald-400 animate-pulse"
+                  />
+                ) : broadcastLog.type === "failure" ? (
+                  <AlertTriangle
+                    size={48}
+                    className="text-red-400 animate-bounce"
+                  />
+                ) : broadcastLog.type === "warning" ? (
+                  <Flame size={48} className="text-yellow-400 animate-pulse" />
+                ) : (
+                  <Sparkles
+                    size={48}
+                    className="text-fuchsia-400 animate-pulse"
+                  />
+                )}
               </div>
               <div className="flex-1 text-center md:text-left">
                 <p className="text-lg md:text-2xl font-black uppercase tracking-[0.15em] text-slate-100 leading-snug drop-shadow-md">
@@ -2462,7 +2524,7 @@ export default function DarkFolkloreGame() {
                   ? "As host, you can dissolve the entire room or safely return everyone to the lobby."
                   : "You will flee, abandoning your progress."}
               </p>
-              
+
               <div className="flex flex-col gap-3">
                 {/* NEW: Return to Lobby Button (Host Only) */}
                 {gameState.hostId === user.uid && (
@@ -2491,7 +2553,7 @@ export default function DarkFolkloreGame() {
                           isFinalRound: false,
                         },
                         "The host aborted the ritual and returned everyone to the lobby.",
-                        "warning"
+                        "warning",
                       );
                       setShowLeaveConfirm(false);
                     }}
@@ -2516,7 +2578,6 @@ export default function DarkFolkloreGame() {
                   </button>
                 </div>
               </div>
-
             </div>
           </div>
         )}
@@ -2677,7 +2738,10 @@ export default function DarkFolkloreGame() {
                           onClick={actionStealInit}
                           className="shrink-0 bg-red-950/60 hover:bg-red-900/80 px-3 py-2 sm:px-6 sm:py-3 rounded-lg md:rounded-xl text-[10px] sm:text-sm font-black uppercase tracking-widest text-red-400 border border-red-900/50 transition-all hover:scale-105 shadow-lg flex items-center justify-center gap-1.5 sm:gap-2 active:scale-95"
                         >
-                          <Swords size={12} className="sm:w-[16px] sm:h-[16px]" />{" "}
+                          <Swords
+                            size={12}
+                            className="sm:w-[16px] sm:h-[16px]"
+                          />{" "}
                           Steal
                         </button>
                       </>
@@ -2733,9 +2797,9 @@ export default function DarkFolkloreGame() {
                               0,
                             ),
                             `${me.name} ended their turn.`,
-                            "neutral"
+                            "neutral",
                           );
-                          setSelectedHandCards([]); 
+                          setSelectedHandCards([]);
                         }}
                         className="shrink-0 bg-transparent hover:bg-white/5 px-3 py-2 sm:px-6 sm:py-3 rounded-lg md:rounded-xl text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-500 transition-colors border border-transparent hover:border-slate-700 active:scale-95 text-center"
                       >
@@ -2872,9 +2936,11 @@ export default function DarkFolkloreGame() {
                   .filter((c) => gameState.pendingAction?.uids?.includes(c.uid))
                   .map((c) => {
                     const def = ALL_CARDS[c.cardId];
-                    // Only Supernatural entities and Spells can be played as single cards
+
+                    // Allows both Entities and Spells to be played instantly
                     const isPlayable =
                       def.type === "SUP" || def.cardId === "SPELL";
+
                     return (
                       <div
                         key={c.uid}
@@ -2890,7 +2956,9 @@ export default function DarkFolkloreGame() {
                             }}
                             className="bg-fuchsia-700 hover:bg-fuchsia-600 px-6 py-2 rounded-lg font-black uppercase text-xs tracking-widest text-white shadow-[0_0_15px_rgba(192,38,211,0.5)] transition-all active:scale-95"
                           >
-                            Play Free
+                            {def.cardId === "SPELL"
+                              ? "Cast Free"
+                              : "Invoke Free"}
                           </button>
                         ) : (
                           <span className="text-[10px] text-slate-500 uppercase font-bold text-center px-2">
@@ -3278,19 +3346,22 @@ export default function DarkFolkloreGame() {
                       <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800 text-center">
                         The Mind Revealed
                       </div>
-                      
+
                       <div className="flex flex-wrap gap-4 justify-center mb-4 p-4 bg-slate-900/50 rounded-2xl border border-slate-800 w-full max-w-3xl">
                         {gameState.players
                           .find((p) => p.id === activeModal.targetId)
                           .hand.map((c, i) => (
-                            <div key={i} className="relative hover:-translate-y-2 transition-transform">
+                            <div
+                              key={i}
+                              className="relative hover:-translate-y-2 transition-transform"
+                            >
                               {/* Removed the onClick handler so they are just static displays */}
                               <CardDisplay cardId={c.cardId} />
                             </div>
                           ))}
-                        
+
                         {gameState.players.find(
-                          (p) => p.id === activeModal.targetId
+                          (p) => p.id === activeModal.targetId,
                         ).hand.length === 0 && (
                           <div className="text-slate-500 italic py-10 font-bold uppercase tracking-widest">
                             Their mind is empty.
