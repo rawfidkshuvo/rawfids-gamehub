@@ -411,7 +411,7 @@ const calculateScore = (tableau) => {
 // UI COMPONENTS
 // ---------------------------------------------------------------------------
 const DarkAtmosphere = React.memo(() => (
-  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 bg-slate-950">
+  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
     <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black opacity-90" />
     <div className="absolute inset-0 opacity-20 mix-blend-overlay bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')]" />
     {[...Array(25)].map((_, i) => (
