@@ -2936,11 +2936,10 @@ export default function DarkFolkloreGame() {
                   .filter((c) => gameState.pendingAction?.uids?.includes(c.uid))
                   .map((c) => {
                     const def = ALL_CARDS[c.cardId];
-
-                    // Allows both Entities and Spells to be played instantly
-                    const isPlayable =
-                      def.type === "SUP" || def.cardId === "SPELL";
-
+                    
+                    // FIXED: Checking c.cardId instead of def.cardId
+                    const isPlayable = def.type === "SUP" || c.cardId === "SPELL"; 
+                    
                     return (
                       <div
                         key={c.uid}
@@ -2950,15 +2949,12 @@ export default function DarkFolkloreGame() {
                         {isPlayable ? (
                           <button
                             onClick={() => {
-                              if (def.cardId === "SPELL")
-                                actionPlaySpell(c.uid);
+                              if (c.cardId === "SPELL") actionPlaySpell(c.uid);
                               else actionPlaySupernatural(c.uid);
                             }}
                             className="bg-fuchsia-700 hover:bg-fuchsia-600 px-6 py-2 rounded-lg font-black uppercase text-xs tracking-widest text-white shadow-[0_0_15px_rgba(192,38,211,0.5)] transition-all active:scale-95"
                           >
-                            {def.cardId === "SPELL"
-                              ? "Cast Free"
-                              : "Invoke Free"}
+                            {c.cardId === "SPELL" ? "Cast Free" : "Invoke Free"}
                           </button>
                         ) : (
                           <span className="text-[10px] text-slate-500 uppercase font-bold text-center px-2">
