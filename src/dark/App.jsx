@@ -47,7 +47,9 @@ import {
   Zap,
   StepBack,
   Hammer,
+  Loader,
 } from "lucide-react";
+import CoverImage from "./assets/dark.png";
 
 // ---------------------------------------------------------------------------
 // CONFIGURATION & FIREBASE
@@ -90,7 +92,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const APP_ID =
   typeof __app_id !== "undefined" ? __app_id : "dark-folklore-game";
-const GAME_ID = "19"; // Unique ID for DARK in Gamehub
+const GAME_ID = "26"; // Unique ID for DARK in Gamehub
 
 // ---------------------------------------------------------------------------
 // GAME DICTIONARY & CARD TYPES
@@ -432,6 +434,24 @@ const DarkAtmosphere = React.memo(() => (
   </div>
 ));
 
+const Logo = () => (
+  <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10">
+    <Moon size={12} className="text-fuchsia-500" />
+    <span className="text-[10px] font-black tracking-widest text-fuchsia-500 uppercase">
+      DARK
+    </span>
+  </div>
+);
+
+const LogoBig = () => (
+  <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10">
+    <Moon size={22} className="text-fuchsia-500" />
+    <span className="text-[20px] font-black tracking-widest text-fuchsia-500 uppercase">
+      DARK
+    </span>
+  </div>
+);
+
 const CardDisplay = ({
   cardUid,
   cardId,
@@ -677,12 +697,116 @@ const HowToPlayModal = ({ onClose }) => (
   </div>
 );
 
+// --- UPDATED SPLASH SCREEN (With Loading Indicator) ---
+const SplashScreen = ({ onStart }) => {
+  const [hasSession, setHasSession] = useState(false);
+
+  // State 1: Image is downloaded and ready to show
+  const [isLoaded, setIsLoaded] = useState(false);
+  // State 2: Button is ready to slide in (after zoom)
+  const [showButton, setShowButton] = useState(false);
+
+  useEffect(() => {
+    // 1. Check Session immediately
+    const saved = localStorage.getItem("angryvirus_roomId");
+    setHasSession(!!saved);
+
+    // 2. Preload the image
+    const img = new Image();
+    img.src = CoverImage;
+
+    img.onload = () => {
+      // Image is downloaded. Start the show.
+      setIsLoaded(true);
+
+      // Start the 2-second timer for the button *after* image loads
+      setTimeout(() => {
+        setShowButton(true);
+      }, 2000);
+    };
+  }, []);
+
+  return (
+    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+      {/* --- NEW: LOADING INDICATOR --- */}
+      {/* This shows only while the image is NOT loaded yet */}
+      {!isLoaded && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center z-50 text-fuchsia-500/50">
+          <Loader size={48} className="animate-spin mb-4" />
+          <div className="font-mono text-xs tracking-[0.3em] animate-pulse">
+            INITIALIZING SYSTEM...
+          </div>
+        </div>
+      )}
+
+      {/* Background Image Container */}
+      {/* Opacity 0 -> 100 ensures a smooth fade-in once loaded */}
+      <div
+        className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-1000 ${isLoaded ? "opacity-100" : "opacity-0"}`}
+      >
+        <div
+          className={`w-full h-full bg-cover bg-center transition-transform duration-[2000ms] ease-out ${
+            isLoaded ? "scale-100" : "scale-130"
+          }`}
+          style={{ backgroundImage: `url(${CoverImage})` }}
+        />
+        {/* Dark Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+        {/* Pulsing Action Button */}
+        <div
+          className={`transform transition-all duration-1000 ease-out ${
+            showButton
+              ? "translate-y-0 opacity-100"
+              : "translate-y-32 opacity-0"
+          }`}
+        >
+          <button
+            onClick={onStart}
+            className="group relative px-12 py-5 bg-fuchsia-600/20 hover:bg-fuchsia-600/40 border border-fuchsia-500/50 hover:border-fuchsia-400 text-fuchsia-300 font-black text-2xl tracking-widest rounded-none transform transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] backdrop-blur-md overflow-hidden"
+          >
+            {/* Animated Scanline overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-fuchsia-400/10 to-transparent translate-y-[-100%] animate-[scan_2s_infinite_linear]" />
+
+            <span className="relative z-10 flex items-center gap-3 animate-pulse">
+              {hasSession ? (
+                <>
+                  <RotateCcw className="animate-spin-slow" /> RESUME
+                </>
+              ) : (
+                <>
+                  <Play /> PLAY
+                </>
+              )}
+            </span>
+          </button>
+        </div>
+      </div>
+      <div className="absolute bottom-4 text-slate-600 text-xs text-center">
+        Inspired by Gohin. A tribute game.
+        <br />
+        Developed by <strong>RAWFID K SHUVO</strong>.
+      </div>
+
+      <style>{`
+        @keyframes scan {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(200%); }
+        }
+      `}</style>
+    </div>
+  );
+};
+
 // ---------------------------------------------------------------------------
 // MAIN GAME COMPONENT
 // ---------------------------------------------------------------------------
 export default function DarkFolkloreGame() {
   const [user, setUser] = useState(null);
-  const [view, setView] = useState("menu");
+  const [view, setView] = useState("splash");
   const [playerName, setPlayerName] = useState("");
   const [roomId, setRoomId] = useState("");
   const [roomCode, setRoomCode] = useState("");
@@ -722,6 +846,23 @@ export default function DarkFolkloreGame() {
       }
     });
   }, []);
+
+  // 3. NEW FUNCTION: Handle Splash Button Click
+  const handleSplashStart = () => {
+    const savedRoomId = localStorage.getItem("angryvirus_roomId");
+
+    if (savedRoomId) {
+      setLoading(true);
+      // Resume: Set the room ID, which triggers the existing logic to connect
+      setRoomId(savedRoomId);
+      // We switch to 'menu' briefly; if the connection works,
+      // the existing listener will auto-switch to 'lobby' or 'game'
+      setView("menu");
+    } else {
+      // New Game: Just go to menu
+      setView("menu");
+    }
+  };
 
   useEffect(() => {
     if (!user) return; // Wait until authenticated to check settings
@@ -1950,6 +2091,7 @@ export default function DarkFolkloreGame() {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-200 p-4 text-center relative overflow-hidden">
         <DarkAtmosphere />
+        <LogoBig />
         <div className="z-10 bg-fuchsia-950/20 p-8 rounded-3xl border border-fuchsia-900/50 shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-md">
           <Hammer
             size={64}
@@ -1970,8 +2112,36 @@ export default function DarkFolkloreGame() {
             </div>
           </div>
         </a>
+        <Logo />
       </div>
     );
+  }
+
+  if (!user)
+    return (
+      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-fuchsia-500 animate-pulse">
+        Spreading infection...
+      </div>
+    );
+
+  // RECONNECTING STATE
+  if (roomId && !gameState && !error) {
+    return (
+      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4">
+        <DarkAtmosphere />
+        <div className="bg-zinc-900/80 backdrop-blur p-8 rounded-2xl border border-zinc-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
+          <Loader size={48} className="text-fuchsia-500 animate-spin" />
+          <div className="text-center">
+            <h2 className="text-xl font-bold">Reconnecting...</h2>
+            <p className="text-zinc-400 text-sm">Resuming your session</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (view === "splash") {
+    return <SplashScreen onStart={handleSplashStart} />;
   }
 
   if (view === "menu")
@@ -2045,6 +2215,7 @@ export default function DarkFolkloreGame() {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative text-slate-200">
         <DarkAtmosphere />
+        <LogoBig />
         <div className="z-10 w-full max-w-md bg-slate-900/90 p-8 rounded-3xl border border-fuchsia-900/50 shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-md">
           <div className="flex justify-between items-center border-b border-slate-800 pb-4 mb-6">
             <div>
@@ -2151,6 +2322,7 @@ export default function DarkFolkloreGame() {
             </div>
           </div>
         )}
+        <Logo />
       </div>
     );
   }
@@ -3897,6 +4069,7 @@ export default function DarkFolkloreGame() {
             </div>
           </div>
         )}
+        <Logo />
       </div>
     );
   }
