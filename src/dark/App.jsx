@@ -2218,33 +2218,49 @@ export default function DarkFolkloreGame() {
         <LogoBig />
         <div className="z-10 w-full max-w-md bg-slate-900/90 p-8 rounded-3xl border border-fuchsia-900/50 shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-md">
           <div className="flex justify-between items-center border-b border-slate-800 pb-4 mb-6">
-            <div>
-              <div className="text-xs text-fuchsia-400 font-bold uppercase tracking-widest">
+            
+            {/* Ritual Code Section */}
+            <div className="flex flex-col gap-1">
+              <span className="text-xs text-fuchsia-400 font-bold uppercase tracking-widest">
                 Ritual Code
-              </div>
-              <div className="text-4xl font-black tracking-widest text-slate-100 drop-shadow-md flex items-center gap-2 relative">
-                {gameState.roomId}
-                {isCopied && (
-                  <div className="absolute -top-6 left-0 text-[10px] text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded font-bold animate-in fade-in">
-                    COPIED!
-                  </div>
-                )}
+              </span>
+              
+              <div className="flex items-center gap-3">
+                {/* Smaller Room Code */}
+                <span className="text-2xl sm:text-3xl font-black tracking-[0.2em] text-slate-100 drop-shadow-md">
+                  {gameState.roomId}
+                </span>
+                
+                {/* Inline Copy Button (No Box) */}
+                <button
+                  onClick={copyToClipboard}
+                  className="flex items-center justify-start w-20 text-slate-400 hover:text-white transition-all"
+                >
+                  {isCopied ? (
+                    <div className="flex items-center gap-1.5 animate-in fade-in zoom-in duration-200">
+                      <CheckCircle size={20} className="text-emerald-400" />
+                      <span className="text-[10px] sm:text-xs font-black text-emerald-400 uppercase tracking-widest mt-0.5">
+                        Copied
+                      </span>
+                    </div>
+                  ) : (
+                    <Copy size={20} className="hover:scale-110 transition-transform" />
+                  )}
+                </button>
               </div>
             </div>
+
+            {/* Leave / Flee Button */}
             <div className="flex gap-2">
               <button
-                onClick={copyToClipboard}
-                className="p-4 bg-slate-800 rounded-xl hover:bg-slate-700 transition-colors shadow-md border border-slate-700 hover:border-fuchsia-500/50"
-              >
-                <Copy size={24} className="text-fuchsia-400" />
-              </button>
-              <button
                 onClick={() => setShowLeaveConfirm(true)}
-                className="p-4 bg-red-950/50 rounded-xl hover:bg-red-900/80 transition-colors shadow-md border border-red-900/50"
+                className="p-3 sm:p-4 bg-red-950/50 rounded-xl hover:bg-red-900/80 transition-colors shadow-md border border-red-900/50 h-fit my-auto"
+                title="Leave Ritual"
               >
                 <LogOut size={24} className="text-red-400" />
               </button>
             </div>
+
           </div>
           <div className="space-y-3 mb-8">
             <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
