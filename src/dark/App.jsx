@@ -2936,10 +2936,11 @@ export default function DarkFolkloreGame() {
                   .filter((c) => gameState.pendingAction?.uids?.includes(c.uid))
                   .map((c) => {
                     const def = ALL_CARDS[c.cardId];
-                    
+
                     // FIXED: Checking c.cardId instead of def.cardId
-                    const isPlayable = def.type === "SUP" || c.cardId === "SPELL"; 
-                    
+                    const isPlayable =
+                      def.type === "SUP" || c.cardId === "SPELL";
+
                     return (
                       <div
                         key={c.uid}
@@ -3601,8 +3602,7 @@ export default function DarkFolkloreGame() {
                           <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800 text-center">
                             Gather {needed} cards ({selections.length}/{needed})
                           </div>
-                          // ... (the rest of your Hoarder modal stays exactly
-                          the same)
+
                           <div className="flex flex-wrap justify-center gap-4">
                             <button
                               disabled={
