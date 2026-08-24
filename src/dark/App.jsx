@@ -55,7 +55,7 @@ import {
 // FIXED: Using a safe fallback approach for accessing process.env/import.meta.env
 const getEnvVar = (key) => {
   try {
-    if (typeof import.meta !== 'undefined' && import.meta.env) {
+    if (typeof import.meta !== "undefined" && import.meta.env) {
       return import.meta.env[key];
     }
   } catch (e) {
@@ -66,14 +66,14 @@ const getEnvVar = (key) => {
 
 // Add a safe helper for the base URL specifically
 const getBaseUrl = () => {
-    try {
-        if (typeof import.meta !== 'undefined' && import.meta.env) {
-            return import.meta.env.BASE_URL || "/";
-        }
-    } catch(e) {
-        return "/";
+  try {
+    if (typeof import.meta !== "undefined" && import.meta.env) {
+      return import.meta.env.BASE_URL || "/";
     }
+  } catch (e) {
     return "/";
+  }
+  return "/";
 };
 
 const firebaseConfig = {
@@ -88,53 +88,275 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const APP_ID = typeof __app_id !== "undefined" ? __app_id : "dark-folklore-game";
+const APP_ID =
+  typeof __app_id !== "undefined" ? __app_id : "dark-folklore-game";
 const GAME_ID = "19"; // Unique ID for DARK in Gamehub
 
 // ---------------------------------------------------------------------------
 // GAME DICTIONARY & CARD TYPES
 // ---------------------------------------------------------------------------
 const DESTINATIONS = {
-  POND: { id: "POND", name: "Dark Pond", type: "DEST", icon: Map, color: "text-emerald-500", bg: "bg-emerald-950/40" },
-  REED: { id: "REED", name: "Reed Field", type: "DEST", icon: Map, color: "text-amber-500", bg: "bg-amber-950/40" },
-  BAMBOO: { id: "BAMBOO", name: "Bamboo Grove", type: "DEST", icon: Map, color: "text-green-500", bg: "bg-green-950/40" },
+  POND: {
+    id: "POND",
+    name: "Dark Pond",
+    type: "DEST",
+    icon: Map,
+    color: "text-emerald-500",
+    bg: "bg-emerald-950/40",
+  },
+  REED: {
+    id: "REED",
+    name: "Reed Field",
+    type: "DEST",
+    icon: Map,
+    color: "text-amber-500",
+    bg: "bg-amber-950/40",
+  },
+  BAMBOO: {
+    id: "BAMBOO",
+    name: "Bamboo Grove",
+    type: "DEST",
+    icon: Map,
+    color: "text-green-500",
+    bg: "bg-green-950/40",
+  },
 };
 
 const BIRDS = {
-  CROW: { id: "CROW", name: "Ravenous Crow", type: "BIRD", icon: Feather, color: "text-slate-400", bg: "bg-slate-800/40" },
-  OWL: { id: "OWL", name: "Silent Owl", type: "BIRD", icon: Feather, color: "text-indigo-400", bg: "bg-indigo-950/40" },
+  CROW: {
+    id: "CROW",
+    name: "Ravenous Crow",
+    type: "BIRD",
+    icon: Feather,
+    color: "text-slate-400",
+    bg: "bg-slate-800/40",
+  },
+  OWL: {
+    id: "OWL",
+    name: "Silent Owl",
+    type: "BIRD",
+    icon: Feather,
+    color: "text-indigo-400",
+    bg: "bg-indigo-950/40",
+  },
 };
 
 const UTILITY = {
-  AMULET: { id: "AMULET", name: "Blood Amulet", type: "UTILITY", action: "DEFEND", desc: "Blocks a steal automatically.", icon: Shield, color: "text-red-500", bg: "bg-red-950/40" },
-  SPELL: { id: "SPELL", name: "Dark Spell", type: "UTILITY", action: "BOOST", desc: "Discard to gain +2 Actions.", icon: Sparkles, color: "text-fuchsia-500", bg: "bg-fuchsia-950/40" },
+  AMULET: {
+    id: "AMULET",
+    name: "Blood Amulet",
+    type: "UTILITY",
+    action: "DEFEND",
+    desc: "Blocks a steal automatically.",
+    icon: Shield,
+    color: "text-red-500",
+    bg: "bg-red-950/40",
+  },
+  SPELL: {
+    id: "SPELL",
+    name: "Dark Spell",
+    type: "UTILITY",
+    action: "BOOST",
+    desc: "Discard to gain +2 Actions.",
+    icon: Sparkles,
+    color: "text-fuchsia-500",
+    bg: "bg-fuchsia-950/40",
+  },
 };
 
 const SUPERNATURALS = {
-  SUP_GUARDIAN: { id: "SUP_GUARDIAN", name: "The Guardian", type: "SUP", gender: "M", target: "NONE", desc: "Locks and protects this set from all effects." },
-  SUP_OCCULTIST: { id: "SUP_OCCULTIST", name: "Occultist", type: "SUP", gender: "M", target: "NONE", desc: "Draw 2 cards from the deck." },
-  SUP_HEADLESS: { id: "SUP_HEADLESS", name: "Headless", type: "SUP", gender: "M", target: "PLAYER", desc: "Steal 2 random cards from a player." },
-  SUP_CHAINBINDER: { id: "SUP_CHAINBINDER", name: "Chainbinder", type: "SUP", gender: "M", target: "CHAINBINDER", desc: "View all players' hands and randomly steal 1 card." },
-  SUP_ENCHANTRESS: { id: "SUP_ENCHANTRESS", name: "Enchantress", type: "SUP", gender: "F", target: "TABLE_CARD_M", desc: "Steal a played Male entity and trigger it." },
-  SUP_BLOODFIEND: { id: "SUP_BLOODFIEND", name: "Bloodfiend", type: "SUP", gender: "M", target: "BLOODFIEND", desc: "Steal 3 random cards from one or more players." },
-  SUP_DEVOURER: { id: "SUP_DEVOURER", name: "Devourer", type: "SUP", gender: "M", target: "PLAYER", desc: "Randomly discard 1 card from a player's hand." },
-  SUP_NIGHTWALKER: { id: "SUP_NIGHTWALKER", name: "Nightwalker", type: "SUP", gender: "M", target: "TABLE_CARD_ANY", desc: "Steal any played entity and trigger it." },
-  SUP_GRIM: { id: "SUP_GRIM", name: "Grim Goblin", type: "SUP", gender: "M", target: "PLAYER", desc: "Draw 1 from deck, Steal 1 from player." },
-  SUP_DESTROYER: { id: "SUP_DESTROYER", name: "Destroyer", type: "SUP", gender: "M", target: "SET_DESTROY", desc: "Discard an opponent's entire played set." },
-  SUP_SHAPECHANGER: { id: "SUP_SHAPECHANGER", name: "Shapechanger", type: "SUP", gender: "F", target: "SET_SWAP", desc: "Swap one of your sets with an opponent's set." },
-  SUP_ORACLE: { id: "SUP_ORACLE", name: "River Oracle", type: "SUP", gender: "F", target: "ORACLE", desc: "Draw 1 from deck, 1 from discard. Keep 1, discard 1." },
-  SUP_RELIC: { id: "SUP_RELIC", name: "Relic Keeper", type: "SUP", gender: "M", target: "DISCARD_1", desc: "Take any card from the discard pile." },
-  SUP_HOARDER: { id: "SUP_HOARDER", name: "Hoarder", type: "SUP", gender: "M", target: "HOARDER", desc: "Draw or steal until you have 7 cards." },
-  SUP_HEXWITCH: { id: "SUP_HEXWITCH", name: "Hexwitch", type: "SUP", gender: "F", target: "SET_HEXWITCH", desc: "Discard your Bird set to steal any opponent's set." },
-  SUP_MOONHAG: { id: "SUP_MOONHAG", name: "Moon Hag", type: "SUP", gender: "F", target: "OWN_SUP", desc: "Re-trigger any of your played entities." },
-  SUP_BROKER: { id: "SUP_BROKER", name: "Grave Broker", type: "SUP", gender: "M", target: "BROKER", desc: "Draw discard cards = players. Keep 1, scatter rest." },
-  SUP_HANDSHIFTER: { id: "SUP_HANDSHIFTER", name: "Handshifter", type: "SUP", gender: "M", target: "PLAYER", desc: "Swap your entire hand with a player." },
-  SUP_SUMMONER: { id: "SUP_SUMMONER", name: "Summoner", type: "SUP", gender: "F", target: "CARD_TYPE", desc: "Name a card. Anyone holding it must give it to you." },
-  SUP_RAVENOUS: { id: "SUP_RAVENOUS", name: "Ravenous Swarm", type: "SUP", gender: "O", target: "NONE", desc: "All opponents randomly discard 1 card." },
-  SUP_SILENCER: { id: "SUP_SILENCER", name: "Silencer", type: "SUP", gender: "F", target: "PLAYER", desc: "Target player skips their next turn." },
-  SUP_REDEEMER: { id: "SUP_REDEEMER", name: "Redeemer", type: "SUP", gender: "M", target: "NONE", desc: "Take the top card of the discard pile." },
-  SUP_TWINS: { id: "SUP_TWINS", name: "Twins of Fate", type: "SUP", gender: "O", target: "DISCARD_2", desc: "Search discard and take 2 cards." },
-  SUP_SERPENT: { id: "SUP_SERPENT", name: "Serpent King", type: "SUP", gender: "M", target: "PLAYER_VIEW", desc: "Look at all cards in a player's hand." },
+  SUP_GUARDIAN: {
+    id: "SUP_GUARDIAN",
+    name: "The Guardian",
+    type: "SUP",
+    gender: "M",
+    target: "NONE",
+    desc: "Locks and protects this set from all effects.",
+  },
+  SUP_OCCULTIST: {
+    id: "SUP_OCCULTIST",
+    name: "Occultist",
+    type: "SUP",
+    gender: "M",
+    target: "NONE",
+    desc: "Draw 2 cards from the deck.",
+  },
+  SUP_HEADLESS: {
+    id: "SUP_HEADLESS",
+    name: "Headless",
+    type: "SUP",
+    gender: "M",
+    target: "PLAYER",
+    desc: "Steal 2 random cards from a player.",
+  },
+  SUP_CHAINBINDER: {
+    id: "SUP_CHAINBINDER",
+    name: "Chainbinder",
+    type: "SUP",
+    gender: "M",
+    target: "CHAINBINDER",
+    desc: "View all players' hands and randomly steal 1 card.",
+  },
+  SUP_ENCHANTRESS: {
+    id: "SUP_ENCHANTRESS",
+    name: "Enchantress",
+    type: "SUP",
+    gender: "F",
+    target: "TABLE_CARD_M",
+    desc: "Steal a played Male entity and trigger it.",
+  },
+  SUP_BLOODFIEND: {
+    id: "SUP_BLOODFIEND",
+    name: "Bloodfiend",
+    type: "SUP",
+    gender: "M",
+    target: "BLOODFIEND",
+    desc: "Steal 3 random cards from one or more players.",
+  },
+  SUP_DEVOURER: {
+    id: "SUP_DEVOURER",
+    name: "Devourer",
+    type: "SUP",
+    gender: "M",
+    target: "PLAYER",
+    desc: "Randomly discard 1 card from a player's hand.",
+  },
+  SUP_NIGHTWALKER: {
+    id: "SUP_NIGHTWALKER",
+    name: "Nightwalker",
+    type: "SUP",
+    gender: "M",
+    target: "TABLE_CARD_ANY",
+    desc: "Steal any played entity and trigger it.",
+  },
+  SUP_GRIM: {
+    id: "SUP_GRIM",
+    name: "Grim Goblin",
+    type: "SUP",
+    gender: "M",
+    target: "PLAYER",
+    desc: "Draw 1 from deck, Steal 1 from player.",
+  },
+  SUP_DESTROYER: {
+    id: "SUP_DESTROYER",
+    name: "Destroyer",
+    type: "SUP",
+    gender: "M",
+    target: "SET_DESTROY",
+    desc: "Discard an opponent's entire played set.",
+  },
+  SUP_SHAPECHANGER: {
+    id: "SUP_SHAPECHANGER",
+    name: "Shapechanger",
+    type: "SUP",
+    gender: "F",
+    target: "SET_SWAP",
+    desc: "Swap one of your sets with an opponent's set.",
+  },
+  SUP_ORACLE: {
+    id: "SUP_ORACLE",
+    name: "River Oracle",
+    type: "SUP",
+    gender: "F",
+    target: "ORACLE",
+    desc: "Draw 1 from deck, 1 from discard. Keep 1, discard 1.",
+  },
+  SUP_RELIC: {
+    id: "SUP_RELIC",
+    name: "Relic Keeper",
+    type: "SUP",
+    gender: "M",
+    target: "DISCARD_1",
+    desc: "Take any card from the discard pile.",
+  },
+  SUP_HOARDER: {
+    id: "SUP_HOARDER",
+    name: "Hoarder",
+    type: "SUP",
+    gender: "M",
+    target: "HOARDER",
+    desc: "Draw or steal until you have 7 cards.",
+  },
+  SUP_HEXWITCH: {
+    id: "SUP_HEXWITCH",
+    name: "Hexwitch",
+    type: "SUP",
+    gender: "F",
+    target: "SET_HEXWITCH",
+    desc: "Discard your Bird set to steal any opponent's set.",
+  },
+  SUP_MOONHAG: {
+    id: "SUP_MOONHAG",
+    name: "Moon Hag",
+    type: "SUP",
+    gender: "F",
+    target: "OWN_SUP",
+    desc: "Re-trigger any of your played entities.",
+  },
+  SUP_BROKER: {
+    id: "SUP_BROKER",
+    name: "Grave Broker",
+    type: "SUP",
+    gender: "M",
+    target: "BROKER",
+    desc: "Draw discard cards = players. Keep 1, scatter rest.",
+  },
+  SUP_HANDSHIFTER: {
+    id: "SUP_HANDSHIFTER",
+    name: "Handshifter",
+    type: "SUP",
+    gender: "M",
+    target: "PLAYER",
+    desc: "Swap your entire hand with a player.",
+  },
+  SUP_SUMMONER: {
+    id: "SUP_SUMMONER",
+    name: "Summoner",
+    type: "SUP",
+    gender: "F",
+    target: "CARD_TYPE",
+    desc: "Name a card. Anyone holding it must give it to you.",
+  },
+  SUP_RAVENOUS: {
+    id: "SUP_RAVENOUS",
+    name: "Ravenous Swarm",
+    type: "SUP",
+    gender: "O",
+    target: "NONE",
+    desc: "All opponents randomly discard 1 card.",
+  },
+  SUP_SILENCER: {
+    id: "SUP_SILENCER",
+    name: "Silencer",
+    type: "SUP",
+    gender: "F",
+    target: "PLAYER",
+    desc: "Target player skips their next turn.",
+  },
+  SUP_REDEEMER: {
+    id: "SUP_REDEEMER",
+    name: "Redeemer",
+    type: "SUP",
+    gender: "M",
+    target: "NONE",
+    desc: "Take the top card of the discard pile.",
+  },
+  SUP_TWINS: {
+    id: "SUP_TWINS",
+    name: "Twins of Fate",
+    type: "SUP",
+    gender: "O",
+    target: "DISCARD_2",
+    desc: "Search discard and take 2 cards.",
+  },
+  SUP_SERPENT: {
+    id: "SUP_SERPENT",
+    name: "Serpent King",
+    type: "SUP",
+    gender: "M",
+    target: "PLAYER_VIEW",
+    desc: "Look at all cards in a player's hand.",
+  },
 };
 
 const ALL_CARDS = { ...DESTINATIONS, ...BIRDS, ...UTILITY, ...SUPERNATURALS };
@@ -142,12 +364,20 @@ const ALL_CARDS = { ...DESTINATIONS, ...BIRDS, ...UTILITY, ...SUPERNATURALS };
 const createDeck = () => {
   let deck = [];
   const add = (id, count) => {
-    for (let i = 0; i < count; i++) deck.push({ uid: `${id}_${Math.random().toString(36).substr(2, 6)}`, cardId: id });
+    for (let i = 0; i < count; i++)
+      deck.push({
+        uid: `${id}_${Math.random().toString(36).substr(2, 6)}`,
+        cardId: id,
+      });
   };
-  add("POND", 6); add("REED", 6); add("BAMBOO", 6);
-  add("CROW", 9); add("OWL", 9);
-  add("AMULET", 6); add("SPELL", 6);
-  Object.keys(SUPERNATURALS).forEach(id => add(id, 1));
+  add("POND", 6);
+  add("REED", 6);
+  add("BAMBOO", 6);
+  add("CROW", 9);
+  add("OWL", 9);
+  add("AMULET", 6);
+  add("SPELL", 6);
+  Object.keys(SUPERNATURALS).forEach((id) => add(id, 1));
   return deck.sort(() => Math.random() - 0.5);
 };
 
@@ -156,9 +386,9 @@ const createDeck = () => {
 // ---------------------------------------------------------------------------
 const calculateScore = (tableau) => {
   let score = 0;
-  tableau.forEach(set => {
+  tableau.forEach((set) => {
     if (set.type === "DEST" && set.cards.length === 3) {
-      const types = new Set(set.cards.map(c => c.cardId)).size;
+      const types = new Set(set.cards.map((c) => c.cardId)).size;
       if (types === 1) score += 3;
       else if (types === 3) score += 5;
     } else if (set.type === "BIRD" && set.cards.length === 3) {
@@ -183,16 +413,18 @@ const DarkAtmosphere = React.memo(() => (
     <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black opacity-90" />
     <div className="absolute inset-0 opacity-20 mix-blend-overlay bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')]" />
     {[...Array(25)].map((_, i) => (
-      <div key={i} className="absolute rounded-full animate-float opacity-30"
-        style={{ 
-          left: `${Math.random() * 100}%`, 
-          top: `${Math.random() * 100}%`, 
-          width: `${Math.random() * 4 + 1}px`, 
+      <div
+        key={i}
+        className="absolute rounded-full animate-float opacity-30"
+        style={{
+          left: `${Math.random() * 100}%`,
+          top: `${Math.random() * 100}%`,
+          width: `${Math.random() * 4 + 1}px`,
           height: `${Math.random() * 4 + 1}px`,
-          backgroundColor: Math.random() > 0.5 ? '#d946ef' : '#8b5cf6',
-          animationDuration: `${10 + Math.random() * 20}s`, 
-          animationDelay: `${Math.random() * -20}s`, 
-          boxShadow: '0 0 15px 2px rgba(217,70,239,0.4)' 
+          backgroundColor: Math.random() > 0.5 ? "#d946ef" : "#8b5cf6",
+          animationDuration: `${10 + Math.random() * 20}s`,
+          animationDelay: `${Math.random() * -20}s`,
+          boxShadow: "0 0 15px 2px rgba(217,70,239,0.4)",
         }}
       />
     ))}
@@ -200,34 +432,91 @@ const DarkAtmosphere = React.memo(() => (
   </div>
 ));
 
-const CardDisplay = ({ cardUid, cardId, onClick, highlight, small, tiny, disabled }) => {
+const CardDisplay = ({
+  cardUid,
+  cardId,
+  onClick,
+  highlight,
+  small,
+  tiny,
+  disabled,
+}) => {
+  // --- ADD THIS SAFETY CHECK ---
+  if (!cardId || !ALL_CARDS[cardId]) {
+    return (
+      <div className="w-16 h-24 bg-slate-900 rounded-md border border-slate-800 flex items-center justify-center text-[8px] text-slate-600">
+        VOID
+      </div>
+    );
+  }
+  // -----------------------------
   const c = ALL_CARDS[cardId];
-  if (!c) return <div className="w-16 h-24 bg-slate-900 rounded-md border border-slate-800" />;
+  if (!c)
+    return (
+      <div className="w-16 h-24 bg-slate-900 rounded-md border border-slate-800" />
+    );
   const isSup = c.type === "SUP";
   const bg = isSup ? "bg-slate-900/90" : c.bg;
-  const border = isSup ? "border-fuchsia-800/80" : c.color.replace("text-", "border-").replace("500", "700").replace("400", "700");
-  
+  const border = isSup
+    ? "border-fuchsia-800/80"
+    : c.color
+        .replace("text-", "border-")
+        .replace("500", "700")
+        .replace("400", "700");
+
   if (tiny) {
     return (
-      <div onClick={!disabled ? onClick : undefined} className={`relative flex items-center justify-center rounded border p-1 cursor-pointer w-8 h-12 md:w-10 md:h-14 ${bg} ${highlight ? "ring-2 ring-fuchsia-500 scale-110 z-10" : border} ${disabled ? "opacity-50 grayscale" : "hover:scale-110"}`} title={c.name}>
-        {c.icon ? <c.icon size={14} className={isSup ? "text-fuchsia-400" : c.color} /> : <Ghost size={14}/>}
+      <div
+        onClick={!disabled ? onClick : undefined}
+        className={`relative flex items-center justify-center rounded border p-1 cursor-pointer w-8 h-12 md:w-10 md:h-14 ${bg} ${highlight ? "ring-2 ring-fuchsia-500 scale-110 z-10" : border} ${disabled ? "opacity-50 grayscale" : "hover:scale-110"}`}
+        title={c.name}
+      >
+        {c.icon ? (
+          <c.icon size={14} className={isSup ? "text-fuchsia-400" : c.color} />
+        ) : (
+          <Ghost size={14} />
+        )}
       </div>
-    )
+    );
   }
 
-  const sizeClasses = small ? "w-14 h-20 sm:w-16 sm:h-24 text-[7px] sm:text-[9px]" : "w-20 h-28 sm:w-28 sm:h-40 text-[9px] sm:text-xs";
-  
+  const sizeClasses = small
+    ? "w-14 h-20 sm:w-16 sm:h-24 text-[7px] sm:text-[9px]"
+    : "w-20 h-28 sm:w-28 sm:h-40 text-[9px] sm:text-xs";
+
   return (
-    <div onClick={!disabled ? onClick : undefined} className={`relative flex flex-col items-center justify-between rounded-lg sm:rounded-xl border-2 p-1.5 sm:p-2 cursor-pointer select-none transition-all ${sizeClasses} ${bg} ${highlight ? "ring-2 ring-fuchsia-500 scale-105 shadow-[0_0_20px_rgba(217,70,239,0.5)] z-10 -translate-y-2" : border} ${disabled ? "opacity-50 grayscale cursor-not-allowed" : "hover:-translate-y-2 hover:shadow-xl hover:shadow-fuchsia-900/20"}`}>
+    <div
+      onClick={!disabled ? onClick : undefined}
+      className={`relative flex flex-col items-center justify-between rounded-lg sm:rounded-xl border-2 p-1.5 sm:p-2 cursor-pointer select-none transition-all ${sizeClasses} ${bg} ${highlight ? "ring-2 ring-fuchsia-500 scale-105 shadow-[0_0_20px_rgba(217,70,239,0.5)] z-10 -translate-y-2" : border} ${disabled ? "opacity-50 grayscale cursor-not-allowed" : "hover:-translate-y-2 hover:shadow-xl hover:shadow-fuchsia-900/20"}`}
+    >
       <div className="w-full flex justify-between items-center text-white/50 uppercase font-black tracking-widest leading-none">
-        <span>{c.type}</span>{isSup && <span className="text-fuchsia-500/70">{c.gender}</span>}
+        <span>{c.type}</span>
+        {isSup && <span className="text-fuchsia-500/70">{c.gender}</span>}
       </div>
-      <div className={`${isSup ? "text-fuchsia-400" : c.color} drop-shadow-[0_0_8px_rgba(0,0,0,0.8)] my-auto`}>
-        {c.icon ? <c.icon size={small ? 18 : 28} className="sm:w-auto sm:h-auto w-6 h-6"/> : <Ghost size={small ? 18 : 28} className="sm:w-auto sm:h-auto w-6 h-6"/>}
+      <div
+        className={`${isSup ? "text-fuchsia-400" : c.color} drop-shadow-[0_0_8px_rgba(0,0,0,0.8)] my-auto`}
+      >
+        {c.icon ? (
+          <c.icon
+            size={small ? 18 : 28}
+            className="sm:w-auto sm:h-auto w-6 h-6"
+          />
+        ) : (
+          <Ghost
+            size={small ? 18 : 28}
+            className="sm:w-auto sm:h-auto w-6 h-6"
+          />
+        )}
       </div>
       <div className="w-full text-center flex flex-col items-center gap-0.5 sm:gap-1 mt-auto">
-        <div className="font-black text-slate-100 uppercase tracking-tight sm:tracking-widest leading-none sm:leading-tight truncate w-full px-0.5">{c.name}</div>
-        {!small && isSup && <div className="text-[7px] sm:text-[9px] text-fuchsia-200/80 leading-none sm:leading-tight bg-black/80 p-1 sm:p-1.5 rounded w-full h-8 sm:h-12 overflow-hidden flex items-center justify-center border border-fuchsia-900/50">{c.desc}</div>}
+        <div className="font-black text-slate-100 uppercase tracking-tight sm:tracking-widest leading-none sm:leading-tight truncate w-full px-0.5">
+          {c.name}
+        </div>
+        {!small && isSup && (
+          <div className="text-[7px] sm:text-[9px] text-fuchsia-200/80 leading-none sm:leading-tight bg-black/80 p-1 sm:p-1.5 rounded w-full h-8 sm:h-12 overflow-hidden flex items-center justify-center border border-fuchsia-900/50">
+            {c.desc}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -239,54 +528,106 @@ const CardDisplay = ({ cardUid, cardId, onClick, highlight, small, tiny, disable
 const HowToPlayModal = ({ onClose }) => (
   <div className="fixed inset-0 z-[300] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
     <div className="bg-slate-900 border border-fuchsia-900/50 w-full max-w-5xl rounded-3xl shadow-[0_0_50px_rgba(192,38,211,0.2)] p-6 md:p-8 relative max-h-[90vh] flex flex-col">
-      <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-slate-800 rounded-full hover:bg-red-500/20 hover:text-red-400 transition-colors z-10 border border-slate-700">
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 p-2 bg-slate-800 rounded-full hover:bg-red-500/20 hover:text-red-400 transition-colors z-10 border border-slate-700"
+      >
         <X size={24} />
       </button>
 
       <div className="text-center mb-6 shrink-0 border-b border-slate-800 pb-4">
-        <h2 className="text-3xl md:text-4xl font-black text-white tracking-[0.2em] uppercase mb-2 drop-shadow-md">The Ritual <span className="text-fuchsia-500">Rules</span></h2>
-        <p className="text-slate-400 text-sm tracking-widest uppercase font-bold">1 Action Per Turn • Max 7 Cards in Hand</p>
+        <h2 className="text-3xl md:text-4xl font-black text-white tracking-[0.2em] uppercase mb-2 drop-shadow-md">
+          The Ritual <span className="text-fuchsia-500">Rules</span>
+        </h2>
+        <p className="text-slate-400 text-sm tracking-widest uppercase font-bold">
+          1 Action Per Turn • Max 7 Cards in Hand
+        </p>
       </div>
 
       <div className="overflow-y-auto pr-2 custom-scrollbar flex-1 space-y-8">
-        
         {/* Actions & Turn Economy */}
         <div>
-          <h3 className="text-lg font-black text-fuchsia-400 mb-3 flex items-center gap-2 uppercase tracking-widest"><Zap size={18} /> Turn Actions</h3>
-          <p className="text-slate-300 text-sm mb-3">On your turn, you must choose <strong>ONE</strong> of the following actions:</p>
+          <h3 className="text-lg font-black text-fuchsia-400 mb-3 flex items-center gap-2 uppercase tracking-widest">
+            <Zap size={18} /> Turn Actions
+          </h3>
+          <p className="text-slate-300 text-sm mb-3">
+            On your turn, you must choose <strong>ONE</strong> of the following
+            actions:
+          </p>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs uppercase tracking-wider font-bold">
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800"><span className="text-emerald-400 block mb-1">1. Draw</span> Take the top card from the deck.</div>
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800"><span className="text-red-400 block mb-1">2. Steal</span> Randomly steal 1 card from any opponent.</div>
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800"><span className="text-cyan-400 block mb-1">3. Play Set</span> Play exactly 3 Birds or 3 Destinations to your Bank.</div>
-            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800"><span className="text-fuchsia-400 block mb-1">4. Invoke</span> Play 1 Supernatural entity to your Bank and trigger its power.</div>
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+              <span className="text-emerald-400 block mb-1">1. Draw</span> Take
+              the top card from the deck.
+            </div>
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+              <span className="text-red-400 block mb-1">2. Steal</span> Randomly
+              steal 1 card from any opponent.
+            </div>
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+              <span className="text-cyan-400 block mb-1">3. Play Set</span> Play
+              exactly 3 Birds or 3 Destinations to your Bank.
+            </div>
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800">
+              <span className="text-fuchsia-400 block mb-1">4. Invoke</span>{" "}
+              Play 1 Supernatural entity to your Bank and trigger its power.
+            </div>
           </div>
         </div>
 
         {/* Scoring */}
         <div>
-          <h3 className="text-lg font-black text-fuchsia-400 mb-3 flex items-center gap-2 uppercase tracking-widest"><Trophy size={18} /> Scoring (Banked Sets)</h3>
+          <h3 className="text-lg font-black text-fuchsia-400 mb-3 flex items-center gap-2 uppercase tracking-widest">
+            <Trophy size={18} /> Scoring (Banked Sets)
+          </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
             <div className="bg-slate-800 p-4 rounded-xl">
-              <strong className="text-yellow-400 block mb-2 text-sm uppercase tracking-widest">Destinations</strong>
+              <strong className="text-yellow-400 block mb-2 text-sm uppercase tracking-widest">
+                Destinations
+              </strong>
               <ul className="space-y-2 text-slate-300">
-                <li>3 Identical = <span className="font-black text-white">3 Pts</span></li>
-                <li>1 of Each (Pond+Reed+Bamboo) = <span className="font-black text-white">5 Pts</span></li>
+                <li>
+                  3 Identical ={" "}
+                  <span className="font-black text-white">3 Pts</span>
+                </li>
+                <li>
+                  1 of Each (Pond+Reed+Bamboo) ={" "}
+                  <span className="font-black text-white">5 Pts</span>
+                </li>
               </ul>
             </div>
             <div className="bg-slate-800 p-4 rounded-xl">
-              <strong className="text-yellow-400 block mb-2 text-sm uppercase tracking-widest">Birds</strong>
+              <strong className="text-yellow-400 block mb-2 text-sm uppercase tracking-widest">
+                Birds
+              </strong>
               <ul className="space-y-2 text-slate-300">
-                <li>3 Identical (Crows or Owls) = <span className="font-black text-white">10 Pts</span></li>
+                <li>
+                  3 Identical (Crows or Owls) ={" "}
+                  <span className="font-black text-white">10 Pts</span>
+                </li>
               </ul>
             </div>
             <div className="bg-slate-800 p-4 rounded-xl">
-              <strong className="text-yellow-400 block mb-2 text-sm uppercase tracking-widest">Supernaturals</strong>
+              <strong className="text-yellow-400 block mb-2 text-sm uppercase tracking-widest">
+                Supernaturals
+              </strong>
               <ul className="space-y-1 text-slate-300">
-                <li>1 Card = <span className="font-black text-white">1 Pt</span></li>
-                <li>2 Cards = <span className="font-black text-white">2 Pts</span></li>
-                <li>3 Cards = <span className="font-black text-white">5 Pts</span></li>
-                <li>4 Cards = <span className="font-black text-white">10 Pts</span></li>
-                <li>5 Cards (Max) = <span className="font-black text-white">15 Pts</span></li>
+                <li>
+                  1 Card = <span className="font-black text-white">1 Pt</span>
+                </li>
+                <li>
+                  2 Cards = <span className="font-black text-white">2 Pts</span>
+                </li>
+                <li>
+                  3 Cards = <span className="font-black text-white">5 Pts</span>
+                </li>
+                <li>
+                  4 Cards ={" "}
+                  <span className="font-black text-white">10 Pts</span>
+                </li>
+                <li>
+                  5 Cards (Max) ={" "}
+                  <span className="font-black text-white">15 Pts</span>
+                </li>
               </ul>
             </div>
           </div>
@@ -294,24 +635,43 @@ const HowToPlayModal = ({ onClose }) => (
 
         {/* Dictionary */}
         <div>
-          <h3 className="text-lg font-black text-fuchsia-400 mb-3 flex items-center gap-2 uppercase tracking-widest"><BookOpen size={18} /> Entity Dictionary</h3>
+          <h3 className="text-lg font-black text-fuchsia-400 mb-3 flex items-center gap-2 uppercase tracking-widest">
+            <BookOpen size={18} /> Entity Dictionary
+          </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-            {Object.values(ALL_CARDS).filter(c => c.type === "SUP" || c.type === "UTILITY").map(def => (
-              <div key={def.id} className="bg-slate-950 p-3 rounded-xl border border-slate-800 flex gap-3 items-center">
-                <div className={`${def.type==="SUP" ? "text-fuchsia-400" : def.color} shrink-0`}>{def.icon ? <def.icon size={24}/> : <Ghost size={24}/>}</div>
-                <div>
-                  <div className="text-sm font-black text-white uppercase tracking-widest leading-tight mb-1">{def.name}</div>
-                  <div className="text-[10px] text-slate-400 leading-tight">{def.desc}</div>
+            {Object.values(ALL_CARDS)
+              .filter((c) => c.type === "SUP" || c.type === "UTILITY")
+              .map((def) => (
+                <div
+                  key={def.id}
+                  className="bg-slate-950 p-3 rounded-xl border border-slate-800 flex gap-3 items-center"
+                >
+                  <div
+                    className={`${def.type === "SUP" ? "text-fuchsia-400" : def.color} shrink-0`}
+                  >
+                    {def.icon ? <def.icon size={24} /> : <Ghost size={24} />}
+                  </div>
+                  <div>
+                    <div className="text-sm font-black text-white uppercase tracking-widest leading-tight mb-1">
+                      {def.name}
+                    </div>
+                    <div className="text-[10px] text-slate-400 leading-tight">
+                      {def.desc}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
-
       </div>
 
       <div className="text-center pt-6 border-t border-slate-800 shrink-0 mt-2">
-        <button onClick={onClose} className="bg-fuchsia-700 hover:bg-fuchsia-600 text-white px-12 py-4 rounded-xl font-black uppercase tracking-widest shadow-[0_0_20px_rgba(192,38,211,0.5)] transition-transform active:scale-95">Close Grimoire</button>
+        <button
+          onClick={onClose}
+          className="bg-fuchsia-700 hover:bg-fuchsia-600 text-white px-12 py-4 rounded-xl font-black uppercase tracking-widest shadow-[0_0_20px_rgba(192,38,211,0.5)] transition-transform active:scale-95"
+        >
+          Close Grimoire
+        </button>
       </div>
     </div>
   </div>
@@ -329,7 +689,7 @@ export default function DarkFolkloreGame() {
   const [gameState, setGameState] = useState(null);
   const [error, setError] = useState("");
   const [isMaintenance, setIsMaintenance] = useState(false);
-  
+
   // UI States
   const [selectedHandCards, setSelectedHandCards] = useState([]);
   const [modalState, setModalState] = useState(null); // { type, ...payload }
@@ -338,75 +698,141 @@ export default function DarkFolkloreGame() {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [showDiscard, setShowDiscard] = useState(false);
+  const [broadcastLog, setBroadcastLog] = useState(null);
+  const lastSeenLogId = useRef(null);
 
   useEffect(() => {
     const initAuth = async () => {
       try {
-        if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) await signInWithCustomToken(auth, __initial_auth_token);
+        if (typeof __initial_auth_token !== "undefined" && __initial_auth_token)
+          await signInWithCustomToken(auth, __initial_auth_token);
         else await signInAnonymously(auth);
       } catch (err) {
         console.error("Auth init failed:", err);
       }
     };
     initAuth();
-    return onAuthStateChanged(auth, (u) => { 
-        setUser(u); 
-        if(u) {
-            const savedName = localStorage.getItem("gameHub_playerName");
-            if(savedName) setPlayerName(savedName); 
-            const savedRoomId = localStorage.getItem("dark_roomId");
-            if(savedRoomId) setRoomId(savedRoomId);
-        }
+    return onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      if (u) {
+        const savedName = localStorage.getItem("gameHub_playerName");
+        if (savedName) setPlayerName(savedName);
+        const savedRoomId = localStorage.getItem("dark_roomId");
+        if (savedRoomId) setRoomId(savedRoomId);
+      }
     });
   }, []);
 
   useEffect(() => {
     if (!user) return; // Wait until authenticated to check settings
     const unsub = onSnapshot(
-      doc(db, "game_hub_settings", "config"), 
+      doc(db, "game_hub_settings", "config"),
       (doc) => {
-        if (doc.exists() && doc.data()[GAME_ID]?.maintenance) setIsMaintenance(true);
+        if (doc.exists() && doc.data()[GAME_ID]?.maintenance)
+          setIsMaintenance(true);
         else setIsMaintenance(false);
       },
       (error) => {
         console.warn("Maintenance check blocked, continuing anyway.", error);
         setIsMaintenance(false);
-      }
+      },
     );
     return () => unsub();
   }, [user]); // Added user dependency
 
   useEffect(() => {
     if (!roomId || !user) return;
-    return onSnapshot(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), (snap) => {
-      if (snap.exists()) {
-        const data = snap.data();
-        if (!data.players.some(p => p.id === user.uid)) { 
-            setRoomId(""); setView("menu"); setError("Kicked by the void."); 
-            localStorage.removeItem("dark_roomId"); return; 
+    return onSnapshot(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          if (!data.players.some((p) => p.id === user.uid)) {
+            setRoomId("");
+            setView("menu");
+            setError("Kicked by the void.");
+            localStorage.removeItem("dark_roomId");
+            return;
+          }
+          setGameState(data);
+          setView(data.status === "lobby" ? "lobby" : "game");
+        } else {
+          setView("menu");
+          setRoomId("");
+          setError("Room consumed by darkness.");
+          localStorage.removeItem("dark_roomId");
         }
-        setGameState(data);
-        setView(data.status === "lobby" ? "lobby" : "game");
-      } else {
-        setView("menu"); setRoomId(""); setError("Room consumed by darkness.");
-        localStorage.removeItem("dark_roomId");
-      }
-    }, (err) => {
+      },
+      (err) => {
         console.error("Room sync error:", err);
-        setView("menu"); setRoomId(""); setError("Connection lost to the void.");
+        setView("menu");
+        setRoomId("");
+        setError("Connection lost to the void.");
         localStorage.removeItem("dark_roomId");
-    });
+      },
+    );
   }, [roomId, user]);
+
+  // Listen for new logs and broadcast them
+  useEffect(() => {
+    if (gameState?.logs?.length > 0) {
+      const latestLog = gameState.logs[gameState.logs.length - 1];
+      
+      // If this is the initial load, just record the ID silently and don't pop up
+      if (!lastSeenLogId.current) {
+        lastSeenLogId.current = latestLog.id;
+        return;
+      }
+
+      // If it's a brand new log, show the broadcast banner
+      if (latestLog.id !== lastSeenLogId.current) {
+        lastSeenLogId.current = latestLog.id;
+        setBroadcastLog(latestLog);
+        
+        // Auto-dismiss after 3.5 seconds
+        const timer = setTimeout(() => {
+          setBroadcastLog(null);
+        }, 3500); 
+        
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [gameState?.logs]);
 
   const createRoom = async () => {
     if (!playerName) return setError("Enter a name.");
     localStorage.setItem("gameHub_playerName", playerName);
     const newId = Math.random().toString(36).substr(2, 6).toUpperCase();
     localStorage.setItem("dark_roomId", newId);
-    await setDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", newId), {
-      roomId: newId, hostId: user.uid, status: "lobby", turnIndex: 0, turnState: "IDLE", actionsLeft: 1, logs: [], deck: [], discardPile: [], isFinalRound: false, finalRoundTriggeredBy: null, pendingAction: null,
-      players: [{ id: user.uid, name: playerName, hand: [], tableau: [], score: 0, ready: true, skipNextTurn: false, finalTurnTaken: false }]
-    });
+    await setDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", newId),
+      {
+        roomId: newId,
+        hostId: user.uid,
+        status: "lobby",
+        turnIndex: 0,
+        turnState: "IDLE",
+        actionsLeft: 1,
+        logs: [],
+        deck: [],
+        discardPile: [],
+        isFinalRound: false,
+        finalRoundTriggeredBy: null,
+        pendingAction: null,
+        players: [
+          {
+            id: user.uid,
+            name: playerName,
+            hand: [],
+            tableau: [],
+            score: 0,
+            ready: true,
+            skipNextTurn: false,
+            finalTurnTaken: false,
+          },
+        ],
+      },
+    );
     setRoomId(newId);
   };
 
@@ -414,11 +840,38 @@ export default function DarkFolkloreGame() {
     if (!code || !playerName) return setError("Missing data.");
     localStorage.setItem("gameHub_playerName", playerName);
     const formattedCode = code.toUpperCase().trim();
-    const ref = doc(db, "artifacts", APP_ID, "public", "data", "rooms", formattedCode);
+    const ref = doc(
+      db,
+      "artifacts",
+      APP_ID,
+      "public",
+      "data",
+      "rooms",
+      formattedCode,
+    );
     const snap = await getDoc(ref);
-    if (!snap.exists() || snap.data().status !== "lobby" || snap.data().players.length >= 6) return setError("Cannot join room.");
-    if (!snap.data().players.some(p => p.id === user.uid)) {
-      await updateDoc(ref, { players: [...snap.data().players, { id: user.uid, name: playerName, hand: [], tableau: [], score: 0, ready: false, skipNextTurn: false, finalTurnTaken: false }] });
+    if (
+      !snap.exists() ||
+      snap.data().status !== "lobby" ||
+      snap.data().players.length >= 6
+    )
+      return setError("Cannot join room.");
+    if (!snap.data().players.some((p) => p.id === user.uid)) {
+      await updateDoc(ref, {
+        players: [
+          ...snap.data().players,
+          {
+            id: user.uid,
+            name: playerName,
+            hand: [],
+            tableau: [],
+            score: 0,
+            ready: false,
+            skipNextTurn: false,
+            finalTurnTaken: false,
+          },
+        ],
+      });
     }
     localStorage.setItem("dark_roomId", formattedCode);
     setRoomId(formattedCode);
@@ -427,97 +880,191 @@ export default function DarkFolkloreGame() {
   const startRound = async () => {
     if (gameState.hostId !== user.uid) return;
     let deck = createDeck();
-    const players = gameState.players.map(p => {
+    const players = gameState.players.map((p) => {
       const hand = [deck.pop(), deck.pop(), deck.pop()];
-      return { ...p, hand, tableau: [], score: 0, skipNextTurn: false, finalTurnTaken: false, ready: false };
+      return {
+        ...p,
+        hand,
+        tableau: [],
+        score: 0,
+        skipNextTurn: false,
+        finalTurnTaken: false,
+        ready: false,
+      };
     });
-    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
-      status: "playing", players, deck, discardPile: [], turnIndex: 0, turnState: "ACTION", actionsLeft: 1, isFinalRound: false, finalRoundTriggeredBy: null, pendingAction: null, logs: arrayUnion({ text: "The ritual begins.", id: Date.now() })
-    });
+    await updateDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      {
+        status: "playing",
+        players,
+        deck,
+        discardPile: [],
+        turnIndex: 0,
+        turnState: "ACTION",
+        actionsLeft: 1,
+        isFinalRound: false,
+        finalRoundTriggeredBy: null,
+        pendingAction: null,
+        logs: arrayUnion({ text: "The ritual begins.", id: Date.now() }),
+      },
+    );
   };
-  
+
   const kickPlayer = async (targetId) => {
     if (gameState.hostId !== user.uid) return;
     const players = gameState.players.filter((p) => p.id !== targetId);
-    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), { players });
+    await updateDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      { players },
+    );
   };
-  
+
   const handleLeave = async () => {
     if (!roomId) return;
     try {
-      const ref = doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId);
+      const ref = doc(
+        db,
+        "artifacts",
+        APP_ID,
+        "public",
+        "data",
+        "rooms",
+        roomId,
+      );
       if (gameState.hostId === user.uid) await deleteDoc(ref);
       else {
         const newPlayers = gameState.players.filter((p) => p.id !== user.uid);
         await updateDoc(ref, { players: newPlayers });
       }
-    } catch (e) { console.log("Room deleted"); }
-    localStorage.removeItem("dark_roomId"); setRoomId(""); setView("menu"); setShowLeaveConfirm(false); setGameState(null);
+    } catch (e) {
+      console.log("Room deleted");
+    }
+    localStorage.removeItem("dark_roomId");
+    setRoomId("");
+    setView("menu");
+    setShowLeaveConfirm(false);
+    setGameState(null);
   };
 
   const copyToClipboard = () => {
     const textToCopy = gameState.roomId;
     try {
       navigator.clipboard.writeText(textToCopy);
-      setIsCopied(true); setTimeout(() => setIsCopied(false), 2000);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
     } catch (e) {
-      const el = document.createElement("textarea"); el.value = textToCopy; document.body.appendChild(el); el.select(); document.execCommand("copy"); document.body.removeChild(el);
-      setIsCopied(true); setTimeout(() => setIsCopied(false), 2000);
+      const el = document.createElement("textarea");
+      el.value = textToCopy;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
     }
   };
 
-  const log = (text, type="neutral") => arrayUnion({ text, type, id: Date.now() });
+  const log = (text, type = "neutral") =>
+    arrayUnion({ text, type, id: Date.now() });
 
-  const executeAction = async (updates, logText, logType="neutral") => {
+  const executeAction = async (updates, logText, logType = "neutral") => {
     if (logText) updates.logs = log(logText, logType);
-    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), updates);
+    await updateDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      updates,
+    );
   };
 
   // Common advancement logic called at the end of actions
-  const finalizeAction = (players, deck, currentTurnState, currentActionsLeft, forceDiscardCheck = true) => {
+  const finalizeAction = (
+    players,
+    deck,
+    currentTurnState,
+    currentActionsLeft,
+    forceDiscardCheck = true,
+  ) => {
     const pIdx = gameState.turnIndex;
     const p = players[pIdx];
-    
+
     // Recalculate all scores
-    players.forEach(pl => pl.score = calculateScore(pl.tableau));
+    players.forEach((pl) => (pl.score = calculateScore(pl.tableau)));
 
     if (forceDiscardCheck && p.hand.length > 7) {
-      return { players, turnState: "FORCE_DISCARD", actionsLeft: currentActionsLeft, deck };
+      return {
+        players,
+        turnState: "FORCE_DISCARD",
+        actionsLeft: currentActionsLeft,
+        deck,
+      };
     }
 
     if (currentActionsLeft <= 0) {
-      // End turn sequence
-      let nextIdx = (pIdx + 1) % players.length;
-      let nextState = "ACTION";
-      
-      // Handle Final Round Condition
       let isFinal = gameState.isFinalRound;
-      let trigger = gameState.finalRoundTriggeredBy;
-      if (deck.length === 0 && !isFinal) {
-        isFinal = true;
-        trigger = p.id;
-      }
 
+      // 1. If the final round was ALREADY active when this player started their turn,
+      // then they have now officially completed their one last turn.
       if (isFinal) {
         players[pIdx].finalTurnTaken = true;
-        if (players.every(pl => pl.finalTurnTaken) || players[nextIdx].id === trigger) {
-          // Identify Winner
-          const sorted = [...players].sort((a,b)=> b.score - a.score);
-          const updates = { players, turnState: "FINISHED", status: "finished", deck, isFinalRound: true, winnerId: sorted[0].id };
-          updates.logs = log(`${sorted[0].name} commands the shadows and wins!`, "success");
-          return updates;
-        }
       }
 
-      // Handle Skips
+      // 2. Check if the deck JUST emptied right now
+      if (deck.length === 0 && !isFinal) {
+        isFinal = true;
+        // Note: We DO NOT mark the current player's finalTurnTaken as true here,
+        // because this was just their normal turn. They still get one more!
+      }
+
+      // 3. Resolve Skips FIRST 
+      let nextIdx = (pIdx + 1) % players.length;
       while (players[nextIdx].skipNextTurn) {
         players[nextIdx].skipNextTurn = false;
+        
+        // If they are skipped during the final round, they miss their last turn!
+        if (isFinal) {
+          players[nextIdx].finalTurnTaken = true;
+        }
         nextIdx = (nextIdx + 1) % players.length;
       }
-      return { players, turnIndex: nextIdx, turnState: nextState, actionsLeft: 1, deck, isFinalRound: isFinal, finalRoundTriggeredBy: trigger };
+
+      // 4. Check if everyone has taken their final turn
+      if (isFinal && players.every((pl) => pl.finalTurnTaken)) {
+        // Identify Winner
+        const sorted = [...players].sort((a, b) => b.score - a.score);
+        const updates = {
+          players,
+          turnState: "FINISHED",
+          status: "finished",
+          deck,
+          isFinalRound: true,
+          winnerId: sorted[0].id,
+        };
+        
+        updates.logs = log(
+          `${sorted[0].name} commands the shadows and wins!`,
+          "success"
+        );
+        
+        return updates;
+      }
+
+      // 5. Game continues - pass to the next player
+      return {
+        players,
+        turnIndex: nextIdx,
+        turnState: "ACTION",
+        actionsLeft: 1,
+        deck,
+        isFinalRound: isFinal,
+      };
     }
 
-    return { players, turnState: currentTurnState, actionsLeft: currentActionsLeft, deck };
+    // Still have actions left, turn continues
+    return {
+      players,
+      turnState: currentTurnState,
+      actionsLeft: currentActionsLeft,
+      deck,
+    };
   };
 
   const actionDraw = async () => {
@@ -525,8 +1072,18 @@ export default function DarkFolkloreGame() {
     const deck = [...gameState.deck];
     if (deck.length === 0) return;
     players[gameState.turnIndex].hand.push(deck.pop());
-    const updates = finalizeAction(players, deck, "ACTION", gameState.actionsLeft - 1);
-    await executeAction(updates, `${players[gameState.turnIndex].name} drew a card from the void.`, "neutral");
+    const updates = finalizeAction(
+      players,
+      deck,
+      "ACTION",
+      gameState.actionsLeft - 1,
+    );
+    await executeAction(
+      updates,
+      `${players[gameState.turnIndex].name} drew a card from the void.`,
+      "neutral",
+    );
+    setSelectedHandCards([]); // <--- ADD THIS HERE
   };
 
   const actionStealInit = async () => {
@@ -537,344 +1094,663 @@ export default function DarkFolkloreGame() {
     const players = JSON.parse(JSON.stringify(gameState.players));
     const discardPile = [...gameState.discardPile];
     const p = players[gameState.turnIndex];
-    const cIdx = p.hand.findIndex(c => c.uid === cardUid);
+    const cIdx = p.hand.findIndex((c) => c.uid === cardUid);
     discardPile.push(p.hand.splice(cIdx, 1)[0]);
-    const updates = finalizeAction(players, gameState.deck, "ACTION", gameState.actionsLeft - 1 + 2); // Cost 1, Gain 2
+
+    // NEW LOGIC HERE:
+    const isCurrentlyFreePlay = gameState.turnState === "FREE_PLAY_PROMPT";
+    const actionsCost = isCurrentlyFreePlay ? 0 : 1;
+
+    const updates = finalizeAction(
+      players,
+      gameState.deck,
+      "ACTION",
+      gameState.actionsLeft - actionsCost + 2,
+    );
     updates.discardPile = discardPile;
-    await executeAction(updates, `${p.name} cast a Dark Spell! +2 Actions.`, "success");
+    if (isCurrentlyFreePlay) updates.pendingAction = null;
+
+    await executeAction(
+      updates,
+      `${p.name} cast a Dark Spell! +2 Actions.`,
+      "success",
+    );
     setSelectedHandCards([]);
   };
 
   const actionPlaySet = async () => {
     const players = JSON.parse(JSON.stringify(gameState.players));
     const p = players[gameState.turnIndex];
-    const cards = selectedHandCards.map(uid => p.hand.find(c => c.uid === uid));
-    
+    const cards = selectedHandCards.map((uid) =>
+      p.hand.find((c) => c.uid === uid),
+    );
+
     // Validation
     if (cards.length !== 3) return setError("Set must be exactly 3 cards.");
-    const isDest = cards.every(c => ALL_CARDS[c.cardId].type === "DEST");
-    const isBird = cards.every(c => ALL_CARDS[c.cardId].type === "BIRD");
+    const isDest = cards.every((c) => ALL_CARDS[c.cardId].type === "DEST");
+    const isBird = cards.every((c) => ALL_CARDS[c.cardId].type === "BIRD");
     if (!isDest && !isBird) return setError("Invalid Set.");
-    
+
     if (isDest) {
-      const types = new Set(cards.map(c => c.cardId)).size;
-      if (types === 2) return setError("Destinations must be 3 identical or 1 of each.");
+      const types = new Set(cards.map((c) => c.cardId)).size;
+      if (types === 2)
+        return setError("Destinations must be 3 identical or 1 of each.");
     } else {
-      const types = new Set(cards.map(c => c.cardId)).size;
+      const types = new Set(cards.map((c) => c.cardId)).size;
       if (types !== 1) return setError("Birds must be 3 identical.");
     }
 
     // Remove from hand, add to tableau
-    p.hand = p.hand.filter(c => !selectedHandCards.includes(c.uid));
-    p.tableau.push({ id: `SET_${Date.now()}`, type: isDest ? "DEST" : "BIRD", cards, isLocked: false });
+    p.hand = p.hand.filter((c) => !selectedHandCards.includes(c.uid));
+    p.tableau.push({
+      id: `SET_${Date.now()}`,
+      type: isDest ? "DEST" : "BIRD",
+      cards,
+      isLocked: false,
+    });
 
-    const updates = finalizeAction(players, gameState.deck, "ACTION", gameState.actionsLeft - 1);
-    await executeAction(updates, `${p.name} played a ${isDest ? "Destination" : "Bird"} Set.`, "success");
+    const updates = finalizeAction(
+      players,
+      gameState.deck,
+      "ACTION",
+      gameState.actionsLeft - 1,
+    );
+    await executeAction(
+      updates,
+      `${p.name} played a ${isDest ? "Destination" : "Bird"} Set.`,
+      "success",
+    );
     setSelectedHandCards([]);
   };
 
-  const actionPlaySupernatural = async (cardUid) => {
+  const actionPlaySupernatural = async (cardUid, placementSetId = null) => {
+    setSelectedHandCards([]); // Clears previous highlights
     const p = gameState.players[gameState.turnIndex];
-    const card = p.hand.find(c => c.uid === cardUid);
+    const card = p.hand.find((c) => c.uid === cardUid);
     const def = SUPERNATURALS[card.cardId];
 
-    // Specialized Pre-checks for complex modal flows
-    if (def.target === "SET_SWAP") {
-        const swapSet = p.tableau.find(s => !s.isLocked);
-        if (!swapSet) return setError("Requires an unlocked set to swap.");
-        return setModalState({ type: "SET_SWAP", ownSetId: swapSet.id, cardUid, def });
-    }
-    if (def.target === "SET_HEXWITCH") {
-        const birdSet = p.tableau.find(s => s.type === "BIRD" && !s.isLocked && s.cards.length === 3);
-        if (!birdSet) return setError("Requires a completed Bird set to sacrifice.");
-        return setModalState({ type: "SET_HEXWITCH", ownSetId: birdSet.id, cardUid, def });
-    }
-    if (def.target === "OWN_SUP") {
-        const hasSup = p.tableau.some(s => s.type === "SUP" && s.cards.length > 0 && !s.isLocked);
-        if (!hasSup) return setError("You have no unlocked entities to re-trigger.");
-        return setModalState({ type: "OWN_SUP", cardUid, def });
-    }
-    if (def.target === "ORACLE") {
-        setModalState({ type: "ORACLE", cardUid, def });
-        return;
-    }
-    if (def.target === "BROKER") {
-        setModalState({ type: "BROKER", cardUid, def });
-        return;
+    // NEW: Intercept flow to ask for set placement if they have valid existing sets
+    const validSets = p.tableau.filter(
+      (s) => s.type === "SUP" && !s.isLocked && s.cards.length < 5,
+    );
+    if (placementSetId === null && validSets.length > 0) {
+      setModalState({ type: "CHOOSE_PLACEMENT", cardUid, def });
+      return; // Stop here and wait for modal input
     }
 
-    if (def.target === "NONE") resolveSupernatural(cardUid, null);
-    else setModalState({ type: def.target, cardUid, def });
+    // Pass the placementSetId into the target modals so it isn't lost
+    if (def.target === "SET_SWAP") {
+      const validOwnSets = p.tableau.filter((s) => !s.isLocked);
+      if (validOwnSets.length === 0)
+        return setError("Requires an unlocked set to swap.");
+      return setModalState({
+        type: "SET_SWAP",
+        ownSetId: validOwnSets.length === 1 ? validOwnSets[0].id : null,
+        validOwnSets,
+        cardUid,
+        def,
+        placementSetId,
+      });
+    }
+    if (def.target === "SET_HEXWITCH") {
+      const validOwnSets = p.tableau.filter(
+        (s) => s.type === "BIRD" && !s.isLocked && s.cards.length === 3,
+      );
+      if (validOwnSets.length === 0)
+        return setError("Requires a completed Bird set to sacrifice.");
+      return setModalState({
+        type: "SET_HEXWITCH",
+        ownSetId: validOwnSets.length === 1 ? validOwnSets[0].id : null,
+        validOwnSets,
+        cardUid,
+        def,
+        placementSetId,
+      });
+    }
+    if (def.target === "OWN_SUP") {
+      const hasSup = p.tableau.some(
+        (s) => s.type === "SUP" && s.cards.length > 0 && !s.isLocked,
+      );
+      if (!hasSup)
+        return setError("You have no unlocked entities to re-trigger.");
+      return setModalState({ type: "OWN_SUP", cardUid, def, placementSetId });
+    }
+    if (def.target === "ORACLE") {
+      return setModalState({ type: "ORACLE", cardUid, def, placementSetId });
+    }
+    if (def.target === "BROKER") {
+      return setModalState({ type: "BROKER", cardUid, def, placementSetId });
+    }
+
+    if (def.target === "NONE") resolveSupernatural(cardUid, { placementSetId });
+    else setModalState({ type: def.target, cardUid, def, placementSetId });
   };
 
   const applySupernaturalEffect = (def, targetData, ctx) => {
     const { players, me } = ctx;
-    
-    // Safety checks for targeted abilities resolving missing data (prevents chain soft-locks)
-    if (["SUP_HEADLESS", "SUP_BLOODFIEND", "SUP_DEVOURER", "SUP_GRIM", "SUP_SERPENT", "SUP_SILENCER", "SUP_HANDSHIFTER"].includes(def.id) && (!targetData || !targetData.targetPlayerId)) return;
-    if (def.id === "SUP_CHAINBINDER" && (!targetData || !targetData.targetPlayerId)) return;
-    if (def.id === "SUP_BLOODFIEND" && (!targetData || !targetData.targetIds)) return;
-    if (def.id === "SUP_HOARDER" && (!targetData || !targetData.choices)) return;
-    if (["SUP_DESTROYER"].includes(def.id) && (!targetData || !targetData.targetSetId)) return;
-    if (["SUP_SHAPECHANGER", "SUP_HEXWITCH"].includes(def.id) && (!targetData || !targetData.ownSetId || !targetData.targetSetId)) return;
-    if (["SUP_ENCHANTRESS", "SUP_NIGHTWALKER"].includes(def.id) && (!targetData || !targetData.targetCardUid)) return;
 
-    switch(def.id) {
+    // Safety checks for targeted abilities resolving missing data (prevents chain soft-locks)
+    if (
+      [
+        "SUP_HEADLESS",
+        "SUP_DEVOURER",
+        "SUP_GRIM",
+        "SUP_SERPENT",
+        "SUP_SILENCER",
+        "SUP_HANDSHIFTER",
+      ].includes(def.id) &&
+      (!targetData || !targetData.targetPlayerId)
+    )
+      return;
+    if (
+      def.id === "SUP_CHAINBINDER" &&
+      (!targetData || !targetData.targetPlayerId)
+    )
+      return;
+    // FIX: Changed targetIds to selections
+    if (def.id === "SUP_BLOODFIEND" && (!targetData || !targetData.selections))
+      return;
+    if (def.id === "SUP_HOARDER" && (!targetData || !targetData.choices))
+      return;
+    if (
+      ["SUP_DESTROYER"].includes(def.id) &&
+      (!targetData || !targetData.targetSetId)
+    )
+      return;
+    if (
+      ["SUP_SHAPECHANGER", "SUP_HEXWITCH"].includes(def.id) &&
+      (!targetData || !targetData.ownSetId || !targetData.targetSetId)
+    )
+      return;
+    if (
+      ["SUP_ENCHANTRESS", "SUP_NIGHTWALKER"].includes(def.id) &&
+      (!targetData || !targetData.targetCardUid)
+    )
+      return;
+
+    switch (def.id) {
       case "SUP_GUARDIAN":
-        let tSet = me.tableau.map(s => s.type === "SUP" && !s.isLocked).lastIndexOf(true);
+        let tSet = me.tableau
+          .map((s) => s.type === "SUP" && !s.isLocked)
+          .lastIndexOf(true);
         if (tSet > -1) me.tableau[tSet].isLocked = true;
         ctx.logsText += " Set locked defensively.";
         break;
       case "SUP_OCCULTIST":
-        if(ctx.deck.length>0) me.hand.push(ctx.deck.pop());
-        if(ctx.deck.length>0) me.hand.push(ctx.deck.pop());
+        if (ctx.deck.length > 0) me.hand.push(ctx.deck.pop());
+        if (ctx.deck.length > 0) me.hand.push(ctx.deck.pop());
+        ctx.logsText += " They drew 2 cards from the void.";
         break;
       case "SUP_HEADLESS":
       case "SUP_DEVOURER":
       case "SUP_GRIM":
+        ctx.logsText += " The shadows reach out to strike.";
         ctx.awaitAmulet = true;
-        ctx.pendingData = { type: def.id, targetId: targetData.targetPlayerId, sourceId: me.id };
+        ctx.pendingData = {
+          type: def.id,
+          targetId: targetData.targetPlayerId,
+          sourceId: me.id,
+        };
         break;
       case "SUP_CHAINBINDER":
         ctx.awaitAmulet = true;
-        ctx.pendingData = { type: "STEAL", targetId: targetData.targetPlayerId, sourceId: me.id };
-        ctx.logsText += ` Scanned all minds and prepared to strike.`;
+        ctx.pendingData = {
+          type: "STEAL",
+          targetId: targetData.targetPlayerId,
+          sourceId: me.id,
+        };
+        ctx.logsText += ` They scanned all minds and targeted ${players.find(p => p.id === targetData.targetPlayerId).name}.`;
         break;
-        case "SUP_BLOODFIEND":
-        targetData.targetIds.forEach(tId => {
-            const t = players.find(p => p.id === tId);
-            if (t && t.hand.some(c => c.cardId === "AMULET")) {
-                const aIdx = t.hand.findIndex(c => c.cardId === "AMULET");
-                ctx.discardPile.push(t.hand.splice(aIdx, 1)[0]);
-                ctx.logsText += ` ${t.name} blocked a strike!`;
-            } else if (t && t.hand.length > 0) {
-                me.hand.push(t.hand.splice(Math.floor(Math.random() * t.hand.length), 1)[0]);
+      case "SUP_BLOODFIEND":
+        let bfCardsGained = 0;
+        let bfStolen = {};
+        let bfBlocked = [];
+
+        targetData.selections.forEach((tId) => {
+          const t = players.find((p) => p.id === tId);
+          if (!t || t.hand.length === 0) return;
+
+          if (t.hand.some((c) => c.cardId === "AMULET")) {
+            const aIdx = t.hand.findIndex((c) => c.cardId === "AMULET");
+            ctx.discardPile.push(t.hand.splice(aIdx, 1)[0]);
+            bfBlocked.push(t.name);
+          } else {
+            const stolen = t.hand.splice(Math.floor(Math.random() * t.hand.length), 1)[0];
+            if (stolen) {
+              me.hand.push(stolen);
+              bfCardsGained++;
+              bfStolen[t.name] = (bfStolen[t.name] || 0) + 1;
             }
+          }
         });
+
+        let bfDeck = 0;
+        while (bfCardsGained < 3 && ctx.deck.length > 0) {
+          me.hand.push(ctx.deck.pop());
+          bfCardsGained++;
+          bfDeck++;
+        }
+
+        let bfLog = [];
+        if (Object.keys(bfStolen).length > 0) {
+          bfLog.push(Object.entries(bfStolen).map(([n, c]) => `${c} from ${n}`).join(", "));
+        }
+        if (bfDeck > 0) bfLog.push(`${bfDeck} from the deck`);
+        
+        ctx.logsText += ` Bloodfiend ripped ${bfLog.join(" and ")}.` + (bfBlocked.length > 0 ? ` (${bfBlocked.join(", ")} blocked!)` : "");
         break;
       case "SUP_SERPENT":
-        ctx.logsText += ` Glared into ${players.find(p=>p.id===targetData.targetPlayerId).name}'s soul.`;
+        ctx.logsText += ` They glared into ${players.find((p) => p.id === targetData.targetPlayerId).name}'s hand.`;
         break;
       case "SUP_DESTROYER":
-        const tOpp = players.find(p => p.id === targetData.targetPlayerId);
-        const tSetIdx = tOpp.tableau.findIndex(s => s.id === targetData.targetSetId);
-        if (tSetIdx > -1) ctx.discardPile.push(...tOpp.tableau.splice(tSetIdx, 1)[0].cards);
-        ctx.logsText += ` Destroyed a set!`;
+        const tOpp = players.find((p) => p.id === targetData.targetPlayerId);
+        const tSetIdx = tOpp.tableau.findIndex((s) => s.id === targetData.targetSetId);
+        if (tSetIdx > -1) {
+          const destroyedSet = tOpp.tableau.splice(tSetIdx, 1)[0];
+          ctx.discardPile.push(...destroyedSet.cards);
+          ctx.logsText += ` They shattered a ${destroyedSet.cards.length}-card set belonging to ${tOpp.name}!`;
+        }
         break;
       case "SUP_SHAPECHANGER":
-        const mySetIdx = me.tableau.findIndex(s => s.id === targetData.ownSetId);
-        const opp = players.find(p => p.id === targetData.targetPlayerId);
-        const oppSetIdx = opp.tableau.findIndex(s => s.id === targetData.targetSetId);
+        const mySetIdx = me.tableau.findIndex(
+          (s) => s.id === targetData.ownSetId,
+        );
+        const opp = players.find((p) => p.id === targetData.targetPlayerId);
+        const oppSetIdx = opp.tableau.findIndex(
+          (s) => s.id === targetData.targetSetId,
+        );
         if (mySetIdx > -1 && oppSetIdx > -1) {
-            const temp = me.tableau[mySetIdx];
-            me.tableau[mySetIdx] = opp.tableau[oppSetIdx];
-            opp.tableau[oppSetIdx] = temp;
-            ctx.logsText += ` Swapped sets with ${opp.name}.`;
+          const temp = me.tableau[mySetIdx];
+          me.tableau[mySetIdx] = opp.tableau[oppSetIdx];
+          opp.tableau[oppSetIdx] = temp;
+          ctx.logsText += ` Swapped sets with ${opp.name}.`;
         }
         break;
       case "SUP_ORACLE":
-        ctx.deck.splice(0, ctx.deck.length, ...(targetData.updatedDeck || ctx.deck));
-        ctx.discardPile.splice(0, ctx.discardPile.length, ...(targetData.updatedDiscard || ctx.discardPile));
+        ctx.deck.splice(
+          0,
+          ctx.deck.length,
+          ...(targetData.updatedDeck || ctx.deck),
+        );
+        ctx.discardPile.splice(
+          0,
+          ctx.discardPile.length,
+          ...(targetData.updatedDiscard || ctx.discardPile),
+        );
         if (targetData.keptCard) me.hand.push(targetData.keptCard);
-        if (targetData.discardedCard) ctx.discardPile.push(targetData.discardedCard);
+        if (targetData.discardedCard)
+          ctx.discardPile.push(targetData.discardedCard);
+        ctx.logsText += " They peered into the future and kept 1 card.";
         break;
       case "SUP_RELIC":
         if (targetData.discardUids && targetData.discardUids.length > 0) {
-            const rIdx = ctx.discardPile.findIndex(c => c.uid === targetData.discardUids[0]);
-            if (rIdx > -1) me.hand.push(ctx.discardPile.splice(rIdx, 1)[0]);
+          const rIdx = ctx.discardPile.findIndex((c) => c.uid === targetData.discardUids[0]);
+          if (rIdx > -1) {
+            const drawn = ctx.discardPile.splice(rIdx, 1)[0];
+            me.hand.push(drawn);
+            ctx.freePlayUids = [drawn.uid];
+            ctx.logsText += ` They claimed '${ALL_CARDS[drawn.cardId].name}' from the void.`;
+          }
         }
-        ctx.grantExtraAction = true;
         break;
       case "SUP_HOARDER":
-        targetData.choices.forEach(choice => {
-            if (choice === "DECK" && ctx.deck.length > 0) me.hand.push(ctx.deck.pop());
-            else if (choice !== "DECK") {
-                const t = players.find(p => p.id === choice);
-                if (t && t.hand.some(c => c.cardId === "AMULET")) {
-                    const aIdx = t.hand.findIndex(c => c.cardId === "AMULET");
-                    ctx.discardPile.push(t.hand.splice(aIdx, 1)[0]);
-                    ctx.logsText += ` ${t.name} blocked Hoarder!`;
-                } else if (t && t.hand.length > 0) {
-                    me.hand.push(t.hand.splice(Math.floor(Math.random() * t.hand.length), 1)[0]);
-                }
+        let hDeck = 0;
+        let hStolen = {};
+        let hBlocked = [];
+
+        targetData.choices.forEach((choice) => {
+          if (choice === "DECK" && ctx.deck.length > 0) {
+            me.hand.push(ctx.deck.pop());
+            hDeck++;
+          } else if (choice !== "DECK") {
+            const t = players.find((p) => p.id === choice);
+            if (t && t.hand.some((c) => c.cardId === "AMULET")) {
+              const aIdx = t.hand.findIndex((c) => c.cardId === "AMULET");
+              ctx.discardPile.push(t.hand.splice(aIdx, 1)[0]);
+              hBlocked.push(t.name);
+            } else if (t && t.hand.length > 0) {
+              me.hand.push(t.hand.splice(Math.floor(Math.random() * t.hand.length), 1)[0]);
+              hStolen[t.name] = (hStolen[t.name] || 0) + 1;
             }
+          }
         });
+
+        while (me.hand.length < 7 && ctx.deck.length > 0) {
+          me.hand.push(ctx.deck.pop());
+          hDeck++;
+        }
+        
+        let hLog = [];
+        if (hDeck > 0) hLog.push(`${hDeck} from the deck`);
+        if (Object.keys(hStolen).length > 0) {
+          hLog.push(Object.entries(hStolen).map(([n, c]) => `${c} from ${n}`).join(", "));
+        }
+
+        ctx.logsText += hLog.length > 0 ? ` They hoarded ${hLog.join(" and ")}.` : ` They tried to hoard but found nothing.`;
+        if (hBlocked.length > 0) ctx.logsText += ` (${hBlocked.join(" and ")} blocked!)`;
         break;
       case "SUP_HEXWITCH":
-        const hMySetIdx = me.tableau.findIndex(s => s.id === targetData.ownSetId);
+        const hMySetIdx = me.tableau.findIndex(
+          (s) => s.id === targetData.ownSetId,
+        );
         if (hMySetIdx > -1) {
-            ctx.discardPile.push(...me.tableau.splice(hMySetIdx, 1)[0].cards);
-            const hOpp = players.find(p => p.id === targetData.targetPlayerId);
-            const hOppSetIdx = hOpp.tableau.findIndex(s => s.id === targetData.targetSetId);
-            if (hOppSetIdx > -1) me.tableau.push(hOpp.tableau.splice(hOppSetIdx, 1)[0]);
-            ctx.logsText += ` Sacrificed birds to steal a set!`;
+          ctx.discardPile.push(...me.tableau.splice(hMySetIdx, 1)[0].cards);
+          const hOpp = players.find((p) => p.id === targetData.targetPlayerId);
+          const hOppSetIdx = hOpp.tableau.findIndex(
+            (s) => s.id === targetData.targetSetId,
+          );
+          if (hOppSetIdx > -1)
+            me.tableau.push(hOpp.tableau.splice(hOppSetIdx, 1)[0]);
+          ctx.logsText += ` They sacrificed a Bird set to steal ${hOpp.name}'s set!`;
         }
         break;
       case "SUP_SILENCER":
-        const silOpp = players.find(p => p.id === targetData.targetPlayerId);
-        if(silOpp) {
-            silOpp.skipNextTurn = true;
-            ctx.logsText += ` Silenced ${silOpp.name}.`;
+        const silOpp = players.find((p) => p.id === targetData.targetPlayerId);
+        if (silOpp) {
+          silOpp.skipNextTurn = true;
+          ctx.logsText += ` They silenced ${silOpp.name}, skipping their next turn!`;
         }
         break;
       case "SUP_HANDSHIFTER":
-        const hsOpp = players.find(p => p.id === targetData.targetPlayerId);
-        if(hsOpp) {
-            const myHand = [...me.hand];
-            me.hand = [...hsOpp.hand];
-            hsOpp.hand = myHand;
-            ctx.logsText += ` Swapped hands with ${hsOpp.name}.`;
+        const hsOpp = players.find((p) => p.id === targetData.targetPlayerId);
+        if (hsOpp) {
+          const myHand = [...me.hand];
+          me.hand = [...hsOpp.hand];
+          hsOpp.hand = myHand;
+          ctx.logsText += ` Swapped hands with ${hsOpp.name}.`;
         }
         break;
       case "SUP_RAVENOUS":
-        players.forEach(p => { if (p.id !== me.id && p.hand.length > 0) ctx.discardPile.push(p.hand.splice(Math.floor(Math.random()*p.hand.length), 1)[0]); });
-        ctx.logsText += ` A swarm devoured cards from opponents.`;
+        let ravTargets = [];
+        players.forEach((p) => {
+          if (p.id !== me.id && p.hand.length > 0) {
+            ctx.discardPile.push(p.hand.splice(Math.floor(Math.random() * p.hand.length), 1)[0]);
+            ravTargets.push(p.name);
+          }
+        });
+        ctx.logsText += ravTargets.length > 0 
+          ? ` A swarm devoured 1 card from ${ravTargets.join(", ")}.` 
+          : ` A swarm appeared, but there was nothing to devour.`;
         break;
       case "SUP_REDEEMER":
-        if (ctx.discardPile.length > 0) me.hand.push(ctx.discardPile.pop());
-        ctx.grantExtraAction = true;
+        if (ctx.discardPile.length > 0) {
+          const drawn = ctx.discardPile.pop();
+          me.hand.push(drawn);
+          ctx.freePlayUids = [drawn.uid];
+          ctx.logsText += ` They redeemed '${ALL_CARDS[drawn.cardId].name}' from the void.`;
+        }
         break;
       case "SUP_TWINS":
+        ctx.freePlayUids = [];
+        let twinsPulled = [];
         if (targetData.discardUids) {
-            targetData.discardUids.forEach(uid => {
-              const idx = ctx.discardPile.findIndex(c => c.uid === uid);
-              if (idx > -1) me.hand.push(ctx.discardPile.splice(idx, 1)[0]);
-            });
+          targetData.discardUids.forEach((uid) => {
+            const idx = ctx.discardPile.findIndex((c) => c.uid === uid);
+            if (idx > -1) {
+              const drawn = ctx.discardPile.splice(idx, 1)[0];
+              me.hand.push(drawn);
+              ctx.freePlayUids.push(drawn.uid);
+              twinsPulled.push(`'${ALL_CARDS[drawn.cardId].name}'`);
+            }
+          });
         }
-        ctx.grantExtraAction = true;
+        if (twinsPulled.length > 0) {
+           ctx.logsText += ` They resurrected ${twinsPulled.join(" and ")} from the void.`;
+        }
         break;
       case "SUP_SUMMONER":
         let summonedCount = 0;
-        players.forEach(p => {
-          if(p.id !== me.id && targetData.namedCardId) {
-             const matches = p.hand.filter(c => c.cardId === targetData.namedCardId);
-             p.hand = p.hand.filter(c => c.cardId !== targetData.namedCardId);
-             me.hand.push(...matches);
-             summonedCount += matches.length;
+        let summonedFrom = [];
+        const namedCard = ALL_CARDS[targetData.namedCardId]?.name || "a card";
+        
+        players.forEach((p) => {
+          if (p.id !== me.id && targetData.namedCardId) {
+            const matchIdx = p.hand.findIndex((c) => c.cardId === targetData.namedCardId);
+            if (matchIdx > -1) {
+              me.hand.push(p.hand.splice(matchIdx, 1)[0]);
+              summonedCount++;
+              summonedFrom.push(p.name);
+            }
           }
         });
-        ctx.logsText += summonedCount > 0 ? ` Compelled ${summonedCount} matching cards!` : ` No one held the named card.`;
+        
+        ctx.logsText += summonedCount > 0 
+            ? ` They compelled '${namedCard}' from ${summonedFrom.join(" and ")}!` 
+            : ` They called for '${namedCard}' but no one answered.`;
         break;
       case "SUP_BROKER":
         ctx.discardPile.splice(0, ctx.discardPile.length, ...(targetData.updatedDiscard || ctx.discardPile));
-        if(targetData.keptCard) me.hand.push(targetData.keptCard);
-        const opps = players.filter(p => p.id !== me.id);
-        if(targetData.scatterCards) {
-           targetData.scatterCards.forEach((c, i) => {
-               opps[i % opps.length].hand.push(c);
-           });
+        if (targetData.keptCard) me.hand.push(targetData.keptCard);
+        const opps = players.filter((p) => p.id !== me.id);
+        if (targetData.scatterCards) {
+          targetData.scatterCards.forEach((c, i) => {
+            opps[i % opps.length].hand.push(c);
+          });
         }
-        ctx.logsText += ` Scattered the remaining graves to the winds.`;
+        const keptName = targetData.keptCard ? ALL_CARDS[targetData.keptCard.cardId].name : "nothing";
+        const scatterCount = targetData.scatterCards ? targetData.scatterCards.length : 0;
+        ctx.logsText += ` Grave Broker kept '${keptName}' and scattered ${scatterCount} cards to opponents.`;
         break;
       case "SUP_NIGHTWALKER":
       case "SUP_ENCHANTRESS":
-        const nwOpp = players.find(p => p.id === targetData.targetPlayerId);
-        const nwSetIdx = nwOpp.tableau.findIndex(s => s.id === targetData.targetSetId);
+        const nwOpp = players.find((p) => p.id === targetData.targetPlayerId);
+        const nwSetIdx = nwOpp.tableau.findIndex(
+          (s) => s.id === targetData.targetSetId,
+        );
         const nwSet = nwOpp.tableau[nwSetIdx];
-        const nwCardIdx = nwSet.cards.findIndex(c => c.uid === targetData.targetCardUid);
+        const nwCardIdx = nwSet.cards.findIndex(
+          (c) => c.uid === targetData.targetCardUid,
+        );
         const stolenSup = nwSet.cards.splice(nwCardIdx, 1)[0];
-        
+
         // CLEANUP EMPTY SET
         if (nwSet.cards.length === 0) {
-            nwOpp.tableau.splice(nwSetIdx, 1);
+          nwOpp.tableau.splice(nwSetIdx, 1);
         }
-        
-        let tSet2 = me.tableau.map(s => s.type === "SUP" && !s.isLocked && s.cards.length < 5).lastIndexOf(true);
+
+        let tSet2 = me.tableau
+          .map((s) => s.type === "SUP" && !s.isLocked && s.cards.length < 5)
+          .lastIndexOf(true);
         if (tSet2 > -1) me.tableau[tSet2].cards.push(stolenSup);
-        else me.tableau.push({ id: `SET_${Date.now()}`, type: "SUP", cards: [stolenSup], isLocked: false });
-        
+        else
+          me.tableau.push({
+            id: `SET_${Date.now()}`,
+            type: "SUP",
+            cards: [stolenSup],
+            isLocked: false,
+          });
+
         const stolenDef = SUPERNATURALS[stolenSup.cardId];
         ctx.logsText += ` Entranced and stole ${stolenDef.name}.`;
-        
+
         if (stolenDef.target === "NONE") {
-            applySupernaturalEffect(stolenDef, null, ctx); // Recursive inline for simple effects
+          applySupernaturalEffect(stolenDef, null, ctx); // Recursive inline for simple effects
         } else {
-            ctx.triggerChain = true;
-            ctx.chainDefId = stolenDef.id;
+          ctx.triggerChain = true;
+          ctx.chainDefId = stolenDef.id;
         }
+        ctx.logsText += ` They entranced and stole ${nwOpp.name}'s ${stolenDef.name}.`;
         break;
       case "SUP_MOONHAG":
         if (!targetData.retriggerCardId) break;
         const reDef = SUPERNATURALS[targetData.retriggerCardId];
         ctx.logsText += ` Moon Hag re-invokes ${reDef.name}.`;
         if (reDef.target === "NONE") {
-            applySupernaturalEffect(reDef, null, ctx);
+          applySupernaturalEffect(reDef, null, ctx);
         } else {
-            ctx.triggerChain = true;
-            ctx.chainDefId = reDef.id;
+          ctx.triggerChain = true;
+          ctx.chainDefId = reDef.id;
         }
         break;
-      default: break;
+      default:
+        break;
     }
   };
 
   const resolveSupernatural = async (cardUid, targetData) => {
     let ctx = {
-        players: JSON.parse(JSON.stringify(gameState.players)),
-        deck: [...gameState.deck],
-        discardPile: [...gameState.discardPile],
-        pIdx: gameState.turnIndex,
-        logsText: "",
-        awaitAmulet: false,
-        pendingData: null,
-        triggerChain: false,
-        chainDefId: null
+      players: JSON.parse(JSON.stringify(gameState.players)),
+      deck: [...gameState.deck],
+      discardPile: [...gameState.discardPile],
+      pIdx: gameState.turnIndex,
+      logsText: "",
+      awaitAmulet: false,
+      pendingData: null,
+      triggerChain: false,
+      chainDefId: null,
     };
     ctx.me = ctx.players[ctx.pIdx];
-    
-    const handIdx = ctx.me.hand.findIndex(c => c.uid === cardUid);
+
+    const handIdx = ctx.me.hand.findIndex((c) => c.uid === cardUid);
     const cardObj = ctx.me.hand.splice(handIdx, 1)[0];
     const def = SUPERNATURALS[cardObj.cardId];
 
-    let targetSetIdx = ctx.me.tableau.map(s => s.type === "SUP" && !s.isLocked && s.cards.length < 5).lastIndexOf(true);
+    // NEW: Respect the player's modal choice for set placement
+    let targetSetIdx = -1;
+    if (targetData?.placementSetId === "NEW") {
+      targetSetIdx = -1; // Force new set creation
+    } else if (targetData?.placementSetId) {
+      targetSetIdx = ctx.me.tableau.findIndex(
+        (s) => s.id === targetData.placementSetId,
+      );
+    } else {
+      // Fallback for players with 0 existing sets (bypassed the modal)
+      targetSetIdx = ctx.me.tableau
+        .map((s) => s.type === "SUP" && !s.isLocked && s.cards.length < 5)
+        .lastIndexOf(true);
+    }
+
     if (targetSetIdx > -1) ctx.me.tableau[targetSetIdx].cards.push(cardObj);
-    else ctx.me.tableau.push({ id: `SET_${Date.now()}`, type: "SUP", cards: [cardObj], isLocked: false });
+    else
+      ctx.me.tableau.push({
+        id: `SET_${Date.now()}`,
+        type: "SUP",
+        cards: [cardObj],
+        isLocked: false,
+      });
 
     ctx.logsText = `${ctx.me.name} summoned ${def.name}.`;
     applySupernaturalEffect(def, targetData, ctx);
 
+    // ... [Rest of the resolveSupernatural function remains the same]
+
     if (ctx.triggerChain) {
-        const updates = { players: ctx.players, deck: ctx.deck, discardPile: ctx.discardPile, turnState: "CHAIN_MODAL", pendingAction: { type: "CHAIN", defId: ctx.chainDefId, logPrefix: ctx.logsText } };
-        return executeAction(updates, `${ctx.logsText} Gathering power...`, "neutral");
+      const updates = {
+        players: ctx.players,
+        deck: ctx.deck,
+        discardPile: ctx.discardPile,
+        turnState: "CHAIN_MODAL",
+        pendingAction: {
+          type: "CHAIN",
+          defId: ctx.chainDefId,
+          logPrefix: ctx.logsText,
+        },
+      };
+      // FIX: Clear local modal state before moving to the chain
+      setModalState(null);
+      setSelectedHandCards([]);
+      return executeAction(
+        updates,
+        `${ctx.logsText} Gathering power...`,
+        "neutral",
+      );
     }
 
     if (ctx.awaitAmulet) {
-      const target = ctx.players.find(p => p.id === ctx.pendingData.targetId);
-      const hasAmulet = target.hand.some(c => c.cardId === "AMULET");
+      const target = ctx.players.find((p) => p.id === ctx.pendingData.targetId);
+      const hasAmulet = target.hand.some((c) => c.cardId === "AMULET");
       if (hasAmulet && target.hand.length > 0) {
-        const updates = { players: ctx.players, deck: ctx.deck, discardPile: ctx.discardPile, turnState: "AMULET_PROMPT", pendingAction: ctx.pendingData };
-        return executeAction(updates, `${ctx.me.name} targets ${target.name}. Waiting for defense...`, "warning");
+        const updates = {
+          players: ctx.players,
+          deck: ctx.deck,
+          discardPile: ctx.discardPile,
+          turnState: "AMULET_PROMPT",
+          pendingAction: ctx.pendingData,
+        };
+        setModalState(null);
+        setSelectedHandCards([]);
+        return executeAction(
+          updates,
+          `${ctx.logsText} The attack on ${target.name} succeeds!`,
+          "success",
+        );
       } else {
-        resolveOffensiveAction(ctx.pendingData, ctx.players, ctx.discardPile, ctx.deck);
-        const updates = finalizeAction(ctx.players, ctx.deck, "ACTION", gameState.actionsLeft - 1);
+        resolveOffensiveAction(
+          ctx.pendingData,
+          ctx.players,
+          ctx.discardPile,
+          ctx.deck,
+        );
+        const updates = finalizeAction(
+          ctx.players,
+          ctx.deck,
+          "ACTION",
+          gameState.actionsLeft - 1,
+        );
         updates.discardPile = ctx.discardPile;
-        return executeAction(updates, `${ctx.logsText} It strikes true!`, "success");
+        // FIX: Clear the modal out of local memory before the turn passes!
+        setModalState(null);
+        setSelectedHandCards([]);
+        // Use the helper here too!
+        const successLog = getAttackSuccessLog(ctx.pendingData.type, ctx.me.name, target.name);
+        return executeAction(
+          updates,
+          successLog,
+          "success",
+        );
       }
     }
 
-    const actionsCost = ctx.grantExtraAction ? 0 : 1;
-    const updates = finalizeAction(ctx.players, ctx.deck, "ACTION", gameState.actionsLeft - actionsCost);
+    // --- REPLACE THE END OF resolveSupernatural WITH THIS ---
+    const isCurrentlyFreePlay = gameState.turnState === "FREE_PLAY_PROMPT";
+    const actionsCost = isCurrentlyFreePlay ? 0 : 1;
+
+    // NEW FIX: Intercept the Free Play state so finalizeAction doesn't instantly end the turn
+    if (ctx.freePlayUids && ctx.freePlayUids.length > 0) {
+      const updates = {
+        players: ctx.players,
+        deck: ctx.deck,
+        discardPile: ctx.discardPile,
+        turnState: "FREE_PLAY_PROMPT",
+        actionsLeft: gameState.actionsLeft - actionsCost, // Deducts the action, but holds the turn!
+        pendingAction: {
+          type: "FREE_PLAY",
+          uids: ctx.freePlayUids,
+          sourceId: ctx.me.id,
+        },
+      };
+      setModalState(null);
+      setSelectedHandCards([]);
+      return executeAction(updates, ctx.logsText, "success");
+    }
+
+    // Normal turn resolution if no Free Play is pending
+    const updates = finalizeAction(
+      ctx.players,
+      ctx.deck,
+      "ACTION",
+      gameState.actionsLeft - actionsCost,
+    );
+
     updates.discardPile = ctx.discardPile;
+    if (isCurrentlyFreePlay) updates.pendingAction = null;
+
     await executeAction(updates, ctx.logsText, "success");
     setModalState(null);
     setSelectedHandCards([]);
-    updates.discardPile = ctx.discardPile;
-    await executeAction(updates, ctx.logsText, "success");
-    setModalState(null);
-    setSelectedHandCards([]);
-  };
+  }; // End of resolveSupernatural
 
   const resolveChain = async (targetData) => {
     let ctx = {
-        players: JSON.parse(JSON.stringify(gameState.players)),
-        deck: [...gameState.deck],
-        discardPile: [...gameState.discardPile],
-        pIdx: gameState.turnIndex,
-        logsText: gameState.pendingAction.logPrefix,
-        awaitAmulet: false,
-        pendingData: null,
-        triggerChain: false,
-        chainDefId: null
+      players: JSON.parse(JSON.stringify(gameState.players)),
+      deck: [...gameState.deck],
+      discardPile: [...gameState.discardPile],
+      pIdx: gameState.turnIndex,
+      logsText: gameState.pendingAction.logPrefix,
+      awaitAmulet: false,
+      pendingData: null,
+      triggerChain: false,
+      chainDefId: null,
     };
     ctx.me = ctx.players[ctx.pIdx];
     const def = SUPERNATURALS[gameState.pendingAction.defId];
@@ -882,87 +1758,192 @@ export default function DarkFolkloreGame() {
     applySupernaturalEffect(def, targetData, ctx);
 
     if (ctx.awaitAmulet) {
-      const target = ctx.players.find(p => p.id === ctx.pendingData.targetId);
-      const hasAmulet = target.hand.some(c => c.cardId === "AMULET");
+      const target = ctx.players.find((p) => p.id === ctx.pendingData.targetId);
+      const hasAmulet = target.hand.some((c) => c.cardId === "AMULET");
       if (hasAmulet && target.hand.length > 0) {
-        const updates = { players: ctx.players, deck: ctx.deck, discardPile: ctx.discardPile, turnState: "AMULET_PROMPT", pendingAction: ctx.pendingData };
-        return executeAction(updates, `${ctx.me.name} targets ${target.name}. Waiting for defense...`, "warning");
+        const updates = {
+          players: ctx.players,
+          deck: ctx.deck,
+          discardPile: ctx.discardPile,
+          turnState: "AMULET_PROMPT",
+          pendingAction: ctx.pendingData,
+        };
+        // FIX: Clear local modal state before waiting for defense
+        setModalState(null);
+        setSelectedHandCards([]);
+        return executeAction(
+          updates,
+          `${ctx.logsText} The attack on ${target.name} succeeds!`,
+          "success",
+        );
       } else {
-        resolveOffensiveAction(ctx.pendingData, ctx.players, ctx.discardPile, ctx.deck);
-        const updates = finalizeAction(ctx.players, ctx.deck, "ACTION", gameState.actionsLeft - 1);
+        resolveOffensiveAction(
+          ctx.pendingData,
+          ctx.players,
+          ctx.discardPile,
+          ctx.deck,
+        );
+        const updates = finalizeAction(
+          ctx.players,
+          ctx.deck,
+          "ACTION",
+          gameState.actionsLeft - 1,
+        );
         updates.discardPile = ctx.discardPile;
-        return executeAction(updates, `${ctx.logsText} It strikes true!`, "success");
+        // FIX: Clear the modal out of local memory before the turn passes!
+        setModalState(null);
+        setSelectedHandCards([]);
+        // Use the helper here too!
+        const successLog = getAttackSuccessLog(ctx.pendingData.type, ctx.me.name, target.name);
+        return executeAction(
+          updates,
+          successLog,
+          "success",
+        );
       }
     }
 
-    const actionsCost = ctx.grantExtraAction ? 0 : 1;
-    const updates = finalizeAction(ctx.players, ctx.deck, "ACTION", gameState.actionsLeft - actionsCost);
+    // --- REPLACE THE END OF resolveSupernatural WITH THIS ---
+    const isCurrentlyFreePlay = gameState.turnState === "FREE_PLAY_PROMPT";
+    const actionsCost = isCurrentlyFreePlay ? 0 : 1;
+
+    // NEW FIX: Intercept the Free Play state so finalizeAction doesn't instantly end the turn
+    if (ctx.freePlayUids && ctx.freePlayUids.length > 0) {
+      const updates = {
+        players: ctx.players,
+        deck: ctx.deck,
+        discardPile: ctx.discardPile,
+        turnState: "FREE_PLAY_PROMPT",
+        actionsLeft: gameState.actionsLeft - actionsCost, // Deducts the action, but holds the turn!
+        pendingAction: {
+          type: "FREE_PLAY",
+          uids: ctx.freePlayUids,
+          sourceId: ctx.me.id,
+        },
+      };
+      setModalState(null);
+      setSelectedHandCards([]);
+      return executeAction(updates, ctx.logsText, "success");
+    }
+
+    // Normal turn resolution if no Free Play is pending
+    const updates = finalizeAction(
+      ctx.players,
+      ctx.deck,
+      "ACTION",
+      gameState.actionsLeft - actionsCost,
+    );
+
     updates.discardPile = ctx.discardPile;
-    updates.pendingAction = null;
-    await executeAction(updates, `${ctx.logsText} It strikes true!`, "success");
+    if (isCurrentlyFreePlay) updates.pendingAction = null;
+
+    await executeAction(updates, ctx.logsText, "success");
     setModalState(null);
-    updates.discardPile = ctx.discardPile;
-    updates.pendingAction = null;
-    await executeAction(updates, `${ctx.logsText} It strikes true!`, "success");
-    setModalState(null);
-  };
+    setSelectedHandCards([]);
+  }; // End of resolveChain
 
   const resolveOffensiveAction = (pending, players, discardPile, deck) => {
-    const source = players.find(p => p.id === pending.sourceId);
-    const target = players.find(p => p.id === pending.targetId);
+    const source = players.find((p) => p.id === pending.sourceId);
+    const target = players.find((p) => p.id === pending.targetId);
     if (!target || target.hand.length === 0) return;
 
     const stealRandom = (count) => {
-      for(let i=0; i<count; i++) {
-        if(target.hand.length > 0) source.hand.push(target.hand.splice(Math.floor(Math.random()*target.hand.length), 1)[0]);
+      for (let i = 0; i < count; i++) {
+        if (target.hand.length > 0)
+          source.hand.push(
+            target.hand.splice(
+              Math.floor(Math.random() * target.hand.length),
+              1,
+            )[0],
+          );
       }
     };
 
     if (pending.type === "STEAL") stealRandom(1);
     else if (pending.type === "SUP_HEADLESS") stealRandom(2);
     else if (pending.type === "SUP_BLOODFIEND") stealRandom(3);
-    else if (pending.type === "SUP_DEVOURER") discardPile.push(target.hand.splice(Math.floor(Math.random()*target.hand.length), 1)[0]);
-    else if (pending.type === "SUP_GRIM") { stealRandom(1); if(deck.length>0) source.hand.push(deck.pop()); }
-    else if (pending.type === "SUP_CHAINBINDER") {
-       const cIdx = target.hand.findIndex(c => c.uid === pending.specificCardUid);
-       if (cIdx > -1) source.hand.push(target.hand.splice(cIdx, 1)[0]);
+    else if (pending.type === "SUP_DEVOURER")
+      discardPile.push(
+        target.hand.splice(
+          Math.floor(Math.random() * target.hand.length),
+          1,
+        )[0],
+      );
+    else if (pending.type === "SUP_GRIM") {
+      stealRandom(1);
+      if (deck.length > 0) source.hand.push(deck.pop());
+    } else if (pending.type === "SUP_CHAINBINDER") {
+      const cIdx = target.hand.findIndex(
+        (c) => c.uid === pending.specificCardUid,
+      );
+      if (cIdx > -1) source.hand.push(target.hand.splice(cIdx, 1)[0]);
     }
+  };
+
+  const getAttackSuccessLog = (type, sourceName, targetName) => {
+    if (type === "STEAL") return `${sourceName} stole a card from ${targetName}.`;
+    if (type === "SUP_HEADLESS") return `${sourceName}'s Headless stole 2 cards from ${targetName}.`;
+    if (type === "SUP_DEVOURER") return `${sourceName}'s Devourer ripped a card from ${targetName}'s hand into the void.`;
+    if (type === "SUP_GRIM") return `${sourceName}'s Grim Goblin drew from the deck and stole a card from ${targetName}.`;
+    if (type === "SUP_CHAINBINDER") return `${sourceName}'s Chainbinder stole a card from ${targetName}.`;
+    return `${sourceName} struck ${targetName} successfully.`;
   };
 
   const handleAmuletResponse = async (useAmulet) => {
     const players = JSON.parse(JSON.stringify(gameState.players));
     const discardPile = [...gameState.discardPile];
     const pending = gameState.pendingAction;
-    const me = players.find(p => p.id === user.uid);
+    const me = players.find((p) => p.id === user.uid);
+    const source = players.find((p) => p.id === pending.sourceId); // <--- Add this
     let logText = "";
 
     if (useAmulet) {
-      const aIdx = me.hand.findIndex(c => c.cardId === "AMULET");
+      const aIdx = me.hand.findIndex((c) => c.cardId === "AMULET");
       discardPile.push(me.hand.splice(aIdx, 1)[0]);
-      logText = `${me.name} burned an Amulet! Attack nullified.`;
+      // Make the block log detailed too:
+      const attackName = pending.type === "STEAL" ? "A steal" : ALL_CARDS[pending.type]?.name || "An attack";
+      logText = `${me.name} burned an Amulet! ${attackName} from ${source.name} was nullified.`;
     } else {
       resolveOffensiveAction(pending, players, discardPile, gameState.deck);
-      logText = `${me.name} suffered the attack.`;
+      // Use the new helper!
+      logText = getAttackSuccessLog(pending.type, source.name, me.name);
     }
 
-    const updates = finalizeAction(players, gameState.deck, "ACTION", gameState.actionsLeft - 1);
+    const updates = finalizeAction(
+      players,
+      gameState.deck,
+      "ACTION",
+      gameState.actionsLeft - 1,
+    );
     updates.discardPile = discardPile;
     updates.pendingAction = null;
     await executeAction(updates, logText, useAmulet ? "neutral" : "failure");
+    setSelectedHandCards([]); // <--- ADD THIS HERE TOO
   };
 
   const handleForceDiscard = async (cardUids) => {
     const players = JSON.parse(JSON.stringify(gameState.players));
     const discardPile = [...gameState.discardPile];
     const p = players[gameState.turnIndex];
-    cardUids.forEach(uid => {
-      const idx = p.hand.findIndex(c => c.uid === uid);
+    cardUids.forEach((uid) => {
+      const idx = p.hand.findIndex((c) => c.uid === uid);
       discardPile.push(p.hand.splice(idx, 1)[0]);
     });
-    const updates = finalizeAction(players, gameState.deck, "ACTION", gameState.actionsLeft, false);
+    const updates = finalizeAction(
+      players,
+      gameState.deck,
+      "ACTION",
+      gameState.actionsLeft,
+      false,
+    );
     updates.discardPile = discardPile;
-    await executeAction(updates, `${p.name} discarded down to hand limit.`, "warning");
+    await executeAction(
+      updates,
+      `${p.name} discarded down to hand limit.`,
+      "warning",
+    );
     setModalState(null);
+    setSelectedHandCards([]); // <--- ADD THIS HERE to clear the ghost cards!
   };
 
   if (isMaintenance) {
@@ -970,9 +1951,16 @@ export default function DarkFolkloreGame() {
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-slate-200 p-4 text-center relative overflow-hidden">
         <DarkAtmosphere />
         <div className="z-10 bg-fuchsia-950/20 p-8 rounded-3xl border border-fuchsia-900/50 shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-md">
-          <Hammer size={64} className="text-fuchsia-500 mx-auto mb-4 animate-bounce" />
-          <h1 className="text-3xl font-black mb-2 tracking-[0.2em] uppercase text-slate-100">The Void is Restless</h1>
-          <p className="text-slate-400 font-bold tracking-widest uppercase text-xs">Darkness is undergoing maintenance. Return later.</p>
+          <Hammer
+            size={64}
+            className="text-fuchsia-500 mx-auto mb-4 animate-bounce"
+          />
+          <h1 className="text-3xl font-black mb-2 tracking-[0.2em] uppercase text-slate-100">
+            The Void is Restless
+          </h1>
+          <p className="text-slate-400 font-bold tracking-widest uppercase text-xs">
+            Darkness is undergoing maintenance. Return later.
+          </p>
         </div>
         <div className="h-8"></div>
         <a href={getBaseUrl()} className="z-10">
@@ -986,31 +1974,71 @@ export default function DarkFolkloreGame() {
     );
   }
 
-  if (view === "menu") return (
-    <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative text-slate-200">
-      <DarkAtmosphere />
-      <nav className="absolute top-0 left-0 w-full p-6 z-50">
-        <a href={getBaseUrl()} className="flex items-center gap-2 text-slate-500 hover:text-fuchsia-400 font-bold tracking-widest uppercase transition-colors w-fit group">
-          <StepBack size={18} className="group-hover:-translate-x-1 transition-transform" />
-          <span className="text-xs">Back to Gamehub</span>
-        </a>
-      </nav>
-      <div className="z-10 text-center mb-12">
-        <Moon size={64} className="mx-auto mb-6 text-fuchsia-600 animate-pulse drop-shadow-[0_0_20px_rgba(192,38,211,0.6)]" />
-        <h1 className="text-7xl font-black tracking-[0.4em] uppercase text-transparent bg-clip-text bg-gradient-to-b from-slate-100 to-slate-600 drop-shadow-xl">DARK</h1>
-        <p className="text-fuchsia-400 tracking-widest uppercase text-xs mt-4 font-bold">Folklore & Shadows</p>
-      </div>
-      <div className="z-10 w-full max-w-sm space-y-4">
-        {error && <div className="bg-red-950/80 text-red-300 p-3 rounded-lg text-center text-xs font-bold border border-red-500/50 uppercase tracking-widest animate-in fade-in">{error}</div>}
-        <input className="w-full bg-slate-900 border border-slate-700 p-4 rounded-xl text-center uppercase tracking-widest focus:border-fuchsia-500 outline-none text-lg font-black transition-all" placeholder="Enter Name" value={playerName} onChange={e=>setPlayerName(e.target.value)} maxLength={12}/>
-        <button onClick={createRoom} className="w-full bg-gradient-to-r from-fuchsia-900 to-purple-900 hover:from-fuchsia-800 hover:to-purple-800 text-fuchsia-100 p-4 rounded-xl font-black tracking-widest uppercase border border-fuchsia-700 transition-all active:scale-95 shadow-lg shadow-fuchsia-900/50">Host Ritual</button>
-        <div className="flex gap-2">
-          <input className="flex-1 bg-slate-900 border border-slate-700 p-3 rounded-xl text-center uppercase tracking-widest outline-none font-bold text-lg focus:border-fuchsia-500 transition-all" placeholder="CODE" value={roomCode} onChange={e=>setRoomCode(e.target.value.toUpperCase())} maxLength={6}/>
-          <button onClick={()=>joinRoom(roomCode)} className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl font-black tracking-widest uppercase px-6 border border-slate-600 shadow-md">Join</button>
+  if (view === "menu")
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 relative text-slate-200">
+        <DarkAtmosphere />
+        <nav className="absolute top-0 left-0 w-full p-6 z-50">
+          <a
+            href={getBaseUrl()}
+            className="flex items-center gap-2 text-slate-500 hover:text-fuchsia-400 font-bold tracking-widest uppercase transition-colors w-fit group"
+          >
+            <StepBack
+              size={18}
+              className="group-hover:-translate-x-1 transition-transform"
+            />
+            <span className="text-xs">Back to Gamehub</span>
+          </a>
+        </nav>
+        <div className="z-10 text-center mb-12">
+          <Moon
+            size={64}
+            className="mx-auto mb-6 text-fuchsia-600 animate-pulse drop-shadow-[0_0_20px_rgba(192,38,211,0.6)]"
+          />
+          <h1 className="text-7xl font-black tracking-[0.4em] uppercase text-transparent bg-clip-text bg-gradient-to-b from-slate-100 to-slate-600 drop-shadow-xl">
+            DARK
+          </h1>
+          <p className="text-fuchsia-400 tracking-widest uppercase text-xs mt-4 font-bold">
+            Folklore & Shadows
+          </p>
+        </div>
+        <div className="z-10 w-full max-w-sm space-y-4">
+          {error && (
+            <div className="bg-red-950/80 text-red-300 p-3 rounded-lg text-center text-xs font-bold border border-red-500/50 uppercase tracking-widest animate-in fade-in">
+              {error}
+            </div>
+          )}
+          <input
+            className="w-full bg-slate-900 border border-slate-700 p-4 rounded-xl text-center uppercase tracking-widest focus:border-fuchsia-500 outline-none text-lg font-black transition-all"
+            placeholder="Enter Name"
+            value={playerName}
+            onChange={(e) => setPlayerName(e.target.value)}
+            maxLength={12}
+          />
+          <button
+            onClick={createRoom}
+            className="w-full bg-gradient-to-r from-fuchsia-900 to-purple-900 hover:from-fuchsia-800 hover:to-purple-800 text-fuchsia-100 p-4 rounded-xl font-black tracking-widest uppercase border border-fuchsia-700 transition-all active:scale-95 shadow-lg shadow-fuchsia-900/50"
+          >
+            Host Ritual
+          </button>
+          <div className="flex gap-2">
+            <input
+              className="flex-1 bg-slate-900 border border-slate-700 p-3 rounded-xl text-center uppercase tracking-widest outline-none font-bold text-lg focus:border-fuchsia-500 transition-all"
+              placeholder="CODE"
+              value={roomCode}
+              onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+              maxLength={6}
+            />
+            <button
+              onClick={() => joinRoom(roomCode)}
+              className="bg-slate-800 hover:bg-slate-700 p-3 rounded-xl font-black tracking-widest uppercase px-6 border border-slate-600 shadow-md"
+            >
+              Join
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
 
   if (view === "lobby" && gameState) {
     const isHost = gameState.hostId === user.uid;
@@ -1020,42 +2048,105 @@ export default function DarkFolkloreGame() {
         <div className="z-10 w-full max-w-md bg-slate-900/90 p-8 rounded-3xl border border-fuchsia-900/50 shadow-[0_0_40px_rgba(0,0,0,0.8)] backdrop-blur-md">
           <div className="flex justify-between items-center border-b border-slate-800 pb-4 mb-6">
             <div>
-              <div className="text-xs text-fuchsia-400 font-bold uppercase tracking-widest">Ritual Code</div>
+              <div className="text-xs text-fuchsia-400 font-bold uppercase tracking-widest">
+                Ritual Code
+              </div>
               <div className="text-4xl font-black tracking-widest text-slate-100 drop-shadow-md flex items-center gap-2 relative">
                 {gameState.roomId}
-                {isCopied && <div className="absolute -top-6 left-0 text-[10px] text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded font-bold animate-in fade-in">COPIED!</div>}
+                {isCopied && (
+                  <div className="absolute -top-6 left-0 text-[10px] text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded font-bold animate-in fade-in">
+                    COPIED!
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex gap-2">
-                <button onClick={copyToClipboard} className="p-4 bg-slate-800 rounded-xl hover:bg-slate-700 transition-colors shadow-md border border-slate-700 hover:border-fuchsia-500/50"><Copy size={24} className="text-fuchsia-400"/></button>
-                <button onClick={()=>setShowLeaveConfirm(true)} className="p-4 bg-red-950/50 rounded-xl hover:bg-red-900/80 transition-colors shadow-md border border-red-900/50"><LogOut size={24} className="text-red-400"/></button>
+              <button
+                onClick={copyToClipboard}
+                className="p-4 bg-slate-800 rounded-xl hover:bg-slate-700 transition-colors shadow-md border border-slate-700 hover:border-fuchsia-500/50"
+              >
+                <Copy size={24} className="text-fuchsia-400" />
+              </button>
+              <button
+                onClick={() => setShowLeaveConfirm(true)}
+                className="p-4 bg-red-950/50 rounded-xl hover:bg-red-900/80 transition-colors shadow-md border border-red-900/50"
+              >
+                <LogOut size={24} className="text-red-400" />
+              </button>
             </div>
           </div>
           <div className="space-y-3 mb-8">
-            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Initiates ({gameState.players.length}/6)</h3>
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+              Initiates ({gameState.players.length}/6)
+            </h3>
             {gameState.players.map((p, i) => (
-              <div key={p.id} className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex justify-between items-center shadow-inner">
-                <span className="font-bold uppercase tracking-widest flex items-center gap-3 text-lg"><span className="text-fuchsia-600 font-black bg-fuchsia-950/50 w-8 h-8 flex items-center justify-center rounded-full border border-fuchsia-900">{i+1}</span> {p.name} {p.id === gameState.hostId && <Crown size={16} className="text-yellow-500 ml-2 drop-shadow-md"/>}</span>
-                {isHost && p.id !== user.uid && <button onClick={()=>kickPlayer(p.id)} className="text-red-500 hover:text-red-400 p-2"><Ban size={18}/></button>}
+              <div
+                key={p.id}
+                className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex justify-between items-center shadow-inner"
+              >
+                <span className="font-bold uppercase tracking-widest flex items-center gap-3 text-lg">
+                  <span className="text-fuchsia-600 font-black bg-fuchsia-950/50 w-8 h-8 flex items-center justify-center rounded-full border border-fuchsia-900">
+                    {i + 1}
+                  </span>{" "}
+                  {p.name}{" "}
+                  {p.id === gameState.hostId && (
+                    <Crown
+                      size={16}
+                      className="text-yellow-500 ml-2 drop-shadow-md"
+                    />
+                  )}
+                </span>
+                {isHost && p.id !== user.uid && (
+                  <button
+                    onClick={() => kickPlayer(p.id)}
+                    className="text-red-500 hover:text-red-400 p-2"
+                  >
+                    <Ban size={18} />
+                  </button>
+                )}
               </div>
             ))}
           </div>
           {isHost ? (
-            <button onClick={startRound} disabled={gameState.players.length < 2} className="w-full bg-gradient-to-r from-fuchsia-700 to-purple-700 hover:from-fuchsia-600 hover:to-purple-600 text-white p-5 rounded-xl font-black tracking-[0.2em] text-lg uppercase transition-all disabled:opacity-50 disabled:grayscale shadow-[0_0_20px_rgba(192,38,211,0.4)] flex items-center justify-center gap-3"><Play size={24}/> Begin Descent</button>
+            <button
+              onClick={startRound}
+              disabled={gameState.players.length < 2}
+              className="w-full bg-gradient-to-r from-fuchsia-700 to-purple-700 hover:from-fuchsia-600 hover:to-purple-600 text-white p-5 rounded-xl font-black tracking-[0.2em] text-lg uppercase transition-all disabled:opacity-50 disabled:grayscale shadow-[0_0_20px_rgba(192,38,211,0.4)] flex items-center justify-center gap-3"
+            >
+              <Play size={24} /> Begin Descent
+            </button>
           ) : (
-            <div className="text-center text-slate-500 uppercase tracking-widest font-bold animate-pulse py-4 bg-slate-950 rounded-xl border border-slate-800">Awaiting Host...</div>
+            <div className="text-center text-slate-500 uppercase tracking-widest font-bold animate-pulse py-4 bg-slate-950 rounded-xl border border-slate-800">
+              Awaiting Host...
+            </div>
           )}
         </div>
-        
+
         {/* Leave Confirm Modal */}
         {showLeaveConfirm && (
           <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
             <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl max-w-xs w-full text-center shadow-2xl">
-              <h3 className="text-xl font-black text-white mb-2 uppercase tracking-wider">Flee the Void?</h3>
-              <p className="text-slate-400 mb-6 text-sm">{isHost ? "As the host, leaving dissolves the entire ritual." : "You will return to the menu."}</p>
+              <h3 className="text-xl font-black text-white mb-2 uppercase tracking-wider">
+                Flee the Void?
+              </h3>
+              <p className="text-slate-400 mb-6 text-sm">
+                {isHost
+                  ? "As the host, leaving dissolves the entire ritual."
+                  : "You will return to the menu."}
+              </p>
               <div className="flex gap-2">
-                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-slate-800 py-3 rounded-lg font-bold text-slate-300 hover:bg-slate-700">Stay</button>
-                <button onClick={handleLeave} className="flex-1 bg-red-900 py-3 rounded-lg font-bold text-red-200 hover:bg-red-800">Flee</button>
+                <button
+                  onClick={() => setShowLeaveConfirm(false)}
+                  className="flex-1 bg-slate-800 py-3 rounded-lg font-bold text-slate-300 hover:bg-slate-700"
+                >
+                  Stay
+                </button>
+                <button
+                  onClick={handleLeave}
+                  className="flex-1 bg-red-900 py-3 rounded-lg font-bold text-red-200 hover:bg-red-800"
+                >
+                  Flee
+                </button>
               </div>
             </div>
           </div>
@@ -1065,100 +2156,259 @@ export default function DarkFolkloreGame() {
   }
 
   if (view === "game" && gameState) {
-    const meIdx = gameState.players.findIndex(p => p.id === user.uid);
+    const meIdx = gameState.players.findIndex((p) => p.id === user.uid);
     const me = gameState.players[meIdx];
-    const isMyTurn = gameState.turnIndex === meIdx && gameState.turnState !== "AMULET_PROMPT";
-    const amITarget = gameState.turnState === "AMULET_PROMPT" && gameState.pendingAction?.targetId === user.uid;
+    const isMyTurn =
+      gameState.turnIndex === meIdx && gameState.turnState !== "AMULET_PROMPT";
+    const amITarget =
+      gameState.turnState === "AMULET_PROMPT" &&
+      gameState.pendingAction?.targetId === user.uid;
 
     return (
       <div className="fixed inset-0 bg-slate-950 text-white flex flex-col font-sans select-none overflow-hidden">
         <DarkAtmosphere />
-        {showGuide && <HowToPlayModal onClose={() => setShowGuide(false)} />}
-        
-        {/* Top Bar */}
-        <div className="h-16 bg-slate-950/90 border-b border-fuchsia-900/30 flex items-center justify-between px-6 z-40 shrink-0 backdrop-blur-md shadow-lg">
-          <div className="flex items-center gap-4">
-            <Moon className="text-fuchsia-600 drop-shadow-[0_0_8px_rgba(192,38,211,0.8)]" size={24} />
-            <span className="font-black tracking-[0.3em] uppercase text-slate-200 text-lg hidden sm:block">DARK</span>
-          </div>
-          <div className="flex gap-4 items-center">
-            <div className="flex gap-2">
-   <div className="bg-slate-900 px-4 py-1.5 rounded-lg text-xs font-bold text-fuchsia-300 tracking-widest uppercase border border-fuchsia-900/50 shadow-inner flex items-center gap-2">
-      <Layers size={14}/> Deck: {gameState.deck.length}
-   </div>
-   <button onClick={() => setShowDiscard(true)} className="bg-slate-900 hover:bg-slate-800 transition-colors px-4 py-1.5 rounded-lg text-xs font-bold text-red-400 tracking-widest uppercase border border-red-900/50 shadow-inner flex items-center gap-2 cursor-pointer active:scale-95">
-      <Flame size={14}/> Void: {gameState.discardPile.length}
-   </button>
-</div>
-            <button onClick={() => setShowGuide(true)} className="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-fuchsia-400 transition-colors"><BookOpen size={18} /></button>
-            <button onClick={() => setShowLogs(!showLogs)} className={`p-2 rounded transition-colors ${showLogs ? "bg-fuchsia-900 text-fuchsia-200" : "hover:bg-slate-800 text-slate-400"}`}><History size={18} /></button>
-            <button onClick={() => setShowLeaveConfirm(true)} className="p-2 hover:bg-red-900/30 rounded text-red-400"><LogOut size={18} /></button>
-          </div>
-        </div>
-        
-        {/* Logs Drawer */}
-        {showLogs && (
-          <div className="fixed top-16 right-4 w-64 max-h-60 bg-slate-900/95 border border-slate-700 rounded-xl z-50 overflow-y-auto p-2 shadow-2xl backdrop-blur-md">
-            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 sticky top-0 bg-slate-900/95 py-2">Ritual Log</h4>
-            <div className="space-y-2">
-              {gameState.logs.slice().reverse().map(l => (
-                <div key={l.id} className={`text-xs p-2 rounded border-l-2 ${l.type==="success" ? "border-emerald-500 bg-emerald-900/10 text-emerald-300" : l.type==="failure" ? "border-red-500 bg-red-900/10 text-red-300" : l.type==="warning" ? "border-yellow-500 bg-yellow-900/10 text-yellow-300" : "border-fuchsia-500 bg-slate-800/30 text-slate-300"}`}>{l.text}</div>
-              ))}
+        {/* Cinematic Broadcast Banner */}
+        {broadcastLog && (
+          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[400] w-[90%] max-w-2xl pointer-events-none animate-in zoom-in-95 fade-in duration-300">
+            <div className={`p-6 md:p-8 rounded-3xl shadow-2xl border backdrop-blur-xl flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 ${
+              broadcastLog.type === "success" 
+                ? "bg-emerald-950/95 border-emerald-500/50 shadow-[0_0_80px_rgba(16,185,129,0.5)]" 
+                : broadcastLog.type === "failure"
+                ? "bg-red-950/95 border-red-500/50 shadow-[0_0_80px_rgba(239,68,68,0.5)]"
+                : broadcastLog.type === "warning"
+                ? "bg-yellow-950/95 border-yellow-500/50 shadow-[0_0_80px_rgba(234,179,8,0.5)]"
+                : "bg-fuchsia-950/95 border-fuchsia-500/50 shadow-[0_0_80px_rgba(192,38,211,0.5)]"
+            }`}>
+              <div className="text-white drop-shadow-lg shrink-0">
+                 {broadcastLog.type === "success" ? <CheckCircle size={48} className="text-emerald-400 animate-pulse" />
+                  : broadcastLog.type === "failure" ? <AlertTriangle size={48} className="text-red-400 animate-bounce" />
+                  : broadcastLog.type === "warning" ? <Flame size={48} className="text-yellow-400 animate-pulse" />
+                  : <Sparkles size={48} className="text-fuchsia-400 animate-pulse" />}
+              </div>
+              <div className="flex-1 text-center md:text-left">
+                <p className="text-lg md:text-2xl font-black uppercase tracking-[0.15em] text-slate-100 leading-snug drop-shadow-md">
+                  {broadcastLog.text}
+                </p>
+              </div>
             </div>
           </div>
         )}
-        
+        {showGuide && <HowToPlayModal onClose={() => setShowGuide(false)} />}
+
+        {/* Top Bar */}
+        <div className="h-16 bg-slate-950/90 border-b border-fuchsia-900/30 flex items-center justify-between px-6 z-40 shrink-0 backdrop-blur-md shadow-lg">
+          <div className="flex items-center gap-4">
+            <Moon
+              className="text-fuchsia-600 drop-shadow-[0_0_8px_rgba(192,38,211,0.8)]"
+              size={24}
+            />
+            <span className="font-black tracking-[0.3em] uppercase text-slate-200 text-lg hidden sm:block">
+              DARK
+            </span>
+          </div>
+          <div className="flex gap-4 items-center">
+            <div className="flex gap-2">
+              <div className="bg-slate-900 px-4 py-1.5 rounded-lg text-xs font-bold text-fuchsia-300 tracking-widest uppercase border border-fuchsia-900/50 shadow-inner flex items-center gap-2">
+                <Layers size={14} /> Deck: {gameState.deck.length}
+              </div>
+              <button
+                onClick={() => setShowDiscard(true)}
+                className="bg-slate-900 hover:bg-slate-800 transition-colors px-4 py-1.5 rounded-lg text-xs font-bold text-red-400 tracking-widest uppercase border border-red-900/50 shadow-inner flex items-center gap-2 cursor-pointer active:scale-95"
+              >
+                <Flame size={14} /> Void: {gameState.discardPile.length}
+              </button>
+            </div>
+            <button
+              onClick={() => setShowGuide(true)}
+              className="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-fuchsia-400 transition-colors"
+            >
+              <BookOpen size={18} />
+            </button>
+            <button
+              onClick={() => setShowLogs(!showLogs)}
+              className={`p-2 rounded transition-colors ${showLogs ? "bg-fuchsia-900 text-fuchsia-200" : "hover:bg-slate-800 text-slate-400"}`}
+            >
+              <History size={18} />
+            </button>
+            <button
+              onClick={() => setShowLeaveConfirm(true)}
+              className="p-2 hover:bg-red-900/30 rounded text-red-400"
+            >
+              <LogOut size={18} />
+            </button>
+          </div>
+        </div>
+
+        {/* Logs Drawer */}
+        {showLogs && (
+          <div className="fixed top-16 right-4 w-64 max-h-60 bg-slate-900/95 border border-slate-700 rounded-xl z-50 overflow-y-auto p-2 shadow-2xl backdrop-blur-md">
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 sticky top-0 bg-slate-900/95 py-2">
+              Ritual Log
+            </h4>
+            <div className="space-y-2">
+              {gameState.logs
+                .slice()
+                .reverse()
+                .map((l) => (
+                  <div
+                    key={l.id}
+                    className={`text-xs p-2 rounded border-l-2 ${l.type === "success" ? "border-emerald-500 bg-emerald-900/10 text-emerald-300" : l.type === "failure" ? "border-red-500 bg-red-900/10 text-red-300" : l.type === "warning" ? "border-yellow-500 bg-yellow-900/10 text-yellow-300" : "border-fuchsia-500 bg-slate-800/30 text-slate-300"}`}
+                  >
+                    {l.text}
+                  </div>
+                ))}
+            </div>
+          </div>
+        )}
+
+        {/* Leave Modal in Game */}
         {/* Leave Modal in Game */}
         {showLeaveConfirm && (
           <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
-            <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl max-w-xs w-full text-center shadow-2xl">
-              <h3 className="text-xl font-black text-white mb-2 uppercase tracking-wider">Abandon Ritual?</h3>
-              <p className="text-slate-400 mb-6 text-sm">{gameState.hostId === user.uid ? "You will dissolve this session entirely." : "You will flee, abandoning your progress."}</p>
-              <div className="flex gap-2">
-                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-slate-800 py-3 rounded-lg font-bold text-slate-300 hover:bg-slate-700">Stay</button>
-                <button onClick={handleLeave} className="flex-1 bg-red-900 py-3 rounded-lg font-bold text-red-200 hover:bg-red-800">Flee</button>
+            <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl max-w-sm w-full text-center shadow-2xl">
+              <h3 className="text-xl font-black text-white mb-2 uppercase tracking-wider">
+                Abandon Ritual?
+              </h3>
+              <p className="text-slate-400 mb-6 text-sm">
+                {gameState.hostId === user.uid
+                  ? "As host, you can dissolve the entire room or safely return everyone to the lobby."
+                  : "You will flee, abandoning your progress."}
+              </p>
+              
+              <div className="flex flex-col gap-3">
+                {/* NEW: Return to Lobby Button (Host Only) */}
+                {gameState.hostId === user.uid && (
+                  <button
+                    onClick={() => {
+                      const resetPlayers = gameState.players.map((p) => ({
+                        ...p,
+                        ready: true,
+                        score: 0,
+                        hand: [],
+                        tableau: [],
+                        skipNextTurn: false,
+                        finalTurnTaken: false,
+                      }));
+                      executeAction(
+                        {
+                          status: "lobby",
+                          turnState: "IDLE",
+                          pendingAction: null,
+                          players: resetPlayers,
+                          deck: [],
+                          discardPile: [],
+                          logs: [],
+                          turnIndex: 0,
+                          winnerId: null,
+                          isFinalRound: false,
+                        },
+                        "The host aborted the ritual and returned everyone to the lobby.",
+                        "warning"
+                      );
+                      setShowLeaveConfirm(false);
+                    }}
+                    className="w-full bg-yellow-600/20 hover:bg-yellow-600/30 text-yellow-500 py-3 rounded-lg font-bold uppercase tracking-widest border border-yellow-600/50 transition-colors"
+                  >
+                    Return All to Lobby
+                  </button>
+                )}
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setShowLeaveConfirm(false)}
+                    className="flex-1 bg-slate-800 py-3 rounded-lg font-bold text-slate-300 hover:bg-slate-700 uppercase tracking-widest"
+                  >
+                    Stay
+                  </button>
+                  <button
+                    onClick={handleLeave}
+                    className="flex-1 bg-red-900 py-3 rounded-lg font-bold text-red-200 hover:bg-red-800 uppercase tracking-widest"
+                  >
+                    {gameState.hostId === user.uid ? "Dissolve Room" : "Flee"}
+                  </button>
+                </div>
               </div>
+
             </div>
           </div>
         )}
 
         {/* Central Arena */}
         <div className="flex-1 flex flex-col md:flex-row relative z-10 overflow-hidden">
-          
           {/* Opponents Sidebar */}
           <div className="w-full md:w-80 bg-slate-950/60 border-b md:border-b-0 md:border-r border-fuchsia-900/20 overflow-x-auto md:overflow-y-auto p-3 md:p-4 flex flex-row md:flex-col gap-3 md:gap-4 custom-scrollbar shadow-2xl backdrop-blur-sm shrink-0 snap-x">
             {gameState.players.map((p, i) => {
               if (p.id === user.uid) return null;
-              const isTurn = gameState.turnIndex === i && gameState.status !== "finished";
+              const isTurn =
+                gameState.turnIndex === i && gameState.status !== "finished";
               return (
-                <div key={p.id} className={`bg-slate-900/80 backdrop-blur-md p-3 md:p-4 rounded-2xl border ${isTurn ? "border-fuchsia-500 shadow-[0_0_20px_rgba(192,38,211,0.3)]" : "border-slate-800/80"} shrink-0 w-64 md:w-full transition-all relative snap-center flex flex-col gap-2`}>
-                  {gameState.status === "finished" && gameState.winnerId === p.id && <div className="absolute inset-0 border-4 border-yellow-500 rounded-2xl animate-pulse pointer-events-none"></div>}
-                  
+                <div
+                  key={p.id}
+                  className={`bg-slate-900/80 backdrop-blur-md p-3 md:p-4 rounded-2xl border ${isTurn ? "border-fuchsia-500 shadow-[0_0_20px_rgba(192,38,211,0.3)]" : "border-slate-800/80"} shrink-0 w-64 md:w-full transition-all relative snap-center flex flex-col gap-2`}
+                >
+                  {gameState.status === "finished" &&
+                    gameState.winnerId === p.id && (
+                      <div className="absolute inset-0 border-4 border-yellow-500 rounded-2xl animate-pulse pointer-events-none"></div>
+                    )}
+
                   {/* Header */}
                   <div className="flex justify-between items-center border-b border-slate-800 pb-2">
                     <div className="flex items-center gap-2 overflow-hidden">
-                        {isTurn ? <Zap size={14} className="text-fuchsia-400 animate-pulse shrink-0"/> : <div className="w-2 h-2 rounded-full bg-slate-700 shrink-0"/>}
-                        <span className="font-black text-xs md:text-sm uppercase tracking-widest text-slate-200 truncate">{p.name}</span>
-                        {gameState.winnerId === p.id && <Crown size={12} className="text-yellow-500 shrink-0"/>}
+                      {isTurn ? (
+                        <Zap
+                          size={14}
+                          className="text-fuchsia-400 animate-pulse shrink-0"
+                        />
+                      ) : (
+                        <div className="w-2 h-2 rounded-full bg-slate-700 shrink-0" />
+                      )}
+                      <span className="font-black text-xs md:text-sm uppercase tracking-widest text-slate-200 truncate">
+                        {p.name}
+                      </span>
+                      {gameState.winnerId === p.id && (
+                        <Crown size={12} className="text-yellow-500 shrink-0" />
+                      )}
                     </div>
-                    <div className="text-fuchsia-400 font-black text-sm md:text-base bg-fuchsia-950/50 px-2 py-0.5 rounded shadow-inner shrink-0">{p.score}</div>
+                    <div className="text-fuchsia-400 font-black text-sm md:text-base bg-fuchsia-950/50 px-2 py-0.5 rounded shadow-inner shrink-0">
+                      {p.score}
+                    </div>
                   </div>
 
                   {/* Stats */}
                   <div className="flex justify-between items-center text-[10px] md:text-xs text-slate-400 font-bold uppercase tracking-widest">
-                      <div className="flex items-center gap-1.5"><Scroll size={12}/> Hand: {p.hand.length}</div>
-                      <div className="flex items-center gap-1.5"><Layers size={12}/> Sets: {p.tableau.length}</div>
+                    <div className="flex items-center gap-1.5">
+                      <Scroll size={12} /> Hand: {p.hand.length}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Layers size={12} /> Sets: {p.tableau.length}
+                    </div>
                   </div>
 
                   {/* Tableau Sets - Horizontally Scrollable */}
                   <div className="flex flex-nowrap overflow-x-auto custom-scrollbar gap-2 mt-1 min-h-[40px] pb-2 w-full">
-                    {p.tableau.length === 0 && <div className="text-[10px] text-slate-600 italic uppercase flex items-center justify-center min-w-[80px] h-[52px] border border-dashed border-slate-800 rounded-lg">No Sets</div>}
+                    {p.tableau.length === 0 && (
+                      <div className="text-[10px] text-slate-600 italic uppercase flex items-center justify-center min-w-[80px] h-[52px] border border-dashed border-slate-800 rounded-lg">
+                        No Sets
+                      </div>
+                    )}
                     {p.tableau.map((set, sIdx) => (
-                      <div key={sIdx} className={`flex rounded-md p-1 bg-slate-950/50 shadow-inner border shrink-0 ${set.isLocked ? "border-yellow-600/50" : "border-slate-800"}`}>
+                      <div
+                        key={sIdx}
+                        className={`flex rounded-md p-1 bg-slate-950/50 shadow-inner border shrink-0 ${set.isLocked ? "border-yellow-600/50" : "border-slate-800"}`}
+                      >
                         {set.cards.map((c, cIdx) => (
-                          <div key={c.uid} className={`relative transition-transform hover:-translate-y-1 ${cIdx > 0 ? "-ml-3 md:-ml-4" : ""}`}>
-                            {cIdx === 0 && set.isLocked && <Shield className="absolute -top-2 -left-2 text-yellow-600 z-20 w-3 h-3 drop-shadow-md"/>}
-                            <CardDisplay cardId={c.cardId} tiny disabled={set.isLocked}/>
+                          <div
+                            key={c.uid}
+                            className={`relative transition-transform hover:-translate-y-1 ${cIdx > 0 ? "-ml-3 md:-ml-4" : ""}`}
+                          >
+                            {cIdx === 0 && set.isLocked && (
+                              <Shield className="absolute -top-2 -left-2 text-yellow-600 z-20 w-3 h-3 drop-shadow-md" />
+                            )}
+                            <CardDisplay
+                              cardId={c.cardId}
+                              tiny
+                              disabled={set.isLocked}
+                            />
                           </div>
                         ))}
                       </div>
@@ -1172,15 +2422,21 @@ export default function DarkFolkloreGame() {
           {/* Center Board Status */}
           <div className="flex-1 flex flex-col p-4 md:p-6 overflow-hidden relative">
             <div className="flex-1 flex flex-col justify-center items-center h-full max-h-full">
-               {gameState.status !== "finished" && (
-                 <div className="w-full flex items-center justify-center">
-                    <div className="w-full max-w-2xl py-6 md:py-10 flex items-center justify-center bg-gradient-to-r from-transparent via-fuchsia-950/60 to-transparent border-y border-fuchsia-900/50 shadow-[0_0_50px_rgba(192,38,211,0.15)] backdrop-blur-sm">
-                       <span className="font-black uppercase tracking-widest md:tracking-[0.2em] text-fuchsia-300 text-sm md:text-2xl animate-pulse drop-shadow-md text-center px-4">
-                         {gameState.isFinalRound ? "FINAL ROUND!" : isMyTurn ? `Your Turn (${gameState.actionsLeft} Actions)` : amITarget ? "DEFEND YOURSELF!" : `Waiting for ${gameState.players[gameState.turnIndex].name}`}
-                       </span>
-                    </div>
-                 </div>
-               )}
+              {gameState.status !== "finished" && (
+                <div className="w-full flex items-center justify-center">
+                  <div className="w-full max-w-2xl py-6 md:py-10 flex items-center justify-center bg-gradient-to-r from-transparent via-fuchsia-950/60 to-transparent border-y border-fuchsia-900/50 shadow-[0_0_50px_rgba(192,38,211,0.15)] backdrop-blur-sm">
+                    <span className="font-black uppercase tracking-widest md:tracking-[0.2em] text-fuchsia-300 text-sm md:text-2xl animate-pulse drop-shadow-md text-center px-4">
+                      {gameState.isFinalRound
+                        ? "FINAL ROUND!"
+                        : isMyTurn
+                          ? `Your Turn (${gameState.actionsLeft} Actions)`
+                          : amITarget
+                            ? "DEFEND YOURSELF!"
+                            : `Waiting for ${gameState.players[gameState.turnIndex].name}`}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1189,71 +2445,188 @@ export default function DarkFolkloreGame() {
         <div className="flex-none bg-slate-950 border-t-2 border-fuchsia-900/50 p-2 md:p-4 relative z-20 flex flex-col gap-2 md:gap-4 shadow-[0_-20px_40px_rgba(0,0,0,0.7)] backdrop-blur-md min-h-min">
           {/* Action Buttons & Stats */}
           <div className="flex flex-row justify-between items-center gap-2 md:gap-3 overflow-x-auto custom-scrollbar pb-1 md:pb-0 whitespace-nowrap">
-             {/* Stats Box */}
-             <div className="flex items-center justify-around sm:justify-start gap-3 sm:gap-6 bg-slate-900/80 px-3 py-1.5 sm:px-6 sm:py-3 rounded-xl border border-slate-800 shadow-inner shrink-0">
-                <div className="flex flex-col items-center sm:items-start">
-                  <span className="text-[8px] sm:text-[10px] text-slate-500 uppercase tracking-widest font-bold">Total Power</span>
-                  <div className="text-lg sm:text-3xl font-black text-fuchsia-500 tracking-widest drop-shadow-[0_0_10px_rgba(217,70,239,0.5)] leading-none">{me.score}</div>
+            {/* Stats Box */}
+            <div className="flex items-center justify-around sm:justify-start gap-3 sm:gap-6 bg-slate-900/80 px-3 py-1.5 sm:px-6 sm:py-3 rounded-xl border border-slate-800 shadow-inner shrink-0">
+              <div className="flex flex-col items-center sm:items-start">
+                <span className="text-[8px] sm:text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+                  Total Power
+                </span>
+                <div className="text-lg sm:text-3xl font-black text-fuchsia-500 tracking-widest drop-shadow-[0_0_10px_rgba(217,70,239,0.5)] leading-none">
+                  {me.score}
                 </div>
-                <div className="w-px h-6 sm:h-10 bg-slate-700"/>
-                <div className="flex flex-col items-center sm:items-start">
-                  <span className="text-[8px] sm:text-[10px] text-slate-500 uppercase tracking-widest font-bold">Hand Limit</span>
-                  <div className="text-sm sm:text-xl text-slate-300 font-black uppercase tracking-widest flex items-center gap-1 sm:gap-2 leading-none"><Hand size={12} className="text-slate-500 sm:w-5 sm:h-5"/> {me.hand.length}/7</div>
+              </div>
+              <div className="w-px h-6 sm:h-10 bg-slate-700" />
+              <div className="flex flex-col items-center sm:items-start">
+                <span className="text-[8px] sm:text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+                  Hand Limit
+                </span>
+                <div className="text-sm sm:text-xl text-slate-300 font-black uppercase tracking-widest flex items-center gap-1 sm:gap-2 leading-none">
+                  <Hand size={12} className="text-slate-500 sm:w-5 sm:h-5" />{" "}
+                  {me.hand.length}/7
                 </div>
-             </div>
-             
-             {/* Action Buttons Row */}
-             <div className="flex gap-2 sm:gap-3 flex-nowrap items-center shrink-0">
-               {isMyTurn && gameState.turnState === "ACTION" && gameState.status !== "finished" && (
-                 <>
-                   {!gameState.isFinalRound && <button onClick={actionDraw} className="shrink-0 bg-slate-800 hover:bg-slate-700 px-3 py-2 sm:px-6 sm:py-3 rounded-lg md:rounded-xl text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-200 border border-slate-700 transition-all hover:scale-105 shadow-lg active:scale-95 text-center">Draw 1</button>}
-                   
-                   <button onClick={actionStealInit} className="shrink-0 bg-red-950/60 hover:bg-red-900/80 px-3 py-2 sm:px-6 sm:py-3 rounded-lg md:rounded-xl text-[10px] sm:text-sm font-black uppercase tracking-widest text-red-400 border border-red-900/50 transition-all hover:scale-105 shadow-lg flex items-center justify-center gap-1.5 sm:gap-2 active:scale-95"><Swords size={12} className="sm:w-[16px] sm:h-[16px]"/> Steal</button>
-                   
-                   {/* Contextual Actions */}
-                   {selectedHandCards.length === 3 && <button onClick={actionPlaySet} className="shrink-0 bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 px-4 py-2 sm:px-8 sm:py-3 rounded-lg md:rounded-xl text-[10px] sm:text-sm font-black uppercase tracking-widest text-white shadow-[0_0_15px_rgba(16,185,129,0.5)] animate-bounce active:scale-95">Play Set</button>}
-                   
-                   {selectedHandCards.length === 1 && ALL_CARDS[me.hand.find(c=>c.uid===selectedHandCards[0]).cardId].type === "SUP" && <button onClick={()=>actionPlaySupernatural(selectedHandCards[0])} className="shrink-0 bg-gradient-to-r from-fuchsia-700 to-purple-700 hover:from-fuchsia-600 hover:to-purple-600 px-4 py-2 sm:px-8 sm:py-3 rounded-lg md:rounded-xl text-[10px] sm:text-sm font-black uppercase tracking-widest text-white shadow-[0_0_20px_rgba(192,38,211,0.6)] active:scale-95 hover:scale-105 transition-all">Invoke</button>}
-                   
-                   {selectedHandCards.length === 1 && me.hand.find(c=>c.uid===selectedHandCards[0]).cardId === "SPELL" && <button onClick={()=>actionPlaySpell(selectedHandCards[0])} className="shrink-0 bg-fuchsia-950 hover:bg-fuchsia-900 px-4 py-2 sm:px-8 sm:py-3 rounded-lg md:rounded-xl text-[10px] sm:text-sm font-black uppercase tracking-widest text-fuchsia-400 border border-fuchsia-700 shadow-lg active:scale-95 transition-colors flex items-center justify-center gap-1.5 sm:gap-2"><Sparkles size={12} className="sm:w-4 sm:h-4"/> Cast</button>}
-                   
-                   <button onClick={()=>executeAction(finalizeAction(gameState.players, gameState.deck, "ACTION", 0), `${me.name} ended their turn.`)} className="shrink-0 bg-transparent hover:bg-white/5 px-3 py-2 sm:px-6 sm:py-3 rounded-lg md:rounded-xl text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-500 transition-colors border border-transparent hover:border-slate-700 active:scale-95 text-center">End</button>
-                 </>
-               )}
-             </div>
+              </div>
+            </div>
+
+            {/* Action Buttons Row */}
+            <div className="flex gap-2 sm:gap-3 flex-nowrap items-center shrink-0">
+              {isMyTurn &&
+                gameState.turnState === "ACTION" &&
+                gameState.status !== "finished" && (
+                  <>
+                    {/* Default Actions: Only show if NO cards are selected */}
+                    {selectedHandCards.length === 0 && (
+                      <>
+                        {!gameState.isFinalRound && (
+                          <button
+                            onClick={actionDraw}
+                            className="shrink-0 bg-slate-800 hover:bg-slate-700 px-3 py-2 sm:px-6 sm:py-3 rounded-lg md:rounded-xl text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-200 border border-slate-700 transition-all hover:scale-105 shadow-lg active:scale-95 text-center"
+                          >
+                            Draw 1
+                          </button>
+                        )}
+
+                        <button
+                          onClick={actionStealInit}
+                          className="shrink-0 bg-red-950/60 hover:bg-red-900/80 px-3 py-2 sm:px-6 sm:py-3 rounded-lg md:rounded-xl text-[10px] sm:text-sm font-black uppercase tracking-widest text-red-400 border border-red-900/50 transition-all hover:scale-105 shadow-lg flex items-center justify-center gap-1.5 sm:gap-2 active:scale-95"
+                        >
+                          <Swords size={12} className="sm:w-[16px] sm:h-[16px]" />{" "}
+                          Steal
+                        </button>
+                      </>
+                    )}
+
+                    {/* Contextual Actions */}
+                    {selectedHandCards.length === 3 && (
+                      <button
+                        onClick={actionPlaySet}
+                        className="shrink-0 bg-gradient-to-r from-emerald-700 to-teal-700 hover:from-emerald-600 hover:to-teal-600 px-4 py-2 sm:px-8 sm:py-3 rounded-lg md:rounded-xl text-[10px] sm:text-sm font-black uppercase tracking-widest text-white shadow-[0_0_15px_rgba(16,185,129,0.5)] animate-bounce active:scale-95"
+                      >
+                        Play Set
+                      </button>
+                    )}
+
+                    {selectedHandCards.length === 1 &&
+                      me.hand.find((c) => c.uid === selectedHandCards[0]) &&
+                      ALL_CARDS[
+                        me.hand.find((c) => c.uid === selectedHandCards[0])
+                          .cardId
+                      ]?.type === "SUP" && (
+                        <button
+                          onClick={() =>
+                            actionPlaySupernatural(selectedHandCards[0])
+                          }
+                          className="shrink-0 bg-gradient-to-r from-fuchsia-700 to-purple-700 hover:from-fuchsia-600 hover:to-purple-600 px-4 py-2 sm:px-8 sm:py-3 rounded-lg md:rounded-xl text-[10px] sm:text-sm font-black uppercase tracking-widest text-white shadow-[0_0_20px_rgba(192,38,211,0.6)] active:scale-95 hover:scale-105 transition-all"
+                        >
+                          Invoke
+                        </button>
+                      )}
+
+                    {selectedHandCards.length === 1 &&
+                      me.hand.find((c) => c.uid === selectedHandCards[0])
+                        ?.cardId === "SPELL" && (
+                        <button
+                          onClick={() => actionPlaySpell(selectedHandCards[0])}
+                          className="shrink-0 bg-fuchsia-950 hover:bg-fuchsia-900 px-4 py-2 sm:px-8 sm:py-3 rounded-lg md:rounded-xl text-[10px] sm:text-sm font-black uppercase tracking-widest text-fuchsia-400 border border-fuchsia-700 shadow-lg active:scale-95 transition-colors flex items-center justify-center gap-1.5 sm:gap-2"
+                        >
+                          <Sparkles size={12} className="sm:w-4 sm:h-4" /> Cast
+                        </button>
+                      )}
+
+                    {/* Only show this if they cast a Spell and have bonus actions they can't use */}
+                    {/* Ultimate Soft-Lock Failsafe: Only appears if the deck is empty */}
+                    {gameState.deck.length === 0 && (
+                      <button
+                        onClick={() => {
+                          executeAction(
+                            finalizeAction(
+                              gameState.players,
+                              gameState.deck,
+                              "ACTION",
+                              0,
+                            ),
+                            `${me.name} ended their turn.`,
+                            "neutral"
+                          );
+                          setSelectedHandCards([]); 
+                        }}
+                        className="shrink-0 bg-transparent hover:bg-white/5 px-3 py-2 sm:px-6 sm:py-3 rounded-lg md:rounded-xl text-[10px] sm:text-sm font-black uppercase tracking-widest text-slate-500 transition-colors border border-transparent hover:border-slate-700 active:scale-95 text-center"
+                      >
+                        End
+                      </button>
+                    )}
+                  </>
+                )}
+            </div>
           </div>
 
           {/* Cards Area */}
           <div className="flex flex-col md:flex-row gap-2 md:gap-6 items-stretch overflow-hidden">
             {/* Tableau */}
             <div className="w-full md:w-80 md:border-r border-b md:border-b-0 border-slate-800 pb-2 md:pb-0 md:pr-4 flex flex-row md:flex-col gap-2 md:gap-3 overflow-x-auto md:overflow-y-auto custom-scrollbar shrink-0 items-center md:items-stretch min-h-[50px] md:min-h-[auto]">
-              <span className="text-[7px] md:text-[10px] text-slate-600 font-black uppercase tracking-wider md:tracking-[0.2em] bg-slate-900 inline-block px-1.5 md:px-3 py-0.5 md:py-1 rounded-full shrink-0">Bank</span>
+              <span className="text-[7px] md:text-[10px] text-slate-600 font-black uppercase tracking-wider md:tracking-[0.2em] bg-slate-900 inline-block px-1.5 md:px-3 py-0.5 md:py-1 rounded-full shrink-0">
+                Bank
+              </span>
               <div className="flex flex-row md:flex-row flex-nowrap md:flex-wrap gap-1.5 sm:gap-2 items-center">
                 {me.tableau.map((set, sIdx) => (
-                  <div key={sIdx} className={`p-1 sm:p-2 rounded-md sm:rounded-xl bg-slate-900 border-2 ${set.isLocked ? "border-yellow-600 shadow-[0_0_15px_rgba(202,138,4,0.3)]" : "border-slate-800"} flex flex-nowrap md:flex-wrap gap-1 relative shrink-0`}>
-                    {set.isLocked && <Shield className="absolute -top-1.5 sm:-top-2.5 -right-1.5 sm:-right-2.5 text-yellow-500 drop-shadow-lg z-20 bg-slate-950 rounded-full p-0.5" size={14}/>}
-                    {set.cards.map((c, cIdx) => <CardDisplay key={cIdx} cardId={c.cardId} small/>)}
+                  <div
+                    key={sIdx}
+                    className={`p-1 sm:p-2 rounded-md sm:rounded-xl bg-slate-900 border-2 ${set.isLocked ? "border-yellow-600 shadow-[0_0_15px_rgba(202,138,4,0.3)]" : "border-slate-800"} flex flex-nowrap md:flex-wrap gap-1 relative shrink-0`}
+                  >
+                    {set.isLocked && (
+                      <Shield
+                        className="absolute -top-1.5 sm:-top-2.5 -right-1.5 sm:-right-2.5 text-yellow-500 drop-shadow-lg z-20 bg-slate-950 rounded-full p-0.5"
+                        size={14}
+                      />
+                    )}
+                    {set.cards.map((c, cIdx) => (
+                      <CardDisplay key={cIdx} cardId={c.cardId} small />
+                    ))}
                   </div>
                 ))}
-                {me.tableau.length === 0 && <span className="text-[9px] md:text-xs text-slate-700 italic uppercase font-bold p-1 md:p-2 shrink-0">Empty</span>}
+                {me.tableau.length === 0 && (
+                  <span className="text-[9px] md:text-xs text-slate-700 italic uppercase font-bold p-1 md:p-2 shrink-0">
+                    Empty
+                  </span>
+                )}
               </div>
             </div>
 
             {/* Hand */}
             <div className="flex-1 overflow-x-auto flex items-center gap-1.5 sm:gap-3 custom-scrollbar pb-2 sm:pb-4 px-1 sm:px-2 pt-4 sm:pt-6 min-h-[100px]">
-               {me.hand.map((c) => {
-                 const isSel = selectedHandCards.includes(c.uid);
-                 return (
-                   <div key={c.uid} className={`transition-transform duration-300 shrink-0 ${isSel ? "-translate-y-4 sm:-translate-y-6 z-10" : "hover:-translate-y-1 sm:hover:-translate-y-2 hover:z-10"}`}>
-                     <CardDisplay cardId={c.cardId} highlight={isSel} disabled={!isMyTurn || gameState.status === "finished"} onClick={()=>{
-                       if(!isMyTurn || gameState.turnState !== "ACTION" || gameState.status === "finished") return;
-                       if(isSel) setSelectedHandCards(selectedHandCards.filter(id => id !== c.uid));
-                       else setSelectedHandCards([...selectedHandCards, c.uid]);
-                     }}/>
-                   </div>
-                 )
-               })}
-               {me.hand.length === 0 && <span className="text-xs md:text-sm text-slate-600 font-bold uppercase tracking-widest pl-2 md:pl-4 shrink-0">Hand Empty</span>}
+              {me.hand.map((c) => {
+                const isSel = selectedHandCards.includes(c.uid);
+                return (
+                  <div
+                    key={c.uid}
+                    className={`transition-transform duration-300 shrink-0 ${isSel ? "-translate-y-4 sm:-translate-y-6 z-10" : "hover:-translate-y-1 sm:hover:-translate-y-2 hover:z-10"}`}
+                  >
+                    <CardDisplay
+                      cardId={c.cardId}
+                      highlight={isSel}
+                      disabled={!isMyTurn || gameState.status === "finished"}
+                      onClick={() => {
+                        if (
+                          !isMyTurn ||
+                          gameState.turnState !== "ACTION" ||
+                          gameState.status === "finished"
+                        )
+                          return;
+                        if (isSel)
+                          setSelectedHandCards(
+                            selectedHandCards.filter((id) => id !== c.uid),
+                          );
+                        else
+                          setSelectedHandCards([...selectedHandCards, c.uid]);
+                      }}
+                    />
+                  </div>
+                );
+              })}
+              {me.hand.length === 0 && (
+                <span className="text-xs md:text-sm text-slate-600 font-bold uppercase tracking-widest pl-2 md:pl-4 shrink-0">
+                  Hand Empty
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -1262,476 +2635,1268 @@ export default function DarkFolkloreGame() {
         {/* Force Discard */}
         {isMyTurn && gameState.turnState === "FORCE_DISCARD" && (
           <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-6 backdrop-blur-md">
-            <h2 className="text-4xl font-black text-red-500 uppercase tracking-widest mb-2 animate-pulse drop-shadow-[0_0_20px_rgba(239,68,68,0.6)]">Hand Limit Exceeded</h2>
-            <p className="text-red-300 mb-8 uppercase tracking-widest text-sm font-bold bg-red-950/50 px-4 py-2 rounded-full border border-red-900">Select {me.hand.length - 7} cards to discard</p>
+            <h2 className="text-4xl font-black text-red-500 uppercase tracking-widest mb-2 animate-pulse drop-shadow-[0_0_20px_rgba(239,68,68,0.6)]">
+              Hand Limit Exceeded
+            </h2>
+            <p className="text-red-300 mb-8 uppercase tracking-widest text-sm font-bold bg-red-950/50 px-4 py-2 rounded-full border border-red-900">
+              Select {me.hand.length - 7} cards to discard
+            </p>
             <div className="flex flex-wrap justify-center gap-4 max-w-5xl mb-10">
-              {me.hand.map(c => (
-                 <CardDisplay key={c.uid} cardId={c.cardId} highlight={selectedHandCards.includes(c.uid)} onClick={()=>{
-                   if(selectedHandCards.includes(c.uid)) setSelectedHandCards(selectedHandCards.filter(id => id !== c.uid));
-                   else if(selectedHandCards.length < me.hand.length - 7) setSelectedHandCards([...selectedHandCards, c.uid]);
-                 }}/>
+              {me.hand.map((c) => (
+                <CardDisplay
+                  key={c.uid}
+                  cardId={c.cardId}
+                  highlight={selectedHandCards.includes(c.uid)}
+                  onClick={() => {
+                    if (selectedHandCards.includes(c.uid))
+                      setSelectedHandCards(
+                        selectedHandCards.filter((id) => id !== c.uid),
+                      );
+                    else if (selectedHandCards.length < me.hand.length - 7)
+                      setSelectedHandCards([...selectedHandCards, c.uid]);
+                  }}
+                />
               ))}
             </div>
-            <button disabled={selectedHandCards.length !== me.hand.length - 7} onClick={()=>handleForceDiscard(selectedHandCards)} className="bg-red-700 hover:bg-red-600 text-white px-10 py-4 rounded-xl uppercase font-black tracking-[0.2em] shadow-[0_0_20px_rgba(239,68,68,0.5)] disabled:opacity-50 disabled:grayscale transition-all active:scale-95 text-lg">Discard to Void</button>
+            <button
+              disabled={selectedHandCards.length !== me.hand.length - 7}
+              onClick={() => handleForceDiscard(selectedHandCards)}
+              className="bg-red-700 hover:bg-red-600 text-white px-10 py-4 rounded-xl uppercase font-black tracking-[0.2em] shadow-[0_0_20px_rgba(239,68,68,0.5)] disabled:opacity-50 disabled:grayscale transition-all active:scale-95 text-lg"
+            >
+              Discard to Void
+            </button>
           </div>
         )}
+
+        {/* Free Play Prompt Overlay */}
+        {isMyTurn &&
+          gameState.turnState === "FREE_PLAY_PROMPT" &&
+          !modalState && (
+            <div className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-6 backdrop-blur-md animate-in fade-in">
+              <h2 className="text-3xl md:text-4xl font-black text-fuchsia-500 uppercase tracking-widest mb-4 drop-shadow-[0_0_15px_rgba(217,70,239,0.5)] text-center">
+                A Gift from the Void
+              </h2>
+              <p className="text-slate-300 mb-8 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-3 rounded-full border border-slate-700 text-center">
+                You may play one of these drawn cards immediately for free.
+              </p>
+              <div className="flex flex-wrap justify-center gap-6 mb-10">
+                {me.hand
+                  .filter((c) => gameState.pendingAction?.uids?.includes(c.uid))
+                  .map((c) => {
+                    const def = ALL_CARDS[c.cardId];
+                    // Only Supernatural entities and Spells can be played as single cards
+                    const isPlayable =
+                      def.type === "SUP" || def.cardId === "SPELL";
+                    return (
+                      <div
+                        key={c.uid}
+                        className="flex flex-col items-center gap-4 bg-slate-900/50 p-4 rounded-2xl border border-slate-800"
+                      >
+                        <CardDisplay cardId={c.cardId} />
+                        {isPlayable ? (
+                          <button
+                            onClick={() => {
+                              if (def.cardId === "SPELL")
+                                actionPlaySpell(c.uid);
+                              else actionPlaySupernatural(c.uid);
+                            }}
+                            className="bg-fuchsia-700 hover:bg-fuchsia-600 px-6 py-2 rounded-lg font-black uppercase text-xs tracking-widest text-white shadow-[0_0_15px_rgba(192,38,211,0.5)] transition-all active:scale-95"
+                          >
+                            Play Free
+                          </button>
+                        ) : (
+                          <span className="text-[10px] text-slate-500 uppercase font-bold text-center px-2">
+                            Must be played in a set
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+              <button
+                onClick={() => {
+                  const updates = finalizeAction(
+                    gameState.players,
+                    gameState.deck,
+                    "ACTION",
+                    gameState.actionsLeft,
+                    true, // Enforces the "discard to 7" check if they pass and have too many cards
+                  );
+                  updates.pendingAction = null;
+                  executeAction(
+                    updates,
+                    `${me.name} kept the cards for later.`,
+                    "neutral",
+                  );
+                  setSelectedHandCards([]); // <--- ADD THIS HERE
+                }}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-8 py-3 rounded-xl uppercase font-black tracking-widest transition-colors border border-slate-700"
+              >
+                Keep For Later
+              </button>
+            </div>
+          )}
 
         {/* Amulet Prompt */}
         {amITarget && (
           <div className="fixed inset-0 z-[100] bg-red-950/95 flex flex-col items-center justify-center p-6 backdrop-blur-xl">
             <div className="relative">
               <div className="absolute inset-0 bg-red-500 blur-[50px] opacity-30 rounded-full animate-pulse"></div>
-              <Shield size={96} className="text-red-500 animate-bounce mb-8 drop-shadow-2xl relative z-10"/>
+              <Shield
+                size={96}
+                className="text-red-500 animate-bounce mb-8 drop-shadow-2xl relative z-10"
+              />
             </div>
-            <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-widest mb-4 text-center drop-shadow-lg">You are targeted!</h2>
-            <p className="text-red-200 mb-10 uppercase tracking-widest text-sm md:text-lg text-center font-bold bg-red-900/40 px-6 py-3 rounded-2xl border border-red-500/30">An opponent's dark entity strikes. Burn your Amulet to block?</p>
+            <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-widest mb-4 text-center drop-shadow-lg">
+              You are targeted!
+            </h2>
+            <p className="text-red-200 mb-10 uppercase tracking-widest text-sm md:text-lg text-center font-bold bg-red-900/40 px-6 py-3 rounded-2xl border border-red-500/30">
+              An opponent's dark entity strikes. Burn your Amulet to block?
+            </p>
             <div className="flex flex-col sm:flex-row gap-6">
-               <button onClick={()=>handleAmuletResponse(true)} className="bg-gradient-to-b from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white px-10 py-5 rounded-2xl uppercase font-black tracking-widest shadow-[0_0_30px_rgba(220,38,38,0.6)] hover:scale-105 transition-all active:scale-95 text-lg border border-red-400/50">Burn Amulet</button>
-               <button onClick={()=>handleAmuletResponse(false)} className="bg-slate-900/80 hover:bg-slate-800 text-slate-400 px-10 py-5 rounded-2xl uppercase font-bold tracking-widest border border-slate-700 hover:text-slate-300 transition-all hover:scale-105 active:scale-95">Take Hit</button>
+              <button
+                onClick={() => handleAmuletResponse(true)}
+                className="bg-gradient-to-b from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white px-10 py-5 rounded-2xl uppercase font-black tracking-widest shadow-[0_0_30px_rgba(220,38,38,0.6)] hover:scale-105 transition-all active:scale-95 text-lg border border-red-400/50"
+              >
+                Burn Amulet
+              </button>
+              <button
+                onClick={() => handleAmuletResponse(false)}
+                className="bg-slate-900/80 hover:bg-slate-800 text-slate-400 px-10 py-5 rounded-2xl uppercase font-bold tracking-widest border border-slate-700 hover:text-slate-300 transition-all hover:scale-105 active:scale-95"
+              >
+                Take Hit
+              </button>
             </div>
           </div>
         )}
 
         {/* Discard Pile (The Void) Modal */}
-{showDiscard && (
-  <div className="fixed inset-0 z-[250] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in fade-in">
-    <div className="bg-slate-950 border border-red-900/50 rounded-3xl w-full max-w-4xl flex flex-col shadow-[0_0_50px_rgba(220,38,38,0.15)] overflow-hidden">
-      
-      {/* Modal Header */}
-      <div className="flex justify-between items-center p-4 md:p-6 border-b border-slate-800 bg-slate-900/50">
-        <h3 className="text-xl md:text-2xl font-black text-red-500 uppercase tracking-widest flex items-center gap-3">
-          <Flame className="text-red-600 animate-pulse" /> The Void 
-          <span className="text-xs text-slate-500 tracking-widest bg-slate-950 px-3 py-1 rounded-full border border-slate-800">
-            {gameState.discardPile.length} Cards
-          </span>
-        </h3>
-        <button onClick={() => setShowDiscard(false)} className="p-2 bg-slate-900 rounded-full text-slate-400 hover:text-red-400 hover:bg-red-950/30 border border-slate-800 transition-colors">
-          <X size={20}/>
-        </button>
-      </div>
-      
-      {/* Cards Grid */}
-      <div className="p-6 overflow-y-auto custom-scrollbar max-h-[60vh] flex flex-wrap gap-4 justify-center content-start">
-        {gameState.discardPile.length === 0 ? (
-          <div className="text-slate-600 uppercase tracking-widest font-black py-12 flex flex-col items-center gap-4">
-            <Ghost size={48} className="opacity-20" />
-            The void is currently empty.
-          </div>
-        ) : (
-          /* Reversing the array so the most recently discarded cards show up first */
-          [...gameState.discardPile].reverse().map((c, i) => (
-            <div key={`${c.uid}-${i}`} className="relative group">
-               {i === 0 && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-950 text-red-400 text-[9px] font-black uppercase px-2 py-0.5 rounded border border-red-900/50 z-20 shadow-md">
-                     Top
+        {showDiscard && (
+          <div className="fixed inset-0 z-[250] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in fade-in">
+            <div className="bg-slate-950 border border-red-900/50 rounded-3xl w-full max-w-4xl flex flex-col shadow-[0_0_50px_rgba(220,38,38,0.15)] overflow-hidden">
+              {/* Modal Header */}
+              <div className="flex justify-between items-center p-4 md:p-6 border-b border-slate-800 bg-slate-900/50">
+                <h3 className="text-xl md:text-2xl font-black text-red-500 uppercase tracking-widest flex items-center gap-3">
+                  <Flame className="text-red-600 animate-pulse" /> The Void
+                  <span className="text-xs text-slate-500 tracking-widest bg-slate-950 px-3 py-1 rounded-full border border-slate-800">
+                    {gameState.discardPile.length} Cards
+                  </span>
+                </h3>
+                <button
+                  onClick={() => setShowDiscard(false)}
+                  className="p-2 bg-slate-900 rounded-full text-slate-400 hover:text-red-400 hover:bg-red-950/30 border border-slate-800 transition-colors"
+                >
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Cards Grid */}
+              <div className="p-6 overflow-y-auto custom-scrollbar max-h-[60vh] flex flex-wrap gap-4 justify-center content-start">
+                {gameState.discardPile.length === 0 ? (
+                  <div className="text-slate-600 uppercase tracking-widest font-black py-12 flex flex-col items-center gap-4">
+                    <Ghost size={48} className="opacity-20" />
+                    The void is currently empty.
                   </div>
-               )}
-               <CardDisplay cardId={c.cardId} />
+                ) : (
+                  /* Reversing the array so the most recently discarded cards show up first */
+                  [...gameState.discardPile].reverse().map((c, i) => (
+                    <div key={`${c.uid}-${i}`} className="relative group">
+                      {i === 0 && (
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-950 text-red-400 text-[9px] font-black uppercase px-2 py-0.5 rounded border border-red-900/50 z-20 shadow-md">
+                          Top
+                        </div>
+                      )}
+                      <CardDisplay cardId={c.cardId} />
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
-          ))
+          </div>
         )}
-      </div>
-      
-    </div>
-  </div>
-)}
 
         {/* Generic Action Target Modals (Robust Switch System + Chaining) */}
         {(() => {
-           let fallbackModal = null;
-           if (gameState?.turnState === "CHAIN_MODAL" && isMyTurn) {
-               const def = SUPERNATURALS[gameState.pendingAction.defId];
-               fallbackModal = { type: def.target, cardUid: "CHAIN", def: def, isChain: true };
-               if (def.target === "SET_SWAP") {
-                    const swapSet = me.tableau.find(s => !s.isLocked);
-                    if (swapSet) fallbackModal.ownSetId = swapSet.id;
-               }
-               if (def.target === "SET_HEXWITCH") {
-                    const birdSet = me.tableau.find(s => s.type === "BIRD" && !s.isLocked && s.cards.length === 3);
-                    if (birdSet) fallbackModal.ownSetId = birdSet.id;
-               }
-           }
-           const activeModal = modalState || fallbackModal;
-           
-           if (!activeModal || !isMyTurn) return null;
-           
-           const confirmModalAction = (data) => {
-              if (activeModal.isChain) resolveChain(data);
-              else resolveSupernatural(activeModal.cardUid, data);
-           };
+          let fallbackModal = null;
+          if (gameState?.turnState === "CHAIN_MODAL" && isMyTurn) {
+            const def = SUPERNATURALS[gameState.pendingAction.defId];
+            fallbackModal = {
+              type: def.target,
+              cardUid: "CHAIN",
+              def: def,
+              isChain: true,
+            };
 
-           // Special fail-safe if chained prerequisites are missing
-           if (activeModal.isChain && (!activeModal.ownSetId && ["SET_SWAP", "SET_HEXWITCH"].includes(activeModal.type))) {
-               return (
-                  <div className="fixed inset-0 z-[80] bg-black/95 flex flex-col items-center justify-center p-4 backdrop-blur-lg">
-                      <div className="bg-slate-950 border border-red-700/50 p-8 rounded-3xl max-w-md w-full shadow-[0_0_50px_rgba(239,68,68,0.2)] text-center">
-                          <AlertTriangle className="text-red-500 mx-auto mb-4" size={48}/>
-                          <h3 className="text-xl font-black text-red-400 uppercase tracking-widest mb-2">Power Fizzled</h3>
-                          <p className="text-slate-400 text-sm mb-6 uppercase font-bold tracking-widest">You do not have the required sets to fulfill this entity's demand.</p>
-                          <button onClick={() => resolveChain({})} className="bg-slate-800 hover:bg-slate-700 text-white w-full py-4 rounded-xl uppercase font-black tracking-widest transition-colors">Yield Effect</button>
+            if (def.target === "SET_SWAP") {
+              const validOwnSets = me.tableau.filter((s) => !s.isLocked);
+              if (validOwnSets.length > 0) {
+                fallbackModal.validOwnSets = validOwnSets;
+                fallbackModal.ownSetId =
+                  validOwnSets.length === 1 ? validOwnSets[0].id : null;
+              }
+            }
+            if (def.target === "SET_HEXWITCH") {
+              const validOwnSets = me.tableau.filter(
+                (s) => s.type === "BIRD" && !s.isLocked && s.cards.length === 3,
+              );
+              if (validOwnSets.length > 0) {
+                fallbackModal.validOwnSets = validOwnSets;
+                fallbackModal.ownSetId =
+                  validOwnSets.length === 1 ? validOwnSets[0].id : null;
+              }
+            }
+          }
+          const activeModal = modalState || fallbackModal;
+
+          if (!activeModal || !isMyTurn) return null;
+
+          const confirmModalAction = (data) => {
+            const payload = {
+              ...data,
+              placementSetId: activeModal.placementSetId,
+            };
+            if (activeModal.isChain) resolveChain(payload);
+            else resolveSupernatural(activeModal.cardUid, payload);
+          };
+
+          // Special fail-safe if chained prerequisites are missing
+          if (
+            activeModal.isChain &&
+            !activeModal.ownSetId &&
+            ["SET_SWAP", "SET_HEXWITCH"].includes(activeModal.type)
+          ) {
+            return (
+              <div className="fixed inset-0 z-[80] bg-black/95 flex flex-col items-center justify-center p-4 backdrop-blur-lg">
+                <div className="bg-slate-950 border border-red-700/50 p-8 rounded-3xl max-w-md w-full shadow-[0_0_50px_rgba(239,68,68,0.2)] text-center">
+                  <AlertTriangle
+                    className="text-red-500 mx-auto mb-4"
+                    size={48}
+                  />
+                  <h3 className="text-xl font-black text-red-400 uppercase tracking-widest mb-2">
+                    Power Fizzled
+                  </h3>
+                  <p className="text-slate-400 text-sm mb-6 uppercase font-bold tracking-widest">
+                    You do not have the required sets to fulfill this entity's
+                    demand.
+                  </p>
+                  <button
+                    onClick={() => resolveChain({})}
+                    className="bg-slate-800 hover:bg-slate-700 text-white w-full py-4 rounded-xl uppercase font-black tracking-widest transition-colors"
+                  >
+                    Yield Effect
+                  </button>
+                </div>
+              </div>
+            );
+          }
+
+          return (
+            <div className="fixed inset-0 z-[80] bg-black/95 flex flex-col items-center justify-center p-4 backdrop-blur-lg">
+              <div className="bg-slate-950 border border-fuchsia-700/50 p-6 md:p-8 rounded-3xl max-w-4xl w-full shadow-[0_0_50px_rgba(192,38,211,0.2)]">
+                <div className="flex justify-between items-center mb-6 border-b border-slate-800/80 pb-4">
+                  <h3 className="text-xl md:text-2xl font-black text-fuchsia-400 uppercase tracking-widest flex items-center gap-3 drop-shadow-md">
+                    <Search className="text-fuchsia-600" />{" "}
+                    {activeModal.type === "CHOOSE_PLACEMENT"
+                      ? "Place Entity" // <--- ADD THIS LINE
+                      : activeModal.type === "PLAYER"
+                        ? "Select Target"
+                        : activeModal.type === "PLAYER_VIEW" ||
+                            activeModal.type === "PLAYER_VIEW_STEAL"
+                          ? "Gaze into a Mind"
+                          : activeModal.type === "VIEW_HAND"
+                            ? "The Mind Revealed"
+                            : activeModal.type.includes("DISCARD")
+                              ? "Search the Void"
+                              : activeModal.type.includes("SET")
+                                ? "Target a Banked Set"
+                                : activeModal.type.includes("TABLE_CARD")
+                                  ? "Target an Entity"
+                                  : activeModal.type === "CARD_TYPE"
+                                    ? "Name an Entity"
+                                    : activeModal.type === "OWN_SUP"
+                                      ? "Select your Entity"
+                                      : activeModal.type === "ORACLE"
+                                        ? "River Oracle"
+                                        : activeModal.type === "BROKER"
+                                          ? "Grave Broker"
+                                          : "Select Target"}
+                  </h3>
+                  {!activeModal.isChain && (
+                    <button
+                      onClick={() => {
+                        setModalState(null);
+                        setSelectedHandCards([]);
+                      }}
+                      className="text-slate-500 hover:text-white bg-slate-900 p-2 rounded-full border border-slate-800 transition-colors"
+                    >
+                      <X size={20} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="max-h-[60vh] overflow-y-auto custom-scrollbar p-2">
+                  {/* TYPE: CHOOSE_PLACEMENT (Step 1 of Supernatural play) */}
+                  {activeModal.type === "CHOOSE_PLACEMENT" && (
+                    <div className="flex flex-col gap-6 items-center">
+                      <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800">
+                        Where will you place this entity?
                       </div>
-                  </div>
-               )
-           }
-
-           return (
-             <div className="fixed inset-0 z-[80] bg-black/95 flex flex-col items-center justify-center p-4 backdrop-blur-lg">
-                <div className="bg-slate-950 border border-fuchsia-700/50 p-6 md:p-8 rounded-3xl max-w-4xl w-full shadow-[0_0_50px_rgba(192,38,211,0.2)]">
-                   <div className="flex justify-between items-center mb-6 border-b border-slate-800/80 pb-4">
-                     <h3 className="text-xl md:text-2xl font-black text-fuchsia-400 uppercase tracking-widest flex items-center gap-3 drop-shadow-md">
-                        <Search className="text-fuchsia-600"/> {
-                          activeModal.type === "PLAYER" ? "Select Target" :
-                          activeModal.type === "PLAYER_VIEW" || activeModal.type === "PLAYER_VIEW_STEAL" ? "Gaze into a Mind" :
-                          activeModal.type === "VIEW_HAND" ? "The Mind Revealed" :
-                          activeModal.type.includes("DISCARD") ? "Search the Void" :
-                          activeModal.type.includes("SET") ? "Target a Banked Set" :
-                          activeModal.type.includes("TABLE_CARD") ? "Target an Entity" :
-                          activeModal.type === "CARD_TYPE" ? "Name an Entity" :
-                          activeModal.type === "OWN_SUP" ? "Select your Entity" :
-                          activeModal.type === "ORACLE" ? "River Oracle" :
-                          activeModal.type === "BROKER" ? "Grave Broker" : "Select Target"
-                        }
-                     </h3>
-                     {!activeModal.isChain && <button onClick={()=>{setModalState(null); setSelectedHandCards([])}} className="text-slate-500 hover:text-white bg-slate-900 p-2 rounded-full border border-slate-800 transition-colors"><X size={20}/></button>}
-                   </div>
-                   
-                   <div className="max-h-[60vh] overflow-y-auto custom-scrollbar p-2">
-                     
-                     {/* TYPE: PLAYER (Headless, Chainbinder init, Serpent init, Bloodfiend, Devourer, Grim, Handshifter, Silencer) */}
-                     {(activeModal.type === "PLAYER" || activeModal.type === "PLAYER_VIEW" || activeModal.type === "PLAYER_VIEW_STEAL") && (
-                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                         {gameState.players.filter(p=>p.id!==user.uid).map(p => (
-                           <button key={p.id} disabled={p.hand.length===0 && activeModal.def?.id !== "SUP_SILENCER" && activeModal.def?.id !== "SUP_HANDSHIFTER"} onClick={()=>{
-                             if(activeModal.mode==="STEAL") {
-                               const target = gameState.players.find(pl=>pl.id===p.id);
-                               const pending = { type: "STEAL", sourceId: me.id, targetId: p.id, count: 1 };
-                               if (target.hand.some(c=>c.cardId==="AMULET")) {
-                                   const updates = { turnState: "AMULET_PROMPT", pendingAction: pending };
-                                   executeAction(updates, `${me.name} attempts to steal from ${target.name}. Waiting for defense...`, "warning");
-                               } else {
-                                   const players = JSON.parse(JSON.stringify(gameState.players));
-                                   const discardPile = [...gameState.discardPile];
-                                   const deck = [...gameState.deck];
-                                   resolveOffensiveAction(pending, players, discardPile, deck);
-                                   const updates = finalizeAction(players, deck, "ACTION", gameState.actionsLeft - 1);
-                                   updates.discardPile = discardPile;
-                                   executeAction(updates, `${me.name} successfully stole from ${target.name}!`, "success");
-                               }
-                               setModalState(null);
-                             } else if (activeModal.type === "PLAYER_VIEW_STEAL" || activeModal.type === "PLAYER_VIEW") {
-                                setModalState({ ...activeModal, type: "VIEW_HAND", targetId: p.id });
-                             } else {
+                      <div className="flex flex-wrap justify-center gap-4">
+                        {gameState.players[gameState.turnIndex].tableau
+                          .filter(
+                            (s) =>
+                              s.type === "SUP" &&
+                              !s.isLocked &&
+                              s.cards.length < 5,
+                          )
+                          .map((set) => (
+                            <button
+                              key={set.id}
+                              onClick={() =>
+                                actionPlaySupernatural(
+                                  activeModal.cardUid,
+                                  set.id,
+                                )
+                              }
+                              className="bg-slate-900 p-4 rounded-xl border-2 border-slate-700 hover:border-fuchsia-500 transition-all group flex flex-col items-center gap-2"
+                            >
+                              <div className="flex gap-1">
+                                {set.cards.map((c, i) => (
+                                  <CardDisplay key={i} cardId={c.cardId} tiny />
+                                ))}
+                              </div>
+                              <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">
+                                Append to Set ({set.cards.length}/5)
+                              </span>
+                            </button>
+                          ))}
+                        <button
+                          onClick={() =>
+                            actionPlaySupernatural(activeModal.cardUid, "NEW")
+                          }
+                          className="bg-slate-900 p-4 rounded-xl border-2 border-slate-700 hover:border-fuchsia-500 transition-all flex flex-col items-center justify-center gap-2 min-w-[140px]"
+                        >
+                          <Layers size={24} className="text-fuchsia-400" />
+                          <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">
+                            Start New Set
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                  {/* TYPE: PLAYER (Headless, Chainbinder init, Serpent init, Bloodfiend, Devourer, Grim, Handshifter, Silencer) */}
+                  {(activeModal.type === "PLAYER" ||
+                    activeModal.type === "PLAYER_VIEW" ||
+                    activeModal.type === "PLAYER_VIEW_STEAL") && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                      {gameState.players
+                        .filter((p) => p.id !== user.uid)
+                        .map((p) => (
+                          <button
+                            key={p.id}
+                            disabled={
+                              p.hand.length === 0 &&
+                              activeModal.def?.id !== "SUP_SILENCER" &&
+                              activeModal.def?.id !== "SUP_HANDSHIFTER"
+                            }
+                            onClick={() => {
+                              if (activeModal.mode === "STEAL") {
+                                const target = gameState.players.find(
+                                  (pl) => pl.id === p.id,
+                                );
+                                const pending = {
+                                  type: "STEAL",
+                                  sourceId: me.id,
+                                  targetId: p.id,
+                                  count: 1,
+                                };
+                                if (
+                                  target.hand.some((c) => c.cardId === "AMULET")
+                                ) {
+                                  const updates = {
+                                    turnState: "AMULET_PROMPT",
+                                    pendingAction: pending,
+                                  };
+                                  executeAction(
+                                    updates,
+                                    `${me.name} attempts to steal from ${target.name}. Waiting for defense...`,
+                                    "warning",
+                                  );
+                                } else {
+                                  const players = JSON.parse(
+                                    JSON.stringify(gameState.players),
+                                  );
+                                  const discardPile = [
+                                    ...gameState.discardPile,
+                                  ];
+                                  const deck = [...gameState.deck];
+                                  resolveOffensiveAction(
+                                    pending,
+                                    players,
+                                    discardPile,
+                                    deck,
+                                  );
+                                  const updates = finalizeAction(
+                                    players,
+                                    deck,
+                                    "ACTION",
+                                    gameState.actionsLeft - 1,
+                                  );
+                                  updates.discardPile = discardPile;
+                                  executeAction(
+                                    updates,
+                                    `${me.name} successfully stole from ${target.name}!`,
+                                    "success",
+                                  );
+                                }
+                                setModalState(null);
+                                setSelectedHandCards([]); // <--- ADD THIS HERE
+                              } else if (
+                                activeModal.type === "PLAYER_VIEW_STEAL" ||
+                                activeModal.type === "PLAYER_VIEW"
+                              ) {
+                                setModalState({
+                                  ...activeModal,
+                                  type: "VIEW_HAND",
+                                  targetId: p.id,
+                                });
+                              } else {
                                 confirmModalAction({ targetPlayerId: p.id });
-                             }
-                           }} className="bg-slate-900 border border-slate-800 p-5 rounded-2xl text-left hover:border-fuchsia-500 hover:bg-slate-800 transition-all disabled:opacity-30 disabled:grayscale group shadow-md hover:shadow-[0_0_15px_rgba(192,38,211,0.3)]">
-                             <div className="font-black text-xl text-slate-200 uppercase tracking-widest mb-2 group-hover:text-fuchsia-300 flex justify-between items-center">{p.name} <UserCheck size={20} className="opacity-0 group-hover:opacity-100 transition-opacity"/></div>
-                             <div className="text-xs text-slate-500 uppercase font-bold flex items-center gap-2"><Scroll size={14}/> Cards in Hand: <span className="text-slate-300 text-sm">{p.hand.length}</span></div>
-                           </button>
-                         ))}
-                       </div>
-                     )}
-
-                     {/* TYPE: VIEW_HAND (Chainbinder Steal or Serpent View) */}
-                     {activeModal.type === "VIEW_HAND" && (
-                       <div className="flex flex-col gap-6 items-center">
-                          <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800">
-                             {activeModal.def?.id === "SUP_CHAINBINDER" ? "Select 1 card to steal" : "Observing hand. Click any card to finish."}
-                          </div>
-                          <div className="flex flex-wrap gap-4 justify-center">
-                             {gameState.players.find(p=>p.id===activeModal.targetId).hand.map((c, i) => (
-                                <CardDisplay key={i} cardId={c.cardId} onClick={()=>{
-                                   if (activeModal.def?.id === "SUP_CHAINBINDER") {
-                                      confirmModalAction({ targetPlayerId: activeModal.targetId, specificCardUid: c.uid });
-                                   } else {
-                                      confirmModalAction({ targetPlayerId: activeModal.targetId });
-                                   }
-                                }}/>
-                             ))}
-                             {gameState.players.find(p=>p.id===activeModal.targetId).hand.length === 0 && <div className="text-slate-500 italic py-10">Hand is empty.</div>}
-                          </div>
-                       </div>
-                     )}
-
-                     {/* TYPE: DISCARD (Relic, Twins) */}
-                     {activeModal.type.includes("DISCARD") && (
-                       <div className="flex flex-col gap-6 items-center">
-                         <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800">
-                             Select {activeModal.def?.id === "SUP_TWINS" ? "2" : "1"} card(s)
-                         </div>
-                         <div className="flex flex-wrap gap-4 justify-center">
-                           {gameState.discardPile.length === 0 && <div className="text-slate-500 uppercase tracking-widest py-10 font-bold">Void is empty</div>}
-                           {gameState.discardPile.map((c, i) => {
-                              const isSel = selectedHandCards.includes(c.uid);
-                              return (
-                                 <CardDisplay key={i} cardId={c.cardId} highlight={isSel} onClick={()=>{
-                                    const max = activeModal.def?.id === "SUP_TWINS" ? 2 : 1;
-                                    if (isSel) setSelectedHandCards(selectedHandCards.filter(uid => uid !== c.uid));
-                                    else if (selectedHandCards.length < max) setSelectedHandCards([...selectedHandCards, c.uid]);
-                                 }}/>
-                              )
-                           })}
-                         </div>
-                         <button disabled={selectedHandCards.length !== (activeModal.def?.id === "SUP_TWINS" ? Math.min(2, gameState.discardPile.length) : Math.min(1, gameState.discardPile.length))} onClick={()=>confirmModalAction({ discardUids: selectedHandCards })} className="bg-fuchsia-700 hover:bg-fuchsia-600 text-white px-10 py-3 rounded-xl font-black uppercase tracking-widest disabled:opacity-50 mt-4 shadow-lg transition-colors">Confirm Selection</button>
-                       </div>
-                     )}
-
-                     {/* Chainbinder Modal */}
-                      {activeModal.type === "CHAINBINDER" && (
-                        <div className="flex flex-col gap-6">
-                            <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800 text-center">
-                              Observe all hands. Choose your victim.
+                              }
+                            }}
+                            className="bg-slate-900 border border-slate-800 p-5 rounded-2xl text-left hover:border-fuchsia-500 hover:bg-slate-800 transition-all disabled:opacity-30 disabled:grayscale group shadow-md hover:shadow-[0_0_15px_rgba(192,38,211,0.3)]"
+                          >
+                            <div className="font-black text-xl text-slate-200 uppercase tracking-widest mb-2 group-hover:text-fuchsia-300 flex justify-between items-center">
+                              {p.name}{" "}
+                              <UserCheck
+                                size={20}
+                                className="opacity-0 group-hover:opacity-100 transition-opacity"
+                              />
                             </div>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                              {gameState.players.filter(p=>p.id!==user.uid).map(p => (
-                                  <div key={p.id} className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col gap-3">
-                                    <h4 className="font-black text-fuchsia-400 uppercase tracking-widest flex items-center justify-between">
-                                        {p.name}
-                                        <button disabled={p.hand.length===0} onClick={()=>confirmModalAction({ targetPlayerId: p.id })} className="bg-red-950 hover:bg-red-900 text-red-400 px-3 py-1 rounded text-xs disabled:opacity-30 border border-red-900/50">Steal Random</button>
-                                    </h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {p.hand.map(c => <CardDisplay key={c.uid} cardId={c.cardId} tiny />)}
-                                        {p.hand.length===0 && <span className="text-xs text-slate-500">Empty</span>}
+                            <div className="text-xs text-slate-500 uppercase font-bold flex items-center gap-2">
+                              <Scroll size={14} /> Cards in Hand:{" "}
+                              <span className="text-slate-300 text-sm">
+                                {p.hand.length}
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                    </div>
+                  )}
+
+                  {/* TYPE: VIEW_HAND (Serpent King) */}
+                  {activeModal.type === "VIEW_HAND" && (
+                    <div className="flex flex-col gap-6 items-center">
+                      <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800 text-center">
+                        The Mind Revealed
+                      </div>
+                      
+                      <div className="flex flex-wrap gap-4 justify-center mb-4 p-4 bg-slate-900/50 rounded-2xl border border-slate-800 w-full max-w-3xl">
+                        {gameState.players
+                          .find((p) => p.id === activeModal.targetId)
+                          .hand.map((c, i) => (
+                            <div key={i} className="relative hover:-translate-y-2 transition-transform">
+                              {/* Removed the onClick handler so they are just static displays */}
+                              <CardDisplay cardId={c.cardId} />
+                            </div>
+                          ))}
+                        
+                        {gameState.players.find(
+                          (p) => p.id === activeModal.targetId
+                        ).hand.length === 0 && (
+                          <div className="text-slate-500 italic py-10 font-bold uppercase tracking-widest">
+                            Their mind is empty.
+                          </div>
+                        )}
+                      </div>
+
+                      <button
+                        onClick={() => {
+                          confirmModalAction({
+                            targetPlayerId: activeModal.targetId,
+                          });
+                        }}
+                        className="bg-fuchsia-700 hover:bg-fuchsia-600 text-white px-10 py-4 rounded-xl uppercase font-black tracking-[0.2em] shadow-[0_0_20px_rgba(192,38,211,0.5)] transition-all active:scale-95 text-lg"
+                      >
+                        Done Observing
+                      </button>
+                    </div>
+                  )}
+
+                  {/* TYPE: DISCARD (Relic, Twins) */}
+                  {activeModal.type.includes("DISCARD") && (
+                    <div className="flex flex-col gap-6 items-center">
+                      <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800">
+                        Select {activeModal.def?.id === "SUP_TWINS" ? "2" : "1"}{" "}
+                        card(s)
+                      </div>
+                      <div className="flex flex-wrap gap-4 justify-center">
+                        {gameState.discardPile.length === 0 && (
+                          <div className="text-slate-500 uppercase tracking-widest py-10 font-bold">
+                            Void is empty
+                          </div>
+                        )}
+                        {gameState.discardPile.map((c, i) => {
+                          const isSel = selectedHandCards.includes(c.uid);
+                          return (
+                            <div key={c.uid || i} className="relative">
+                              <CardDisplay
+                                cardId={c.cardId}
+                                highlight={isSel}
+                                onClick={() => {
+                                  // Determine max allowed selections based on card type
+                                  const max =
+                                    activeModal.def?.id === "SUP_TWINS" ||
+                                    activeModal.type === "DISCARD_2"
+                                      ? 2
+                                      : 1;
+
+                                  if (isSel) {
+                                    setSelectedHandCards(
+                                      selectedHandCards.filter(
+                                        (uid) => uid !== c.uid,
+                                      ),
+                                    );
+                                  } else {
+                                    if (max === 1) {
+                                      // For Relic Keeper (1 card), clicking a new card instantly replaces the selection
+                                      setSelectedHandCards([c.uid]);
+                                    } else if (selectedHandCards.length < max) {
+                                      // For Twins of Fate (2 cards), accumulate up to max
+                                      setSelectedHandCards([
+                                        ...selectedHandCards,
+                                        c.uid,
+                                      ]);
+                                    }
+                                  }
+                                }}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <button
+                        disabled={
+                          selectedHandCards.length !==
+                          (activeModal.def?.id === "SUP_TWINS"
+                            ? Math.min(2, gameState.discardPile.length)
+                            : Math.min(1, gameState.discardPile.length))
+                        }
+                        onClick={() =>
+                          confirmModalAction({ discardUids: selectedHandCards })
+                        }
+                        className="bg-fuchsia-700 hover:bg-fuchsia-600 text-white px-10 py-3 rounded-xl font-black uppercase tracking-widest disabled:opacity-50 mt-4 shadow-lg transition-colors"
+                      >
+                        Confirm Selection
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Chainbinder Modal */}
+                  {activeModal.type === "CHAINBINDER" && (
+                    <div className="flex flex-col gap-6">
+                      <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800 text-center">
+                        Observe all hands. Choose your victim.
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {gameState.players
+                          .filter((p) => p.id !== user.uid)
+                          .map((p) => (
+                            <div
+                              key={p.id}
+                              className="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex flex-col gap-3"
+                            >
+                              <h4 className="font-black text-fuchsia-400 uppercase tracking-widest flex items-center justify-between">
+                                {p.name}
+                                <button
+                                  disabled={p.hand.length === 0}
+                                  onClick={() =>
+                                    confirmModalAction({ targetPlayerId: p.id })
+                                  }
+                                  className="bg-red-950 hover:bg-red-900 text-red-400 px-3 py-1 rounded text-xs disabled:opacity-30 border border-red-900/50"
+                                >
+                                  Steal Random
+                                </button>
+                              </h4>
+                              <div className="flex flex-wrap gap-2">
+                                {p.hand.map((c) => (
+                                  <CardDisplay
+                                    key={c.uid}
+                                    cardId={c.cardId}
+                                    tiny
+                                  />
+                                ))}
+                                {p.hand.length === 0 && (
+                                  <span className="text-xs text-slate-500">
+                                    Empty
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bloodfiend Modal */}
+                  {activeModal.type === "BLOODFIEND" &&
+                    (() => {
+                      // Calculate if opponents even have 3 cards combined to prevent soft-locks
+                      const totalOpponentCards = gameState.players
+                        .filter((p) => p.id !== user.uid)
+                        .reduce((sum, p) => sum + p.hand.length, 0);
+
+                      const requiredSelections = Math.min(
+                        3,
+                        totalOpponentCards,
+                      );
+                      const selections = activeModal.selections || [];
+
+                      return (
+                        <div className="flex flex-col gap-6 items-center">
+                          <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800 text-center">
+                            Select up to {requiredSelections} targets to steal
+                            from ({selections.length}/{requiredSelections})
+                          </div>
+
+                          <div className="flex flex-wrap justify-center gap-4">
+                            {gameState.players
+                              .filter((p) => p.id !== user.uid)
+                              .map((p) => {
+                                const count = selections.filter(
+                                  (id) => id === p.id,
+                                ).length;
+                                return (
+                                  <button
+                                    key={p.id}
+                                    // Prevents clicking if 3 targets are picked OR if trying to steal more cards than the player actually holds
+                                    disabled={
+                                      selections.length >= requiredSelections ||
+                                      p.hand.length <= count
+                                    }
+                                    onClick={() => {
+                                      setModalState({
+                                        ...activeModal,
+                                        selections: [...selections, p.id],
+                                      });
+                                    }}
+                                    className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col items-center gap-2 hover:border-red-500 disabled:opacity-50 min-w-[120px] transition-colors"
+                                  >
+                                    <span className="font-black text-slate-200 uppercase tracking-widest">
+                                      {p.name}
+                                    </span>
+                                    <span className="text-xs text-slate-500 font-bold">
+                                      Cards: {p.hand.length}
+                                    </span>
+                                    {count > 0 && (
+                                      <div className="text-red-500 font-black text-xl">
+                                        TARGETED x{count}
+                                      </div>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                          </div>
+
+                          <div className="flex gap-4 mt-4">
+                            <button
+                              onClick={() =>
+                                setModalState({
+                                  ...activeModal,
+                                  selections: [],
+                                })
+                              }
+                              className="px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded text-xs font-bold uppercase text-slate-400 transition-colors"
+                            >
+                              Reset
+                            </button>
+
+                            <button
+                              // Disables the Strike button until exactly the required amount of targets are chosen
+                              disabled={selections.length < requiredSelections}
+                              onClick={() =>
+                                confirmModalAction({
+                                  selections: activeModal.selections,
+                                })
+                              }
+                              className="bg-red-700 hover:bg-red-600 text-white px-8 py-3 rounded-xl uppercase font-black tracking-widest disabled:opacity-50 disabled:grayscale transition-all active:scale-95"
+                            >
+                              Strike
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                  {/* Hoarder Modal */}
+                  {activeModal.type === "HOARDER" &&
+                    (() => {
+                      const selections = activeModal.selections || [];
+
+                      // FIX: If playing from hand, subtract 1 to account for Hoarder leaving.
+                      // If chaining from table (Nightwalker), hand size stays the same.
+                      const actualHandSize = activeModal.isChain
+                        ? me.hand.length
+                        : me.hand.length - 1;
+
+                      const needed = Math.max(0, 7 - actualHandSize);
+
+                      return (
+                        <div className="flex flex-col gap-6 items-center">
+                          <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800 text-center">
+                            Gather {needed} cards ({selections.length}/{needed})
+                          </div>
+                          // ... (the rest of your Hoarder modal stays exactly
+                          the same)
+                          <div className="flex flex-wrap justify-center gap-4">
+                            <button
+                              disabled={
+                                gameState.deck.length <=
+                                  selections.filter((c) => c === "DECK")
+                                    .length || selections.length >= needed
+                              }
+                              onClick={() => {
+                                setModalState({
+                                  ...activeModal,
+                                  selections: [...selections, "DECK"],
+                                });
+                              }}
+                              className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col items-center gap-2 hover:border-fuchsia-500 disabled:opacity-50 min-w-[120px]"
+                            >
+                              <Layers size={24} className="text-fuchsia-400" />
+                              <span className="font-black text-slate-200 uppercase tracking-widest">
+                                Deck
+                              </span>
+                              {selections.filter((c) => c === "DECK").length >
+                                0 && (
+                                <span className="text-fuchsia-400 font-black">
+                                  x
+                                  {
+                                    selections.filter((c) => c === "DECK")
+                                      .length
+                                  }
+                                </span>
+                              )}
+                            </button>
+                            {gameState.players
+                              .filter((p) => p.id !== user.uid)
+                              .map((p) => {
+                                const count = selections.filter(
+                                  (id) => id === p.id,
+                                ).length;
+                                return (
+                                  <button
+                                    key={p.id}
+                                    disabled={
+                                      p.hand.length <= count ||
+                                      selections.length >= needed
+                                    }
+                                    onClick={() => {
+                                      setModalState({
+                                        ...activeModal,
+                                        selections: [...selections, p.id],
+                                      });
+                                    }}
+                                    className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col items-center gap-2 hover:border-red-500 disabled:opacity-50 min-w-[120px]"
+                                  >
+                                    <UserCheck
+                                      size={24}
+                                      className="text-red-400"
+                                    />
+                                    <span className="font-black text-slate-200 uppercase tracking-widest">
+                                      {p.name}
+                                    </span>
+                                    {count > 0 && (
+                                      <span className="text-red-500 font-black">
+                                        x{count}
+                                      </span>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                          </div>
+                          <div className="flex gap-4 mt-4">
+                            <button
+                              onClick={() =>
+                                setModalState({
+                                  ...activeModal,
+                                  selections: [],
+                                })
+                              }
+                              className="px-4 py-2 bg-slate-800 rounded text-xs font-bold uppercase text-slate-400"
+                            >
+                              Reset
+                            </button>
+                            <button
+                              disabled={selections.length === 0 && needed > 0}
+                              onClick={() =>
+                                confirmModalAction({ choices: selections })
+                              }
+                              className="bg-fuchsia-700 hover:bg-fuchsia-600 text-white px-8 py-3 rounded-xl uppercase font-black tracking-widest disabled:opacity-50"
+                            >
+                              Hoard
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                  {/* TYPE: SET (Destroyer, Shapechanger, Hexwitch) */}
+                  {/* TYPE: SET (Destroyer, Shapechanger, Hexwitch) */}
+                  {activeModal.type.includes("SET") && (
+                    <div className="flex flex-col gap-8">
+                      {/* Step 1 - Choose own set to give away/sacrifice */}
+                      {activeModal.ownSetId === null ? (
+                        <div className="flex flex-col gap-6 items-center animate-in fade-in">
+                          <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800 text-center">
+                            {activeModal.def?.id === "SUP_SHAPECHANGER"
+                              ? "Select your set to give away"
+                              : "Select your Bird set to sacrifice"}
+                          </div>
+                          <div className="flex flex-wrap justify-center gap-4">
+                            {activeModal.validOwnSets?.map((set) => (
+                              <button
+                                key={set.id}
+                                onClick={() =>
+                                  setModalState({
+                                    ...activeModal,
+                                    ownSetId: set.id,
+                                  })
+                                }
+                                className="bg-slate-900 p-4 rounded-xl border-2 border-slate-700 hover:border-fuchsia-500 transition-all flex gap-1 shadow-md hover:shadow-[0_0_15px_rgba(192,38,211,0.3)]"
+                              >
+                                {set.cards.map((c, i) => (
+                                  <CardDisplay key={i} cardId={c.cardId} tiny />
+                                ))}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4">
+                          {/* Step 2 - Choose Opponent's set (Comment safely moved INSIDE the div) */}
+                          <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800 text-center mx-auto">
+                            {activeModal.def?.id === "SUP_SHAPECHANGER"
+                              ? "Select opponent's set to take"
+                              : activeModal.def?.id === "SUP_HEXWITCH"
+                                ? "Select opponent's set to steal"
+                                : "Select a set to destroy"}
+                          </div>
+                          {gameState.players
+                            .filter((p) => p.id !== user.uid)
+                            .map((p) => (
+                              <div
+                                key={p.id}
+                                className="bg-slate-900/50 p-5 rounded-2xl border border-slate-800"
+                              >
+                                <h4 className="font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                  <UserCheck size={18} /> {p.name}'s Sets
+                                </h4>
+                                <div className="flex flex-wrap gap-4">
+                                  {p.tableau.length === 0 && (
+                                    <span className="text-slate-600 text-xs uppercase font-bold italic">
+                                      No sets
+                                    </span>
+                                  )}
+                                  {p.tableau.map((set) => (
+                                    <button
+                                      key={set.id}
+                                      disabled={set.isLocked}
+                                      onClick={() =>
+                                        confirmModalAction({
+                                          targetPlayerId: p.id,
+                                          targetSetId: set.id,
+                                          ownSetId: activeModal.ownSetId,
+                                        })
+                                      }
+                                      className="bg-slate-950 p-2 rounded-xl border-2 border-slate-700 hover:border-fuchsia-500 transition-colors flex gap-1 group disabled:opacity-50 disabled:grayscale relative"
+                                    >
+                                      {set.isLocked && (
+                                        <Shield
+                                          size={24}
+                                          className="absolute inset-0 m-auto text-yellow-600/50 z-10"
+                                        />
+                                      )}
+                                      {set.cards.map((c, i) => (
+                                        <CardDisplay
+                                          key={i}
+                                          cardId={c.cardId}
+                                          tiny
+                                        />
+                                      ))}
+                                      <div className="absolute inset-0 bg-fuchsia-500/10 opacity-0 group-hover:opacity-100 rounded-lg transition-opacity z-10 flex items-center justify-center backdrop-blur-[1px]">
+                                        <CheckCircle className="text-fuchsia-300 drop-shadow-md" />
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* TYPE: TABLE_CARD (Enchantress, Nightwalker) */}
+                  {activeModal.type.includes("TABLE_CARD") && (
+                    <div className="flex flex-col gap-6">
+                      <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800 text-center mx-auto mb-2">
+                        {activeModal.def?.id === "SUP_ENCHANTRESS"
+                          ? "Select a male entity to enthrall"
+                          : "Select any entity to take"}
+                      </div>
+
+                      {gameState.players
+                        .filter((p) => p.id !== user.uid)
+                        .map((p) => {
+                          const validSets = p.tableau.filter(
+                            (s) => s.type === "SUP" && !s.isLocked,
+                          );
+                          if (validSets.length === 0) return null;
+                          return (
+                            <div
+                              key={p.id}
+                              className="bg-slate-900/50 p-5 rounded-2xl border border-slate-800"
+                            >
+                              <h4 className="font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <UserCheck size={18} /> {p.name}'s Entities
+                              </h4>
+                              <div className="flex flex-col gap-3">
+                                {validSets.map((set) => (
+                                  <div
+                                    key={set.id}
+                                    className="bg-slate-950 p-3 rounded-xl border border-slate-700 flex flex-col gap-2 shadow-inner"
+                                  >
+                                    {set.cards.map((c) => {
+                                      const def = SUPERNATURALS[c.cardId];
+                                      const isValid =
+                                        activeModal.def?.id ===
+                                          "SUP_NIGHTWALKER" ||
+                                        def?.gender === "M";
+
+                                      return (
+                                        <button
+                                          key={c.uid}
+                                          disabled={!isValid}
+                                          onClick={() => {
+                                            if (isValid)
+                                              confirmModalAction({
+                                                targetPlayerId: p.id,
+                                                targetSetId: set.id,
+                                                targetCardUid: c.uid,
+                                              });
+                                          }}
+                                          className={`flex items-center gap-4 p-3 rounded-xl border-2 text-left transition-all ${
+                                            isValid
+                                              ? "border-slate-700 hover:border-fuchsia-500 bg-slate-900 hover:bg-slate-800 cursor-pointer shadow-md"
+                                              : "border-slate-800 bg-slate-950 opacity-40 grayscale cursor-not-allowed"
+                                          }`}
+                                        >
+                                          <div className="shrink-0 w-12 h-16 bg-slate-950 rounded flex flex-col items-center justify-center border border-fuchsia-900/50">
+                                            <div className="text-fuchsia-400 mb-1">
+                                              {def.icon ? (
+                                                <def.icon size={20} />
+                                              ) : (
+                                                <Ghost size={20} />
+                                              )}
+                                            </div>
+                                            <div className="text-[9px] font-black text-slate-500">
+                                              {def.gender}
+                                            </div>
+                                          </div>
+                                          <div className="flex-1">
+                                            <div className="text-sm font-black text-slate-200 uppercase tracking-widest mb-1">
+                                              {def.name}
+                                            </div>
+                                            <div className="text-xs text-fuchsia-300 font-bold leading-snug">
+                                              {def.desc}
+                                            </div>
+                                          </div>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
+
+                  {/* TYPE: CARD_TYPE (Summoner) */}
+                  {activeModal.type === "CARD_TYPE" && (
+                    <div className="flex flex-col gap-4">
+                      <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800 text-center mb-4">
+                        Name a card to summon
+                      </div>
+                      <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                        {Object.values(ALL_CARDS).map((def) => (
+                          <button
+                            key={def.id}
+                            onClick={() =>
+                              confirmModalAction({ namedCardId: def.id })
+                            }
+                            className="bg-slate-900 border-2 border-slate-800 p-2 rounded-xl hover:border-fuchsia-500 hover:bg-slate-800 transition-colors flex flex-col items-center gap-2"
+                          >
+                            <div
+                              className={`${def.type === "SUP" ? "text-fuchsia-400" : def.color} drop-shadow-md`}
+                            >
+                              {def.icon ? (
+                                <def.icon size={24} />
+                              ) : (
+                                <Ghost size={24} />
+                              )}
+                            </div>
+                            <span className="text-[10px] font-black uppercase text-slate-300 text-center">
+                              {def.name}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* TYPE: OWN_SUP (Moon Hag) */}
+                  {activeModal.type === "OWN_SUP" && (
+                    <div className="flex flex-col gap-6 items-center w-full">
+                      <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800 text-center">
+                        Select an entity to re-invoke
+                      </div>
+                      <div className="flex flex-col gap-3 w-full max-w-2xl bg-slate-900/50 p-5 rounded-2xl border border-slate-800">
+                        {me.tableau
+                          .filter((s) => s.type === "SUP" && !s.isLocked)
+                          .map((set) =>
+                            set.cards.map((c) => {
+                              const def = SUPERNATURALS[c.cardId];
+                              return (
+                                <button
+                                  key={c.uid}
+                                  onClick={() =>
+                                    confirmModalAction({
+                                      retriggerCardId: c.cardId,
+                                    })
+                                  }
+                                  className="flex items-center gap-4 p-3 rounded-xl border-2 border-slate-700 hover:border-fuchsia-500 bg-slate-950 hover:bg-slate-800 transition-all text-left w-full shadow-md"
+                                >
+                                  <div className="shrink-0 w-12 h-16 bg-slate-900 rounded flex flex-col items-center justify-center border border-fuchsia-900/50">
+                                    <div className="text-fuchsia-400">
+                                      {def.icon ? (
+                                        <def.icon size={20} />
+                                      ) : (
+                                        <Ghost size={20} />
+                                      )}
                                     </div>
                                   </div>
-                              ))}
-                            </div>
-                        </div>
-                      )}
+                                  <div className="flex-1">
+                                    <div className="text-sm font-black text-slate-200 uppercase tracking-widest mb-1">
+                                      {def.name}
+                                    </div>
+                                    <div className="text-xs text-fuchsia-300 font-bold leading-snug">
+                                      {def.desc}
+                                    </div>
+                                  </div>
+                                </button>
+                              );
+                            }),
+                          )}
+                        {me.tableau.filter(
+                          (s) => s.type === "SUP" && !s.isLocked,
+                        ).length === 0 && (
+                          <span className="text-slate-500 font-bold uppercase tracking-widest text-sm text-center py-4">
+                            No valid entities in your bank.
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
-                      {/* Bloodfiend Modal */}
-                      {activeModal.type === "BLOODFIEND" && (
-                        <div className="flex flex-col gap-6 items-center">
-                            <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800 text-center">
-                              Select up to 3 targets to steal from ({activeModal.selections?.length || 0}/3)
-                            </div>
-                            <div className="flex flex-wrap justify-center gap-4">
-                              {gameState.players.filter(p=>p.id!==user.uid).map(p => {
-                                  const selections = activeModal.selections || [];
-                                  const count = selections.filter(id => id === p.id).length;
-                                  return (
-                                    <button key={p.id} disabled={p.hand.length <= count || selections.length >= 3} onClick={() => {
-                                        setModalState({ ...activeModal, selections: [...selections, p.id] });
-                                    }} className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col items-center gap-2 hover:border-red-500 disabled:opacity-50 min-w-[120px]">
-                                        <span className="font-black text-slate-200 uppercase tracking-widest">{p.name}</span>
-                                        <span className="text-xs text-slate-500 font-bold">Cards: {p.hand.length - count}</span>
-                                        {count > 0 && <div className="text-red-500 font-black text-xl">TARGETED x{count}</div>}
-                                    </button>
-                                  )
-                              })}
-                            </div>
-                            <div className="flex gap-4 mt-4">
-                                <button onClick={()=>setModalState({...activeModal, selections: []})} className="px-4 py-2 bg-slate-800 rounded text-xs font-bold uppercase text-slate-400">Reset</button>
-                                <button disabled={!activeModal.selections || activeModal.selections.length === 0} onClick={()=>confirmModalAction({ targetIds: activeModal.selections })} className="bg-red-700 hover:bg-red-600 text-white px-8 py-3 rounded-xl uppercase font-black tracking-widest disabled:opacity-50">Strike</button>
-                            </div>
-                        </div>
-                      )}
-
-                      {/* Hoarder Modal */}
-                      {activeModal.type === "HOARDER" && (() => {
-                        const selections = activeModal.selections || [];
-                        const needed = Math.max(0, 7 - me.hand.length);
-                        return (
-                            <div className="flex flex-col gap-6 items-center">
-                              <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800 text-center">
-                                  Gather {needed} cards ({selections.length}/{needed})
-                              </div>
-                              <div className="flex flex-wrap justify-center gap-4">
-                                  <button disabled={gameState.deck.length <= selections.filter(c=>c==="DECK").length || selections.length >= needed} onClick={() => {
-                                      setModalState({ ...activeModal, selections: [...selections, "DECK"] });
-                                  }} className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col items-center gap-2 hover:border-fuchsia-500 disabled:opacity-50 min-w-[120px]">
-                                      <Layers size={24} className="text-fuchsia-400"/>
-                                      <span className="font-black text-slate-200 uppercase tracking-widest">Deck</span>
-                                      {selections.filter(c=>c==="DECK").length > 0 && <span className="text-fuchsia-400 font-black">x{selections.filter(c=>c==="DECK").length}</span>}
-                                  </button>
-                                  {gameState.players.filter(p=>p.id!==user.uid).map(p => {
-                                    const count = selections.filter(id => id === p.id).length;
-                                    return (
-                                        <button key={p.id} disabled={p.hand.length <= count || selections.length >= needed} onClick={() => {
-                                          setModalState({ ...activeModal, selections: [...selections, p.id] });
-                                        }} className="bg-slate-900 border border-slate-800 p-4 rounded-xl flex flex-col items-center gap-2 hover:border-red-500 disabled:opacity-50 min-w-[120px]">
-                                          <UserCheck size={24} className="text-red-400"/>
-                                          <span className="font-black text-slate-200 uppercase tracking-widest">{p.name}</span>
-                                          {count > 0 && <span className="text-red-500 font-black">x{count}</span>}
-                                        </button>
-                                    )
-                                  })}
-                              </div>
-                              <div className="flex gap-4 mt-4">
-                                  <button onClick={()=>setModalState({...activeModal, selections: []})} className="px-4 py-2 bg-slate-800 rounded text-xs font-bold uppercase text-slate-400">Reset</button>
-                                  <button disabled={selections.length === 0 && needed > 0} onClick={()=>confirmModalAction({ choices: selections })} className="bg-fuchsia-700 hover:bg-fuchsia-600 text-white px-8 py-3 rounded-xl uppercase font-black tracking-widest disabled:opacity-50">Hoard</button>
-                              </div>
-                            </div>
-                        );
-                      })()}
-                     
-                     {/* TYPE: SET (Destroyer, Shapechanger, Hexwitch) */}
-                     {activeModal.type.includes("SET") && (
-                       <div className="flex flex-col gap-8">
-                          {gameState.players.filter(p=>p.id!==user.uid).map(p => (
-                             <div key={p.id} className="bg-slate-900/50 p-5 rounded-2xl border border-slate-800">
-                                <h4 className="font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2"><UserCheck size={18}/> {p.name}'s Sets</h4>
-                                <div className="flex flex-wrap gap-4">
-                                  {p.tableau.length === 0 && <span className="text-slate-600 text-xs uppercase font-bold italic">No sets</span>}
-                                  {p.tableau.map(set => (
-                                     <button key={set.id} disabled={set.isLocked} onClick={()=>confirmModalAction({ targetPlayerId: p.id, targetSetId: set.id, ownSetId: activeModal.ownSetId })} className="bg-slate-950 p-2 rounded-xl border-2 border-slate-700 hover:border-fuchsia-500 transition-colors flex gap-1 group disabled:opacity-50 disabled:grayscale relative">
-                                        {set.isLocked && <Shield size={24} className="absolute inset-0 m-auto text-yellow-600/50 z-10"/>}
-                                        {set.cards.map((c, i) => <CardDisplay key={i} cardId={c.cardId} tiny/>)}
-                                        <div className="absolute inset-0 bg-fuchsia-500/10 opacity-0 group-hover:opacity-100 rounded-lg transition-opacity z-10 flex items-center justify-center backdrop-blur-[1px]"><CheckCircle className="text-fuchsia-300 drop-shadow-md"/></div>
-                                     </button>
-                                  ))}
-                                </div>
-                             </div>
-                          ))}
-                       </div>
-                     )}
-
-                     {/* TYPE: TABLE_CARD (Enchantress, Nightwalker) */}
-                     {activeModal.type.includes("TABLE_CARD") && (
-                       <div className="flex flex-col gap-8">
-                          {gameState.players.filter(p=>p.id!==user.uid).map(p => {
-                             const validSets = p.tableau.filter(s => s.type === "SUP" && !s.isLocked);
-                             if(validSets.length===0) return null;
-                             return (
-                             <div key={p.id} className="bg-slate-900/50 p-5 rounded-2xl border border-slate-800">
-                                <h4 className="font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2"><UserCheck size={18}/> {p.name}'s Entities</h4>
-                                <div className="flex flex-wrap gap-4">
-                                  {validSets.map(set => (
-                                     <div key={set.id} className="bg-slate-950 p-2 rounded-xl border border-slate-700 flex gap-2">
-                                        {set.cards.map((c, i) => {
-                                           const isValid = activeModal.def?.id === "SUP_NIGHTWALKER" || SUPERNATURALS[c.cardId]?.gender === "M";
-                                           return (
-                                             <div key={c.uid} className={isValid ? "" : "opacity-30 grayscale pointer-events-none"}>
-                                               <CardDisplay cardId={c.cardId} small onClick={()=>{
-                                                 if(isValid) confirmModalAction({ targetPlayerId: p.id, targetSetId: set.id, targetCardUid: c.uid });
-                                               }} />
-                                             </div>
-                                           )
-                                        })}
-                                     </div>
-                                  ))}
-                                </div>
-                             </div>
-                          )})}
-                          {gameState.players.filter(p=>p.id!==user.uid).every(p => p.tableau.filter(s=>s.type==="SUP"&&!s.isLocked).length===0) && <div className="text-center text-slate-500 py-10 font-bold uppercase tracking-widest">No valid targets on any board.</div>}
-                       </div>
-                     )}
-
-                     {/* TYPE: CARD_TYPE (Summoner) */}
-                     {activeModal.type === "CARD_TYPE" && (
-                        <div className="flex flex-col gap-4">
-                           <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800 text-center mb-4">
-                             Name a card to summon
-                           </div>
-                           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
-                              {Object.values(ALL_CARDS).map(def => (
-                                 <button key={def.id} onClick={()=>confirmModalAction({ namedCardId: def.id })} className="bg-slate-900 border-2 border-slate-800 p-2 rounded-xl hover:border-fuchsia-500 hover:bg-slate-800 transition-colors flex flex-col items-center gap-2">
-                                    <div className={`${def.type==="SUP" ? "text-fuchsia-400" : def.color} drop-shadow-md`}>{def.icon ? <def.icon size={24}/> : <Ghost size={24}/>}</div>
-                                    <span className="text-[10px] font-black uppercase text-slate-300 text-center">{def.name}</span>
-                                 </button>
-                              ))}
-                           </div>
-                        </div>
-                     )}
-
-                     {/* TYPE: OWN_SUP (Moon Hag) */}
-                     {activeModal.type === "OWN_SUP" && (
-                       <div className="flex flex-col gap-6 items-center">
-                         <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800">
-                             Select an entity to re-invoke
-                         </div>
-                         <div className="flex flex-wrap gap-4 justify-center bg-slate-900 p-4 rounded-2xl border border-slate-800">
-                            {me.tableau.filter(s => s.type === "SUP" && !s.isLocked).map(set => (
-                                set.cards.map(c => (
-                                   <CardDisplay key={c.uid} cardId={c.cardId} onClick={()=>confirmModalAction({ retriggerCardId: c.cardId })}/>
-                                ))
-                            ))}
-                            {me.tableau.filter(s => s.type === "SUP" && !s.isLocked).length === 0 && <span className="text-slate-500 font-bold uppercase text-sm">No valid entities in your bank.</span>}
-                         </div>
-                       </div>
-                     )}
-
-                     {/* River Oracle */}
-                     {activeModal.type === "ORACLE" && (
-                       <div className="flex flex-col gap-8 items-center">
-                         <p className="text-slate-300 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-3 rounded-full border border-slate-700">One from the void, one from the future. Keep 1.</p>
-                         <div className="flex gap-8">
-                           {activeModal.tempCards?.map((c, i) => (
-                              <div key={i} className="flex flex-col items-center gap-4">
-                                 <span className="text-xs font-bold text-slate-500 uppercase">{i===0 ? "From Deck" : "From Void"}</span>
-                                 <CardDisplay cardId={c.cardId} onClick={()=>{
-                                   confirmModalAction({ 
-                                      keptCard: c, 
-                                      discardedCard: activeModal.tempCards.find(card => card.uid !== c.uid),
+                  {/* River Oracle */}
+                  {activeModal.type === "ORACLE" && (
+                    <div className="flex flex-col gap-8 items-center">
+                      <p className="text-slate-300 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-3 rounded-full border border-slate-700">
+                        One from the void, one from the future. Keep 1.
+                      </p>
+                      <div className="flex gap-8">
+                        {activeModal.tempCards &&
+                          activeModal.tempCards
+                            .filter((c) => c && c.cardId && ALL_CARDS[c.cardId]) // <--- Protects against undefined/malformed cards
+                            .map((c, i) => (
+                              <div
+                                key={i}
+                                className="flex flex-col items-center gap-4"
+                              >
+                                <span className="text-xs font-bold text-slate-500 uppercase">
+                                  {i === 0 ? "From Deck" : "From Void"}
+                                </span>
+                                <CardDisplay
+                                  cardId={c.cardId}
+                                  onClick={() => {
+                                    confirmModalAction({
+                                      keptCard: c,
+                                      discardedCard: activeModal.tempCards.find(
+                                        (card) => card && card.uid !== c.uid,
+                                      ),
                                       updatedDeck: activeModal._deck,
-                                      updatedDiscard: activeModal._discard
-                                   });
-                                 }}/>
+                                      updatedDiscard: activeModal._discard,
+                                    });
+                                  }}
+                                />
                               </div>
-                           ))}
-                           {!activeModal.tempCards && (
-                               <button onClick={()=>{
-                                   const deck = [...gameState.deck];
-                                   const discard = [...gameState.discardPile];
-                                   const tempCards = [deck.pop(), discard.pop()].filter(Boolean);
-                                   setModalState({...activeModal, tempCards, _deck: deck, _discard: discard}); 
-                               }} className="bg-fuchsia-700 hover:bg-fuchsia-600 px-8 py-4 rounded-xl text-white font-black uppercase tracking-widest transition-colors shadow-[0_0_20px_rgba(192,38,211,0.5)]">Gaze into the River</button>
-                           )}
-                         </div>
-                       </div>
-                     )}
+                            ))}
+                        {!activeModal.tempCards && (
+                          <button
+                            onClick={() => {
+                              const deck = [...gameState.deck];
+                              const discard = [...gameState.discardPile];
+                              const topDeck = deck.pop();
+                              const topDiscard = discard.pop();
+                              const tempCards = [topDeck, topDiscard].filter(
+                                Boolean,
+                              );
 
-                     {/* Grave Broker */}
-                     {activeModal.type === "BROKER" && (
-                       <div className="flex flex-col gap-8 items-center">
-                         <p className="text-slate-300 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-3 rounded-full border border-slate-700">Keep 1 card. The rest scatter to opponents.</p>
-                         {!activeModal.tempCards ? (
-                              <button onClick={()=>{
-                                 const discard = [...gameState.discardPile];
-                                 const tempCards = [];
-                                 for(let i=0; i<gameState.players.length; i++) if(discard.length>0) tempCards.push(discard.pop());
-                                 setModalState({...activeModal, tempCards, _discard: discard}); 
-                             }} className="bg-fuchsia-700 hover:bg-fuchsia-600 px-8 py-4 rounded-xl text-white font-black uppercase tracking-widest transition-colors shadow-[0_0_20px_rgba(192,38,211,0.5)]">Unearth the Graves</button>
-                         ) : (
-                             <div className="flex flex-wrap justify-center gap-6 max-w-4xl">
-                                {activeModal.tempCards.map((c, i) => (
-                                    <CardDisplay key={i} cardId={c.cardId} onClick={()=>{
-                                        confirmModalAction({ 
-                                            keptCard: c, 
-                                            scatterCards: activeModal.tempCards.filter(card => card.uid !== c.uid),
-                                            updatedDiscard: activeModal._discard
-                                        });
-                                    }}/>
-                                ))}
-                                {activeModal.tempCards.length === 0 && <span className="text-slate-500 uppercase tracking-widest font-bold">The void was empty.</span>}
-                             </div>
-                         )}
-                       </div>
-                     )}
+                              setModalState({
+                                ...activeModal,
+                                tempCards,
+                                _deck: deck,
+                                _discard: discard,
+                              });
+                            }}
+                            className="bg-fuchsia-700 hover:bg-fuchsia-600 px-8 py-4 rounded-xl text-white font-black uppercase tracking-widest transition-colors shadow-[0_0_20px_rgba(192,38,211,0.5)]"
+                          >
+                            Gaze into the River
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
 
-                   </div>
+                  {/* Grave Broker */}
+                  {activeModal.type === "BROKER" && (
+                    <div className="flex flex-col gap-8 items-center">
+                      <p className="text-slate-300 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-3 rounded-full border border-slate-700">
+                        Keep 1 card. The rest scatter to opponents.
+                      </p>
+                      {!activeModal.tempCards ? (
+                        <button
+                          onClick={() => {
+                            const discard = [...gameState.discardPile];
+                            const tempCards = [];
+                            for (let i = 0; i < gameState.players.length; i++) {
+                              if (discard.length > 0) {
+                                const drawn = discard.pop();
+                                // Strict check: must exist, have a uid, and have a valid cardId in ALL_CARDS
+                                if (
+                                  drawn &&
+                                  drawn.uid &&
+                                  drawn.cardId &&
+                                  ALL_CARDS[drawn.cardId]
+                                ) {
+                                  tempCards.push(drawn);
+                                }
+                              }
+                            }
+                            setModalState({
+                              ...activeModal,
+                              tempCards,
+                              _discard: discard,
+                            });
+                          }}
+                          className="bg-fuchsia-700 hover:bg-fuchsia-600 px-8 py-4 rounded-xl text-white font-black uppercase tracking-widest transition-colors shadow-[0_0_20px_rgba(192,38,211,0.5)]"
+                        >
+                          Unearth the Graves
+                        </button>
+                      ) : (
+                        <div className="flex flex-wrap justify-center gap-6 max-w-4xl">
+                          {activeModal.tempCards &&
+                            activeModal.tempCards
+                              .filter(
+                                (c) => c && c.cardId && ALL_CARDS[c.cardId],
+                              ) // <--- Filter out bad/undefined cards
+                              .map((c, i) => (
+                                <CardDisplay
+                                  key={i}
+                                  cardId={c.cardId}
+                                  onClick={() => {
+                                    confirmModalAction({
+                                      keptCard: c,
+                                      scatterCards:
+                                        activeModal.tempCards.filter(
+                                          (card) => card.uid !== c.uid,
+                                        ),
+                                      updatedDiscard: activeModal._discard,
+                                    });
+                                  }}
+                                />
+                              ))}
+                          {activeModal.tempCards.length === 0 && (
+                            <span className="text-slate-500 uppercase tracking-widest font-bold">
+                              The void was empty.
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-             </div>
-           );
+              </div>
+            </div>
+          );
         })()}
 
         {/* WIN SCREEN OVERLAY */}
         {gameState.status === "finished" && (
-            <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
-                 <div className="bg-slate-900/80 p-8 md:p-12 rounded-3xl border border-yellow-500/50 shadow-[0_0_60px_rgba(234,179,8,0.4)] text-center animate-in zoom-in max-w-2xl w-full">
-                    <Crown size={64} className="text-yellow-500 mx-auto mb-4 md:mb-6 animate-bounce drop-shadow-[0_0_20px_rgba(234,179,8,0.8)]"/>
-                    <h2 className="text-3xl md:text-5xl font-black uppercase tracking-[0.2em] text-white mb-3">{gameState.players.find(p=>p.id===gameState.winnerId)?.name} Wins!</h2>
-                    <p className="text-slate-400 uppercase tracking-widest text-sm md:text-lg font-bold mb-8 md:mb-10">The shadows bow to them.</p>
-                    
-                    {gameState.hostId === user.uid && (
-                        <button onClick={()=>{
-                             const resetPlayers = gameState.players.map(p => ({...p, ready: true, score: 0, hand: [], tableau: [], skipNextTurn: false, finalTurnTaken: false}));
-                             executeAction({ status: "lobby", players: resetPlayers, deck: [], discardPile: [], logs: [], turnIndex: 0, winnerId: null, isFinalRound: false }, null);
-                        }} className="bg-yellow-600 hover:bg-yellow-500 text-black px-8 md:px-10 py-4 md:py-5 rounded-xl text-base md:text-lg font-black uppercase tracking-widest shadow-[0_0_30px_rgba(234,179,8,0.5)] transition-transform hover:scale-105 active:scale-95">Return to Lobby</button>
-                    )}
-                 </div>
-            </div>
-        )}
+          <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
+            <div className="bg-slate-900/80 p-8 md:p-12 rounded-3xl border border-yellow-500/50 shadow-[0_0_60px_rgba(234,179,8,0.4)] text-center animate-in zoom-in max-w-2xl w-full">
+              <Crown
+                size={64}
+                className="text-yellow-500 mx-auto mb-4 md:mb-6 animate-bounce drop-shadow-[0_0_20px_rgba(234,179,8,0.8)]"
+              />
+              <h2 className="text-3xl md:text-5xl font-black uppercase tracking-[0.2em] text-white mb-3">
+                {
+                  gameState.players.find((p) => p.id === gameState.winnerId)
+                    ?.name
+                }{" "}
+                Wins!
+              </h2>
+              <p className="text-slate-400 uppercase tracking-widest text-sm md:text-lg font-bold mb-8 md:mb-10">
+                The shadows bow to them.
+              </p>
 
+              {gameState.hostId === user.uid && (
+                <button
+                  onClick={() => {
+                    const resetPlayers = gameState.players.map((p) => ({
+                      ...p,
+                      ready: true,
+                      score: 0,
+                      hand: [],
+                      tableau: [],
+                      skipNextTurn: false,
+                      finalTurnTaken: false,
+                    }));
+                    executeAction(
+                      {
+                        status: "lobby",
+                        players: resetPlayers,
+                        deck: [],
+                        discardPile: [],
+                        logs: [],
+                        turnIndex: 0,
+                        winnerId: null,
+                        isFinalRound: false,
+                      },
+                      null,
+                    );
+                  }}
+                  className="bg-yellow-600 hover:bg-yellow-500 text-black px-8 md:px-10 py-4 md:py-5 rounded-xl text-base md:text-lg font-black uppercase tracking-widest shadow-[0_0_30px_rgba(234,179,8,0.5)] transition-transform hover:scale-105 active:scale-95"
+                >
+                  Return to Lobby
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
