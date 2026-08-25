@@ -92,7 +92,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const APP_ID =
-  typeof __app_id !== "undefined" ? __app_id : "dark-folklore-game";
+  typeof __app_id !== "undefined" ? __app_id : "dark-game";
 const GAME_ID = "26"; // Unique ID for DARK in Gamehub
 
 // ---------------------------------------------------------------------------
@@ -2208,7 +2208,7 @@ export default function DarkFolkloreGame() {
   if (!user)
     return (
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-fuchsia-500 animate-pulse">
-        Spreading infection...
+        Eradicating darkness...
       </div>
     );
 
