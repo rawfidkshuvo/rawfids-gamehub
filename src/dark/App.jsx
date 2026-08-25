@@ -103,7 +103,7 @@ const DESTINATIONS = {
     name: "Dark Pond",
     type: "DEST",
     icon: Map,
-    color: "text-emerald-500",
+    color: "text-emerald-200",
     bg: "bg-emerald-950/40",
   },
   REED: {
@@ -173,7 +173,7 @@ const SUPERNATURALS = {
     type: "SUP",
     gender: "M",
     target: "NONE",
-    desc: "Locks and protects this set from all effects.",
+    desc: "Locks and protects the set it's placed on, no more cards on the set.",
   },
   SUP_OCCULTIST: {
     id: "SUP_OCCULTIST",
@@ -181,7 +181,7 @@ const SUPERNATURALS = {
     type: "SUP",
     gender: "M",
     target: "NONE",
-    desc: "Draw 2 cards from the deck.",
+    desc: "Draw top 2 cards from the deck.",
   },
   SUP_HEADLESS: {
     id: "SUP_HEADLESS",
@@ -205,7 +205,7 @@ const SUPERNATURALS = {
     type: "SUP",
     gender: "F",
     target: "TABLE_CARD_M",
-    desc: "Steal a played Male entity and trigger it.",
+    desc: "Steal a played Male entity, add to set, may trigger it.",
   },
   SUP_BLOODFIEND: {
     id: "SUP_BLOODFIEND",
@@ -229,7 +229,7 @@ const SUPERNATURALS = {
     type: "SUP",
     gender: "M",
     target: "TABLE_CARD_ANY",
-    desc: "Steal any played entity and trigger it.",
+    desc: "Steal any played entity, add to set, may trigger it.",
   },
   SUP_GRIM: {
     id: "SUP_GRIM",
@@ -237,7 +237,7 @@ const SUPERNATURALS = {
     type: "SUP",
     gender: "M",
     target: "PLAYER",
-    desc: "Draw 1 from deck, Steal 1 from player.",
+    desc: "Draw 1 from deck, Steal 1 randomly from a player.",
   },
   SUP_DESTROYER: {
     id: "SUP_DESTROYER",
@@ -269,7 +269,7 @@ const SUPERNATURALS = {
     type: "SUP",
     gender: "M",
     target: "DISCARD_1",
-    desc: "Take any card from the discard pile.",
+    desc: "Take any card from the discard pile. can play immediately.",
   },
   SUP_HOARDER: {
     id: "SUP_HOARDER",
@@ -301,7 +301,7 @@ const SUPERNATURALS = {
     type: "SUP",
     gender: "M",
     target: "BROKER",
-    desc: "Draw discard cards = players. Keep 1, scatter rest.",
+    desc: "Draw discard cards = players' number. Keep 1, distribute rest.",
   },
   SUP_HANDSHIFTER: {
     id: "SUP_HANDSHIFTER",
@@ -317,7 +317,7 @@ const SUPERNATURALS = {
     type: "SUP",
     gender: "F",
     target: "CARD_TYPE",
-    desc: "Name a card. Anyone holding it must give it to you.",
+    desc: "Name a card. Anyone holding it must give 1 it to you.",
   },
   SUP_RAVENOUS: {
     id: "SUP_RAVENOUS",
@@ -341,7 +341,7 @@ const SUPERNATURALS = {
     type: "SUP",
     gender: "M",
     target: "NONE",
-    desc: "Take the top card of the discard pile.",
+    desc: "Take the top card of the discard pile, may trigger it.",
   },
   SUP_TWINS: {
     id: "SUP_TWINS",
@@ -349,7 +349,7 @@ const SUPERNATURALS = {
     type: "SUP",
     gender: "O",
     target: "DISCARD_2",
-    desc: "Search discard and take 2 cards.",
+    desc: "Take any 2 discarded cards, may trigger 1 of them.",
   },
   SUP_SERPENT: {
     id: "SUP_SERPENT",
@@ -1726,28 +1726,71 @@ export default function DarkFolkloreGame() {
           nwOpp.tableau.splice(nwSetIdx, 1);
         }
 
-        let tSet2 = me.tableau
-          .map((s) => s.type === "SUP" && !s.isLocked && s.cards.length < 5)
-          .lastIndexOf(true);
-        if (tSet2 > -1) me.tableau[tSet2].cards.push(stolenSup);
-        else
+        // Handle the chosen placement for the stolen card
+        if (targetData.stolenPlacementSetId === "NEW") {
           me.tableau.push({
-            id: `SET_${Date.now()}`,
+            id: `SET_${Date.now()}_STOLEN`,
             type: "SUP",
             cards: [stolenSup],
             isLocked: false,
           });
+        } else if (targetData.stolenPlacementSetId === "SAME_AS_SOURCE") {
+          // Find the set that holds the Enchantress/Nightwalker, and push it there
+          const sourceSet = me.tableau.find((s) => s.cards.some((c) => c.uid === ctx.sourceCardUid));
+          if (sourceSet) {
+            sourceSet.cards.push(stolenSup);
+          } else {
+            // Failsafe fallback
+            me.tableau.push({
+              id: `SET_${Date.now()}_STOLEN`,
+              type: "SUP",
+              cards: [stolenSup],
+              isLocked: false,
+            });
+          }
+        } else if (targetData.stolenPlacementSetId) {
+          const tSetIdx = me.tableau.findIndex((s) => s.id === targetData.stolenPlacementSetId);
+          if (tSetIdx > -1) {
+            me.tableau[tSetIdx].cards.push(stolenSup);
+          } else {
+            // Failsafe fallback if set not found
+            me.tableau.push({
+              id: `SET_${Date.now()}_STOLEN`,
+              type: "SUP",
+              cards: [stolenSup],
+              isLocked: false,
+            });
+          }
+        } else {
+          // Ultimate fallback just in case no placement ID was passed
+          let tSet2 = me.tableau
+            .map((s) => s.type === "SUP" && !s.isLocked && s.cards.length < 5)
+            .lastIndexOf(true);
+          if (tSet2 > -1) me.tableau[tSet2].cards.push(stolenSup);
+          else
+            me.tableau.push({
+              id: `SET_${Date.now()}_STOLEN`,
+              type: "SUP",
+              cards: [stolenSup],
+              isLocked: false,
+            });
+        }
 
         const stolenDef = SUPERNATURALS[stolenSup.cardId];
-        ctx.logsText += ` Entranced and stole ${stolenDef.name}.`;
-
-        if (stolenDef.target === "NONE") {
-          applySupernaturalEffect(stolenDef, null, ctx); // Recursive inline for simple effects
-        } else {
-          ctx.triggerChain = true;
-          ctx.chainDefId = stolenDef.id;
-        }
         ctx.logsText += ` They entranced and stole ${nwOpp.name}'s ${stolenDef.name}.`;
+
+        // Handle the chosen trigger toggle
+        if (targetData.triggerStolen) {
+          ctx.logsText += ` The stolen entity awakens!`;
+          if (stolenDef.target === "NONE") {
+            applySupernaturalEffect(stolenDef, null, ctx); 
+          } else {
+            ctx.triggerChain = true;
+            ctx.chainDefId = stolenDef.id;
+          }
+        } else {
+          ctx.logsText += ` The stolen entity remains dormant.`;
+        }
         break;
       case "SUP_MOONHAG":
         if (!targetData.retriggerCardId) break;
@@ -1776,6 +1819,7 @@ export default function DarkFolkloreGame() {
       pendingData: null,
       triggerChain: false,
       chainDefId: null,
+      sourceCardUid: cardUid, // <--- ADD THIS LINE HERE
     };
     ctx.me = ctx.players[ctx.pIdx];
 
@@ -3166,13 +3210,15 @@ export default function DarkFolkloreGame() {
                                   ? "Target an Entity"
                                   : activeModal.type === "CARD_TYPE"
                                     ? "Name an Entity"
-                                    : activeModal.type === "OWN_SUP"
-                                      ? "Select your Entity"
-                                      : activeModal.type === "ORACLE"
-                                        ? "River Oracle"
-                                        : activeModal.type === "BROKER"
-                                          ? "Grave Broker"
-                                          : "Select Target"}
+                                    : activeModal.type === "STEAL_PLACEMENT"
+                                      ? "Place & Trigger"
+                                      : activeModal.type === "OWN_SUP"
+                                        ? "Select your Entity"
+                                        : activeModal.type === "ORACLE"
+                                          ? "River Oracle"
+                                          : activeModal.type === "BROKER"
+                                            ? "Grave Broker"
+                                            : "Select Target"}
                   </h3>
                   {!activeModal.isChain && (
                     <button
@@ -3834,12 +3880,17 @@ export default function DarkFolkloreGame() {
                                           key={c.uid}
                                           disabled={!isValid}
                                           onClick={() => {
-                                            if (isValid)
-                                              confirmModalAction({
+                                            if (isValid) {
+                                              setModalState({
+                                                ...activeModal,
+                                                type: "STEAL_PLACEMENT",
                                                 targetPlayerId: p.id,
                                                 targetSetId: set.id,
                                                 targetCardUid: c.uid,
+                                                stolenDef: def,
+                                                triggerStolen: true, // Default to true
                                               });
+                                            }
                                           }}
                                           className={`flex items-center gap-4 p-3 rounded-xl border-2 text-left transition-all ${
                                             isValid
@@ -3878,6 +3929,109 @@ export default function DarkFolkloreGame() {
                         })}
                     </div>
                   )}
+
+                  {/* TYPE: STEAL_PLACEMENT (Step 3 of Nightwalker/Enchantress play) */}
+                  {activeModal.type === "STEAL_PLACEMENT" && (() => {
+                    const me = gameState.players[gameState.turnIndex];
+                    const baseSets = me.tableau.filter((s) => s.type === "SUP" && !s.isLocked);
+                    
+                    let previewSets = [];
+                    let addedToExisting = false;
+
+                    // 1. Map existing sets and inject the source card visually if needed
+                    baseSets.forEach((s) => {
+                      let newCards = [...s.cards];
+                      if (!activeModal.isChain && s.id === activeModal.placementSetId) {
+                        newCards.push({ cardId: activeModal.def.id, uid: "temp_source" });
+                        addedToExisting = true;
+                      }
+                      if (newCards.length < 5) {
+                        previewSets.push({ ...s, cards: newCards });
+                      }
+                    });
+
+                    // 2. If the source card is creating a NEW set, show that new set as an option!
+                    if (!activeModal.isChain && (activeModal.placementSetId === "NEW" || (!addedToExisting && baseSets.length === 0))) {
+                      previewSets.push({
+                        id: "SAME_AS_SOURCE",
+                        type: "SUP",
+                        cards: [{ cardId: activeModal.def.id, uid: "temp_source" }],
+                        isLocked: false,
+                      });
+                    }
+
+                    return (
+                      <div className="flex flex-col gap-6 items-center animate-in fade-in">
+                        <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800">
+                          Place stolen '{activeModal.stolenDef?.name}'
+                        </div>
+                        
+                        {/* Trigger Toggle */}
+                        <label className="flex items-center gap-4 cursor-pointer bg-slate-950 border border-slate-700 p-4 rounded-xl hover:border-fuchsia-500 transition-all shadow-inner w-full max-w-sm group">
+                          <input
+                            type="checkbox"
+                            className="w-6 h-6 accent-fuchsia-600 rounded cursor-pointer"
+                            checked={activeModal.triggerStolen !== false}
+                            onChange={(e) => setModalState({ ...activeModal, triggerStolen: e.target.checked })}
+                          />
+                          <div className="flex flex-col">
+                            <span className="font-black text-fuchsia-400 uppercase tracking-widest group-hover:text-fuchsia-300 transition-colors">
+                              Trigger Ability
+                            </span>
+                            <span className="text-[10px] text-slate-500 uppercase font-bold">
+                              If unchecked, it remains dormant.
+                            </span>
+                          </div>
+                        </label>
+
+                        <div className="flex flex-wrap justify-center gap-4">
+                          {previewSets.map((set) => (
+                            <button
+                              key={set.id}
+                              onClick={() =>
+                                confirmModalAction({
+                                  targetPlayerId: activeModal.targetPlayerId,
+                                  targetSetId: activeModal.targetSetId,
+                                  targetCardUid: activeModal.targetCardUid,
+                                  stolenPlacementSetId: set.id,
+                                  triggerStolen: activeModal.triggerStolen !== false
+                                })
+                              }
+                              className="bg-slate-900 p-4 rounded-xl border-2 border-slate-700 hover:border-fuchsia-500 transition-all group flex flex-col items-center gap-2"
+                            >
+                              <div className="flex gap-1 items-end">
+                                {set.cards.map((c, i) => (
+                                  <div key={i} className={`transition-all ${c.uid === "temp_source" ? "opacity-60 scale-90 -ml-2 drop-shadow-[0_0_10px_rgba(217,70,239,0.5)]" : ""}`}>
+                                    <CardDisplay cardId={c.cardId} tiny />
+                                  </div>
+                                ))}
+                              </div>
+                              <span className="text-xs font-bold text-slate-300 uppercase tracking-widest group-hover:text-fuchsia-300 mt-1">
+                                Append to Set ({set.cards.length}/5)
+                              </span>
+                            </button>
+                          ))}
+                          <button
+                            onClick={() =>
+                              confirmModalAction({
+                                targetPlayerId: activeModal.targetPlayerId,
+                                targetSetId: activeModal.targetSetId,
+                                targetCardUid: activeModal.targetCardUid,
+                                stolenPlacementSetId: "NEW",
+                                triggerStolen: activeModal.triggerStolen !== false
+                              })
+                            }
+                            className="bg-slate-900 p-4 rounded-xl border-2 border-slate-700 hover:border-fuchsia-500 transition-all flex flex-col items-center justify-center gap-2 min-w-[140px] group"
+                          >
+                            <Layers size={24} className="text-fuchsia-400 group-hover:text-fuchsia-300" />
+                            <span className="text-xs font-bold text-slate-300 uppercase tracking-widest group-hover:text-fuchsia-300">
+                              Start New Set
+                            </span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* TYPE: CARD_TYPE (Summoner) */}
                   {activeModal.type === "CARD_TYPE" && (
