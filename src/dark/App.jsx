@@ -48,6 +48,7 @@ import {
   StepBack,
   Hammer,
   Loader,
+  RotateCcw,
 } from "lucide-react";
 import CoverImage from "./assets/dark.png";
 
@@ -836,30 +837,28 @@ export default function DarkFolkloreGame() {
       }
     };
     initAuth();
+    
     return onAuthStateChanged(auth, (u) => {
       setUser(u);
       if (u) {
         const savedName = localStorage.getItem("gameHub_playerName");
         if (savedName) setPlayerName(savedName);
-        const savedRoomId = localStorage.getItem("dark_roomId");
-        if (savedRoomId) setRoomId(savedRoomId);
+        
+        // WE COMPLETELY REMOVED THE AUTO-RECONNECT LOGIC HERE
+        // It will no longer skip the splash screen.
       }
     });
   }, []);
 
   // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("angryvirus_roomId");
+    const savedRoomId = localStorage.getItem("dark_roomId");
 
     if (savedRoomId) {
-      setLoading(true);
-      // Resume: Set the room ID, which triggers the existing logic to connect
+      // User clicked RESUME: Set the roomId to trigger the Reconnecting screen
       setRoomId(savedRoomId);
-      // We switch to 'menu' briefly; if the connection works,
-      // the existing listener will auto-switch to 'lobby' or 'game'
-      setView("menu");
     } else {
-      // New Game: Just go to menu
+      // User clicked PLAY: Go to menu
       setView("menu");
     }
   };
@@ -2229,9 +2228,7 @@ export default function DarkFolkloreGame() {
     );
   }
 
-  if (view === "splash") {
-    return <SplashScreen onStart={handleSplashStart} />;
-  }
+  if (view === "splash") return <SplashScreen onStart={handleSplashStart} />;
 
   if (view === "menu")
     return (
