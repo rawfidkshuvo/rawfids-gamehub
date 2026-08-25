@@ -91,8 +91,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const APP_ID =
-  typeof __app_id !== "undefined" ? __app_id : "dark-game";
+const APP_ID = typeof __app_id !== "undefined" ? __app_id : "dark-game";
 const GAME_ID = "26"; // Unique ID for DARK in Gamehub
 
 // ---------------------------------------------------------------------------
@@ -150,7 +149,7 @@ const UTILITY = {
     name: "Blood Amulet",
     type: "UTILITY",
     action: "DEFEND",
-    desc: "Blocks a steal automatically.",
+    desc: "Blocks a steal.",
     icon: Shield,
     color: "text-red-500",
     bg: "bg-red-950/40",
@@ -837,13 +836,13 @@ export default function DarkFolkloreGame() {
       }
     };
     initAuth();
-    
+
     return onAuthStateChanged(auth, (u) => {
       setUser(u);
       if (u) {
         const savedName = localStorage.getItem("gameHub_playerName");
         if (savedName) setPlayerName(savedName);
-        
+
         // WE COMPLETELY REMOVED THE AUTO-RECONNECT LOGIC HERE
         // It will no longer skip the splash screen.
       }
@@ -1207,6 +1206,92 @@ export default function DarkFolkloreGame() {
     };
   };
 
+const processQueueAndSave = async (players, deck, discardPile, pending, remainingActions) => {
+    let isPausedForAmulet = false;
+
+    while (pending.queue.length > 0) {
+      const currentTargetId = pending.queue[0];
+
+      if (currentTargetId === "DECK") {
+        if (deck.length > 0) {
+          const source = players.find((p) => p.id === pending.sourceId);
+          source.hand.push(deck.pop());
+          pending.deckPulls = (pending.deckPulls || 0) + 1;
+        }
+        pending.queue.shift(); // Move to next in line
+      } else {
+        // Player Target
+        const target = players.find((p) => p.id === currentTargetId);
+        if (!target || target.hand.length === 0) {
+          pending.queue.shift();
+          continue; // Target has no cards, move to next
+        }
+
+        const hasAmulet = target.hand.some((c) => c.cardId === "AMULET");
+        if (hasAmulet && !pending.amuletPromptActive) {
+          // STOP THE QUEUE: Ask for defense!
+          pending.amuletPromptActive = true;
+          pending.targetId = currentTargetId; // Tell UI who is defending
+          isPausedForAmulet = true;
+          break; 
+        } else {
+          // Steal succeeds automatically (no amulet)
+          const source = players.find((p) => p.id === pending.sourceId);
+          const stolen = target.hand.splice(Math.floor(Math.random() * target.hand.length), 1)[0];
+          source.hand.push(stolen);
+          
+          pending.stolenCount = pending.stolenCount || {};
+          pending.stolenCount[target.name] = (pending.stolenCount[target.name] || 0) + 1;
+          
+          pending.amuletPromptActive = false;
+          pending.queue.shift();
+        }
+      }
+    }
+
+    if (isPausedForAmulet) {
+      const updates = {
+        players, deck, discardPile, turnState: "AMULET_PROMPT", pendingAction: pending,
+      };
+      const target = players.find((p) => p.id === pending.targetId);
+      const source = players.find((p) => p.id === pending.sourceId);
+      const attackName = ALL_CARDS[pending.defId].name;
+      
+      await executeAction(
+        updates,
+        `${source.name}'s ${attackName} targets ${target.name}. Waiting for defense...`,
+        "warning",
+      );
+    } else {
+      // QUEUE EMPTY! End the sequence and build final log.
+      const source = players.find((p) => p.id === pending.sourceId);
+      const def = ALL_CARDS[pending.defId];
+      let finalLog = "";
+      let details = [];
+      
+      if (pending.deckPulls > 0) details.push(`${pending.deckPulls} from deck`);
+      if (pending.stolenCount) {
+        details.push(
+          Object.entries(pending.stolenCount)
+            .map(([n, c]) => `${c} from ${n}`)
+            .join(" and ")
+        );
+      }
+      
+      if (details.length > 0) finalLog = `${source.name}'s ${def.name} claimed ${details.join(" and ")}.`;
+      else finalLog = `${source.name}'s ${def.name} found nothing.`;
+
+      if (pending.blockedBy && pending.blockedBy.length > 0) {
+        finalLog += ` (${pending.blockedBy.join(" and ")} blocked!)`;
+      }
+
+      const updates = finalizeAction(players, deck, "ACTION", remainingActions);
+      updates.discardPile = discardPile;
+      updates.pendingAction = null;
+      await executeAction(updates, finalLog, "success");
+    }
+  };
+
   const actionDraw = async () => {
     const players = JSON.parse(JSON.stringify(gameState.players));
     const deck = [...gameState.deck];
@@ -1423,7 +1508,20 @@ export default function DarkFolkloreGame() {
         break;
       case "SUP_HEADLESS":
       case "SUP_DEVOURER":
+        ctx.logsText += " The shadows reach out to strike.";
+        ctx.awaitAmulet = true;
+        ctx.pendingData = {
+          type: def.id,
+          targetId: targetData.targetPlayerId,
+          sourceId: me.id,
+        };
+        break;
       case "SUP_GRIM":
+        // NEW: Draw immediately before asking for the amulet!
+        if (ctx.deck.length > 0) {
+          me.hand.push(ctx.deck.pop());
+          ctx.logsText += " They drew 1 from the void.";
+        }
         ctx.logsText += " The shadows reach out to strike.";
         ctx.awaitAmulet = true;
         ctx.pendingData = {
@@ -1442,51 +1540,22 @@ export default function DarkFolkloreGame() {
         ctx.logsText += ` They scanned all minds and targeted ${players.find((p) => p.id === targetData.targetPlayerId).name}.`;
         break;
       case "SUP_BLOODFIEND":
-        let bfCardsGained = 0;
-        let bfStolen = {};
-        let bfBlocked = [];
-
-        targetData.selections.forEach((tId) => {
-          const t = players.find((p) => p.id === tId);
-          if (!t || t.hand.length === 0) return;
-
-          if (t.hand.some((c) => c.cardId === "AMULET")) {
-            const aIdx = t.hand.findIndex((c) => c.cardId === "AMULET");
-            ctx.discardPile.push(t.hand.splice(aIdx, 1)[0]);
-            bfBlocked.push(t.name);
-          } else {
-            const stolen = t.hand.splice(
-              Math.floor(Math.random() * t.hand.length),
-              1,
-            )[0];
-            if (stolen) {
-              me.hand.push(stolen);
-              bfCardsGained++;
-              bfStolen[t.name] = (bfStolen[t.name] || 0) + 1;
-            }
-          }
-        });
-
-        let bfDeck = 0;
-        while (bfCardsGained < 3 && ctx.deck.length > 0) {
-          me.hand.push(ctx.deck.pop());
-          bfCardsGained++;
-          bfDeck++;
+        ctx.pendingData = {
+          isQueue: true,
+          type: "SUP_BLOODFIEND",
+          defId: def.id,
+          sourceId: me.id,
+          queue: [...targetData.selections],
+          stolenCount: {},
+          blockedBy: [],
+          deckPulls: 0,
+          amuletPromptActive: false,
+        };
+        // Pad with DECK for remaining attempts if they selected fewer than 3 people
+        while (ctx.pendingData.queue.length < 3) {
+          ctx.pendingData.queue.push("DECK");
         }
-
-        let bfLog = [];
-        if (Object.keys(bfStolen).length > 0) {
-          bfLog.push(
-            Object.entries(bfStolen)
-              .map(([n, c]) => `${c} from ${n}`)
-              .join(", "),
-          );
-        }
-        if (bfDeck > 0) bfLog.push(`${bfDeck} from the deck`);
-
-        ctx.logsText +=
-          ` Bloodfiend ripped ${bfLog.join(" and ")}.` +
-          (bfBlocked.length > 0 ? ` (${bfBlocked.join(", ")} blocked!)` : "");
+        ctx.isQueueProcessing = true; // Tell the engine to use the queue
         break;
       case "SUP_SERPENT":
         ctx.logsText += ` They glared into ${players.find((p) => p.id === targetData.targetPlayerId).name}'s hand.`;
@@ -1547,50 +1616,18 @@ export default function DarkFolkloreGame() {
         }
         break;
       case "SUP_HOARDER":
-        let hDeck = 0;
-        let hStolen = {};
-        let hBlocked = [];
-
-        targetData.choices.forEach((choice) => {
-          if (choice === "DECK" && ctx.deck.length > 0) {
-            me.hand.push(ctx.deck.pop());
-            hDeck++;
-          } else if (choice !== "DECK") {
-            const t = players.find((p) => p.id === choice);
-            if (t && t.hand.some((c) => c.cardId === "AMULET")) {
-              const aIdx = t.hand.findIndex((c) => c.cardId === "AMULET");
-              ctx.discardPile.push(t.hand.splice(aIdx, 1)[0]);
-              hBlocked.push(t.name);
-            } else if (t && t.hand.length > 0) {
-              me.hand.push(
-                t.hand.splice(Math.floor(Math.random() * t.hand.length), 1)[0],
-              );
-              hStolen[t.name] = (hStolen[t.name] || 0) + 1;
-            }
-          }
-        });
-
-        while (me.hand.length < 7 && ctx.deck.length > 0) {
-          me.hand.push(ctx.deck.pop());
-          hDeck++;
-        }
-
-        let hLog = [];
-        if (hDeck > 0) hLog.push(`${hDeck} from the deck`);
-        if (Object.keys(hStolen).length > 0) {
-          hLog.push(
-            Object.entries(hStolen)
-              .map(([n, c]) => `${c} from ${n}`)
-              .join(", "),
-          );
-        }
-
-        ctx.logsText +=
-          hLog.length > 0
-            ? ` They hoarded ${hLog.join(" and ")}.`
-            : ` They tried to hoard but found nothing.`;
-        if (hBlocked.length > 0)
-          ctx.logsText += ` (${hBlocked.join(" and ")} blocked!)`;
+        ctx.pendingData = {
+          isQueue: true,
+          type: "SUP_HOARDER",
+          defId: def.id,
+          sourceId: me.id,
+          queue: [...targetData.choices],
+          stolenCount: {},
+          blockedBy: [],
+          deckPulls: 0,
+          amuletPromptActive: false,
+        };
+        ctx.isQueueProcessing = true;
         break;
       case "SUP_HEXWITCH":
         const hMySetIdx = me.tableau.findIndex(
@@ -1735,7 +1772,9 @@ export default function DarkFolkloreGame() {
           });
         } else if (targetData.stolenPlacementSetId === "SAME_AS_SOURCE") {
           // Find the set that holds the Enchantress/Nightwalker, and push it there
-          const sourceSet = me.tableau.find((s) => s.cards.some((c) => c.uid === ctx.sourceCardUid));
+          const sourceSet = me.tableau.find((s) =>
+            s.cards.some((c) => c.uid === ctx.sourceCardUid),
+          );
           if (sourceSet) {
             sourceSet.cards.push(stolenSup);
           } else {
@@ -1748,7 +1787,9 @@ export default function DarkFolkloreGame() {
             });
           }
         } else if (targetData.stolenPlacementSetId) {
-          const tSetIdx = me.tableau.findIndex((s) => s.id === targetData.stolenPlacementSetId);
+          const tSetIdx = me.tableau.findIndex(
+            (s) => s.id === targetData.stolenPlacementSetId,
+          );
           if (tSetIdx > -1) {
             me.tableau[tSetIdx].cards.push(stolenSup);
           } else {
@@ -1782,7 +1823,7 @@ export default function DarkFolkloreGame() {
         if (targetData.triggerStolen) {
           ctx.logsText += ` The stolen entity awakens!`;
           if (stolenDef.target === "NONE") {
-            applySupernaturalEffect(stolenDef, null, ctx); 
+            applySupernaturalEffect(stolenDef, null, ctx);
           } else {
             ctx.triggerChain = true;
             ctx.chainDefId = stolenDef.id;
@@ -1926,6 +1967,14 @@ export default function DarkFolkloreGame() {
     const isCurrentlyFreePlay = gameState.turnState === "FREE_PLAY_PROMPT";
     const actionsCost = isCurrentlyFreePlay ? 0 : 1;
 
+    // --- NEW QUEUE INTERCEPTOR ---
+    if (ctx.isQueueProcessing) {
+      ctx.pendingData.remainingActions = gameState.actionsLeft - actionsCost;
+      setModalState(null);
+      setSelectedHandCards([]);
+      return processQueueAndSave(ctx.players, ctx.deck, ctx.discardPile, ctx.pendingData, ctx.pendingData.remainingActions);
+    }
+
     // NEW FIX: Intercept the Free Play state so finalizeAction doesn't instantly end the turn
     if (ctx.freePlayUids && ctx.freePlayUids.length > 0) {
       const updates = {
@@ -2028,6 +2077,14 @@ export default function DarkFolkloreGame() {
     const isCurrentlyFreePlay = gameState.turnState === "FREE_PLAY_PROMPT";
     const actionsCost = isCurrentlyFreePlay ? 0 : 1;
 
+    // --- NEW QUEUE INTERCEPTOR ---
+    if (ctx.isQueueProcessing) {
+      ctx.pendingData.remainingActions = gameState.actionsLeft - actionsCost;
+      setModalState(null);
+      setSelectedHandCards([]);
+      return processQueueAndSave(ctx.players, ctx.deck, ctx.discardPile, ctx.pendingData, ctx.pendingData.remainingActions);
+    }
+
     // NEW FIX: Intercept the Free Play state so finalizeAction doesn't instantly end the turn
     if (ctx.freePlayUids && ctx.freePlayUids.length > 0) {
       const updates = {
@@ -2090,10 +2147,9 @@ export default function DarkFolkloreGame() {
           1,
         )[0],
       );
-    else if (pending.type === "SUP_GRIM") {
-      stealRandom(1);
-      if (deck.length > 0) source.hand.push(deck.pop());
-    } else if (pending.type === "SUP_CHAINBINDER") {
+    // UPDATED: Removed the deck push from here!
+    else if (pending.type === "SUP_GRIM") stealRandom(1);
+    else if (pending.type === "SUP_CHAINBINDER") {
       const cIdx = target.hand.findIndex(
         (c) => c.uid === pending.specificCardUid,
       );
@@ -2108,8 +2164,9 @@ export default function DarkFolkloreGame() {
       return `${sourceName}'s Headless stole 2 cards from ${targetName}.`;
     if (type === "SUP_DEVOURER")
       return `${sourceName}'s Devourer ripped a card from ${targetName}'s hand into the void.`;
+    // UPDATED: Removed "drew from the deck and" since the draw happened earlier
     if (type === "SUP_GRIM")
-      return `${sourceName}'s Grim Goblin drew from the deck and stole a card from ${targetName}.`;
+      return `${sourceName}'s Grim Goblin successfully stole a card from ${targetName}.`;
     if (type === "SUP_CHAINBINDER")
       return `${sourceName}'s Chainbinder stole a card from ${targetName}.`;
     return `${sourceName} struck ${targetName} successfully.`;
@@ -2118,36 +2175,51 @@ export default function DarkFolkloreGame() {
   const handleAmuletResponse = async (useAmulet) => {
     const players = JSON.parse(JSON.stringify(gameState.players));
     const discardPile = [...gameState.discardPile];
+    const deck = [...gameState.deck];
     const pending = gameState.pendingAction;
     const me = players.find((p) => p.id === user.uid);
-    const source = players.find((p) => p.id === pending.sourceId); // <--- Add this
-    let logText = "";
+    const source = players.find((p) => p.id === pending.sourceId);
 
+    // --- QUEUED MULTI-ATTACK LOGIC ---
+    if (pending.isQueue) {
+      if (useAmulet) {
+        const aIdx = me.hand.findIndex((c) => c.cardId === "AMULET");
+        discardPile.push(me.hand.splice(aIdx, 1)[0]);
+        pending.blockedBy = pending.blockedBy || [];
+        pending.blockedBy.push(me.name);
+      } else {
+        // Took the hit
+        const stolen = me.hand.splice(Math.floor(Math.random() * me.hand.length), 1)[0];
+        source.hand.push(stolen);
+        pending.stolenCount = pending.stolenCount || {};
+        pending.stolenCount[me.name] = (pending.stolenCount[me.name] || 0) + 1;
+      }
+
+      pending.queue.shift(); // Consume this attempt
+      pending.amuletPromptActive = false; // Reset for next loop
+      setSelectedHandCards([]);
+      
+      // Pass it back to the queue processor to handle the next target!
+      return processQueueAndSave(players, deck, discardPile, pending, pending.remainingActions);
+    }
+
+    // --- EXISTING SINGLE ATTACK LOGIC ---
+    let logText = "";
     if (useAmulet) {
       const aIdx = me.hand.findIndex((c) => c.cardId === "AMULET");
       discardPile.push(me.hand.splice(aIdx, 1)[0]);
-      // Make the block log detailed too:
-      const attackName =
-        pending.type === "STEAL"
-          ? "A steal"
-          : ALL_CARDS[pending.type]?.name || "An attack";
+      const attackName = pending.type === "STEAL" ? "A steal" : ALL_CARDS[pending.type]?.name || "An attack";
       logText = `${me.name} burned an Amulet! ${attackName} from ${source.name} was nullified.`;
     } else {
       resolveOffensiveAction(pending, players, discardPile, gameState.deck);
-      // Use the new helper!
       logText = getAttackSuccessLog(pending.type, source.name, me.name);
     }
 
-    const updates = finalizeAction(
-      players,
-      gameState.deck,
-      "ACTION",
-      gameState.actionsLeft - 1,
-    );
+    const updates = finalizeAction(players, gameState.deck, "ACTION", gameState.actionsLeft - 1);
     updates.discardPile = discardPile;
     updates.pendingAction = null;
     await executeAction(updates, logText, useAmulet ? "neutral" : "failure");
-    setSelectedHandCards([]); // <--- ADD THIS HERE TOO
+    setSelectedHandCards([]); 
   };
 
   const handleForceDiscard = async (cardUids) => {
@@ -3928,107 +4000,135 @@ export default function DarkFolkloreGame() {
                   )}
 
                   {/* TYPE: STEAL_PLACEMENT (Step 3 of Nightwalker/Enchantress play) */}
-                  {activeModal.type === "STEAL_PLACEMENT" && (() => {
-                    const me = gameState.players[gameState.turnIndex];
-                    const baseSets = me.tableau.filter((s) => s.type === "SUP" && !s.isLocked);
-                    
-                    let previewSets = [];
-                    let addedToExisting = false;
+                  {activeModal.type === "STEAL_PLACEMENT" &&
+                    (() => {
+                      const me = gameState.players[gameState.turnIndex];
+                      const baseSets = me.tableau.filter(
+                        (s) => s.type === "SUP" && !s.isLocked,
+                      );
 
-                    // 1. Map existing sets and inject the source card visually if needed
-                    baseSets.forEach((s) => {
-                      let newCards = [...s.cards];
-                      if (!activeModal.isChain && s.id === activeModal.placementSetId) {
-                        newCards.push({ cardId: activeModal.def.id, uid: "temp_source" });
-                        addedToExisting = true;
-                      }
-                      if (newCards.length < 5) {
-                        previewSets.push({ ...s, cards: newCards });
-                      }
-                    });
+                      let previewSets = [];
+                      let addedToExisting = false;
 
-                    // 2. If the source card is creating a NEW set, show that new set as an option!
-                    if (!activeModal.isChain && (activeModal.placementSetId === "NEW" || (!addedToExisting && baseSets.length === 0))) {
-                      previewSets.push({
-                        id: "SAME_AS_SOURCE",
-                        type: "SUP",
-                        cards: [{ cardId: activeModal.def.id, uid: "temp_source" }],
-                        isLocked: false,
+                      // 1. Map existing sets and inject the source card visually if needed
+                      baseSets.forEach((s) => {
+                        let newCards = [...s.cards];
+                        if (
+                          !activeModal.isChain &&
+                          s.id === activeModal.placementSetId
+                        ) {
+                          newCards.push({
+                            cardId: activeModal.def.id,
+                            uid: "temp_source",
+                          });
+                          addedToExisting = true;
+                        }
+                        if (newCards.length < 5) {
+                          previewSets.push({ ...s, cards: newCards });
+                        }
                       });
-                    }
 
-                    return (
-                      <div className="flex flex-col gap-6 items-center animate-in fade-in">
-                        <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800">
-                          Place stolen '{activeModal.stolenDef?.name}'
-                        </div>
-                        
-                        {/* Trigger Toggle */}
-                        <label className="flex items-center gap-4 cursor-pointer bg-slate-950 border border-slate-700 p-4 rounded-xl hover:border-fuchsia-500 transition-all shadow-inner w-full max-w-sm group">
-                          <input
-                            type="checkbox"
-                            className="w-6 h-6 accent-fuchsia-600 rounded cursor-pointer"
-                            checked={activeModal.triggerStolen !== false}
-                            onChange={(e) => setModalState({ ...activeModal, triggerStolen: e.target.checked })}
-                          />
-                          <div className="flex flex-col">
-                            <span className="font-black text-fuchsia-400 uppercase tracking-widest group-hover:text-fuchsia-300 transition-colors">
-                              Trigger Ability
-                            </span>
-                            <span className="text-[10px] text-slate-500 uppercase font-bold">
-                              If unchecked, it remains dormant.
-                            </span>
+                      // 2. If the source card is creating a NEW set, show that new set as an option!
+                      if (
+                        !activeModal.isChain &&
+                        (activeModal.placementSetId === "NEW" ||
+                          (!addedToExisting && baseSets.length === 0))
+                      ) {
+                        previewSets.push({
+                          id: "SAME_AS_SOURCE",
+                          type: "SUP",
+                          cards: [
+                            { cardId: activeModal.def.id, uid: "temp_source" },
+                          ],
+                          isLocked: false,
+                        });
+                      }
+
+                      return (
+                        <div className="flex flex-col gap-6 items-center animate-in fade-in">
+                          <div className="text-slate-400 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-2 rounded-full border border-slate-800">
+                            Place stolen '{activeModal.stolenDef?.name}'
                           </div>
-                        </label>
 
-                        <div className="flex flex-wrap justify-center gap-4">
-                          {previewSets.map((set) => (
+                          {/* Trigger Toggle */}
+                          <label className="flex items-center gap-4 cursor-pointer bg-slate-950 border border-slate-700 p-4 rounded-xl hover:border-fuchsia-500 transition-all shadow-inner w-full max-w-sm group">
+                            <input
+                              type="checkbox"
+                              className="w-6 h-6 accent-fuchsia-600 rounded cursor-pointer"
+                              checked={activeModal.triggerStolen !== false}
+                              onChange={(e) =>
+                                setModalState({
+                                  ...activeModal,
+                                  triggerStolen: e.target.checked,
+                                })
+                              }
+                            />
+                            <div className="flex flex-col">
+                              <span className="font-black text-fuchsia-400 uppercase tracking-widest group-hover:text-fuchsia-300 transition-colors">
+                                Trigger Ability
+                              </span>
+                              <span className="text-[10px] text-slate-500 uppercase font-bold">
+                                If unchecked, it remains dormant.
+                              </span>
+                            </div>
+                          </label>
+
+                          <div className="flex flex-wrap justify-center gap-4">
+                            {previewSets.map((set) => (
+                              <button
+                                key={set.id}
+                                onClick={() =>
+                                  confirmModalAction({
+                                    targetPlayerId: activeModal.targetPlayerId,
+                                    targetSetId: activeModal.targetSetId,
+                                    targetCardUid: activeModal.targetCardUid,
+                                    stolenPlacementSetId: set.id,
+                                    triggerStolen:
+                                      activeModal.triggerStolen !== false,
+                                  })
+                                }
+                                className="bg-slate-900 p-4 rounded-xl border-2 border-slate-700 hover:border-fuchsia-500 transition-all group flex flex-col items-center gap-2"
+                              >
+                                <div className="flex gap-1 items-end">
+                                  {set.cards.map((c, i) => (
+                                    <div
+                                      key={i}
+                                      className={`transition-all ${c.uid === "temp_source" ? "opacity-60 scale-90 -ml-2 drop-shadow-[0_0_10px_rgba(217,70,239,0.5)]" : ""}`}
+                                    >
+                                      <CardDisplay cardId={c.cardId} tiny />
+                                    </div>
+                                  ))}
+                                </div>
+                                <span className="text-xs font-bold text-slate-300 uppercase tracking-widest group-hover:text-fuchsia-300 mt-1">
+                                  Append to Set ({set.cards.length}/5)
+                                </span>
+                              </button>
+                            ))}
                             <button
-                              key={set.id}
                               onClick={() =>
                                 confirmModalAction({
                                   targetPlayerId: activeModal.targetPlayerId,
                                   targetSetId: activeModal.targetSetId,
                                   targetCardUid: activeModal.targetCardUid,
-                                  stolenPlacementSetId: set.id,
-                                  triggerStolen: activeModal.triggerStolen !== false
+                                  stolenPlacementSetId: "NEW",
+                                  triggerStolen:
+                                    activeModal.triggerStolen !== false,
                                 })
                               }
-                              className="bg-slate-900 p-4 rounded-xl border-2 border-slate-700 hover:border-fuchsia-500 transition-all group flex flex-col items-center gap-2"
+                              className="bg-slate-900 p-4 rounded-xl border-2 border-slate-700 hover:border-fuchsia-500 transition-all flex flex-col items-center justify-center gap-2 min-w-[140px] group"
                             >
-                              <div className="flex gap-1 items-end">
-                                {set.cards.map((c, i) => (
-                                  <div key={i} className={`transition-all ${c.uid === "temp_source" ? "opacity-60 scale-90 -ml-2 drop-shadow-[0_0_10px_rgba(217,70,239,0.5)]" : ""}`}>
-                                    <CardDisplay cardId={c.cardId} tiny />
-                                  </div>
-                                ))}
-                              </div>
-                              <span className="text-xs font-bold text-slate-300 uppercase tracking-widest group-hover:text-fuchsia-300 mt-1">
-                                Append to Set ({set.cards.length}/5)
+                              <Layers
+                                size={24}
+                                className="text-fuchsia-400 group-hover:text-fuchsia-300"
+                              />
+                              <span className="text-xs font-bold text-slate-300 uppercase tracking-widest group-hover:text-fuchsia-300">
+                                Start New Set
                               </span>
                             </button>
-                          ))}
-                          <button
-                            onClick={() =>
-                              confirmModalAction({
-                                targetPlayerId: activeModal.targetPlayerId,
-                                targetSetId: activeModal.targetSetId,
-                                targetCardUid: activeModal.targetCardUid,
-                                stolenPlacementSetId: "NEW",
-                                triggerStolen: activeModal.triggerStolen !== false
-                              })
-                            }
-                            className="bg-slate-900 p-4 rounded-xl border-2 border-slate-700 hover:border-fuchsia-500 transition-all flex flex-col items-center justify-center gap-2 min-w-[140px] group"
-                          >
-                            <Layers size={24} className="text-fuchsia-400 group-hover:text-fuchsia-300" />
-                            <span className="text-xs font-bold text-slate-300 uppercase tracking-widest group-hover:text-fuchsia-300">
-                              Start New Set
-                            </span>
-                          </button>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })()}
+                      );
+                    })()}
 
                   {/* TYPE: CARD_TYPE (Summoner) */}
                   {activeModal.type === "CARD_TYPE" && (
