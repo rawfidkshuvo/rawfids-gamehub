@@ -1181,7 +1181,7 @@ export default function ReverieGame() {
 
         {/* --- ROUND RESULTS MODAL --- */}
         {gameState.turnPhase === "ROUND_END" && (
-          <div className="fixed inset-0 z-[180] bg-black/90 backdrop-blur-md flex flex-col pt-16 pb-6 px-4 animate-in fade-in duration-300">
+          <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex flex-col pt-16 pb-6 px-4 animate-in fade-in duration-300">
              
              {/* Header */}
              <div className="w-full max-w-5xl mx-auto text-center mb-6 shrink-0">
