@@ -874,6 +874,7 @@ export default function Lucky7Game() {
     return (
       <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4 text-center">
         <GlobalStyles/>
+        <DarkAtmosphere/>
         <GameLogoBig />
         <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10 mb-8">
           <Zap className="text-cyan-500 animate-pulse-cyan" size={48}/>

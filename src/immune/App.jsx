@@ -96,6 +96,8 @@ const GlobalStyles = () => (
   `}</style>
 );
 
+
+
 const FloatingBackground = React.memo(() => {
   const backgroundIcons = React.useMemo(() => {
     const icons = [Activity, Pill, Heart, ShieldAlert];
@@ -1504,6 +1506,7 @@ export default function ImmuneGame() {
     return (
       <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4 text-center">
         <GlobalStyles />
+        <DarkAtmosphere />
         <LogoBig />
         <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10 mb-8"></div>
         <div className="bg-emerald-900/10 p-6 sm:p-8 rounded-2xl border border-emerald-900/30 max-w-sm w-full">
