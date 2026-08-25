@@ -2147,7 +2147,7 @@ export default function ImmuneGame() {
 
         {/* END GAME MODAL */}
         {gameState.status === "finished" && (
-          <div className="fixed inset-0 z-[250] bg-black/90 backdrop-blur-xl flex items-center justify-center pt-16 sm:pt-20 pb-10 px-4">
+          <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center pt-16 sm:pt-20 pb-10 px-4">
             <div className="bg-slate-900 p-6 md:p-8 rounded-3xl border border-emerald-500/50 text-center shadow-[0_0_80px_rgba(16,185,129,0.3)] animate-in zoom-in max-w-lg w-full flex flex-col relative max-h-[90vh]">
               <div className="shrink-0 mb-4 sm:mb-6">
                 <Heart className="w-20 h-20 sm:w-24 sm:h-24 text-emerald-400 mx-auto mb-2 sm:mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(16,185,129,0.6)]" />

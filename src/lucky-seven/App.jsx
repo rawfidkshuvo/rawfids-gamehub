@@ -334,7 +334,7 @@ const RulesModal = ({ onClose }) => (
 );
 
 const ScoreboardModal = ({ gameState, onClose }) => (
-  <div className="fixed inset-0 z-[200] bg-zinc-950/95 backdrop-blur-md flex items-center justify-center pt-16 sm:pt-20 pb-10 px-4">
+  <div className="fixed inset-0 z-[100] bg-zinc-950/95 backdrop-blur-md flex items-center justify-center pt-16 sm:pt-20 pb-10 px-4">
     <div className="bg-slate-900 border border-cyan-900/50 w-full max-w-lg rounded-3xl shadow-2xl p-4 sm:p-6 relative flex flex-col max-h-full">
       <button onClick={onClose} className="absolute top-3 sm:top-4 right-3 sm:right-4 p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors z-10"><X className="w-5 h-5 sm:w-6 sm:h-6 text-white"/></button>
       <div className="shrink-0 mb-4 sm:mb-6">
@@ -1225,7 +1225,7 @@ export default function Lucky7Game() {
 
         {/* END GAME MODAL */}
         {gameState.status === "finished" && (
-          <div className="fixed inset-0 z-[250] bg-black/90 backdrop-blur-xl flex items-center justify-center pt-16 sm:pt-20 pb-10 px-4">
+          <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center pt-16 sm:pt-20 pb-10 px-4">
             <div className="bg-slate-900 p-6 md:p-8 rounded-3xl border border-cyan-500/50 text-center shadow-[0_0_80px_rgba(6,182,212,0.3)] animate-in zoom-in max-w-lg w-full flex flex-col relative max-h-[90vh]">
               <div className="shrink-0 mb-4 sm:mb-6">
                 <Crown className="w-20 h-20 sm:w-24 sm:h-24 text-yellow-400 mx-auto mb-2 sm:mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]"/>

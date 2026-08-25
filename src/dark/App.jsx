@@ -380,7 +380,14 @@ const createDeck = () => {
   add("AMULET", 6);
   add("SPELL", 6);
   Object.keys(SUPERNATURALS).forEach((id) => add(id, 1));
-  return deck.sort(() => Math.random() - 0.5);
+
+  // --- NEW: Fisher-Yates Casino Shuffle ---
+  for (let i = deck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]]; // Swap the cards
+  }
+  
+  return deck;
 };
 
 // ---------------------------------------------------------------------------
@@ -1228,14 +1235,17 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
         }
 
         const hasAmulet = target.hand.some((c) => c.cardId === "AMULET");
-        if (hasAmulet && !pending.amuletPromptActive) {
+        // NEW: Check if this player already pressed "Take Hit" during this queue
+        const hasRejected = pending.rejectedAmulets && pending.rejectedAmulets.includes(target.id);
+
+        if (hasAmulet && !hasRejected && !pending.amuletPromptActive) {
           // STOP THE QUEUE: Ask for defense!
           pending.amuletPromptActive = true;
           pending.targetId = currentTargetId; // Tell UI who is defending
           isPausedForAmulet = true;
           break; 
         } else {
-          // Steal succeeds automatically (no amulet)
+          // Steal succeeds automatically (no amulet, OR they opted out earlier)
           const source = players.find((p) => p.id === pending.sourceId);
           const stolen = target.hand.splice(Math.floor(Math.random() * target.hand.length), 1)[0];
           source.hand.push(stolen);
@@ -1507,6 +1517,21 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
         ctx.logsText += " They drew 2 cards from the void.";
         break;
       case "SUP_HEADLESS":
+        // NEW: Moved to Queue System so it steals 1-by-1!
+        ctx.pendingData = {
+          isQueue: true,
+          type: "SUP_HEADLESS",
+          defId: def.id,
+          sourceId: me.id,
+          queue: [targetData.targetPlayerId, targetData.targetPlayerId], // Queued 2 times!
+          stolenCount: {},
+          blockedBy: [],
+          rejectedAmulets: [],
+          deckPulls: 0,
+          amuletPromptActive: false,
+        };
+        ctx.isQueueProcessing = true;
+        break;
       case "SUP_DEVOURER":
         ctx.logsText += " The shadows reach out to strike.";
         ctx.awaitAmulet = true;
@@ -1548,6 +1573,7 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
           queue: [...targetData.selections],
           stolenCount: {},
           blockedBy: [],
+          rejectedAmulets: [], // <--- ADD THIS
           deckPulls: 0,
           amuletPromptActive: false,
         };
@@ -1624,6 +1650,7 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
           queue: [...targetData.choices],
           stolenCount: {},
           blockedBy: [],
+          rejectedAmulets: [],
           deckPulls: 0,
           amuletPromptActive: false,
         };
@@ -2138,7 +2165,6 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
     };
 
     if (pending.type === "STEAL") stealRandom(1);
-    else if (pending.type === "SUP_HEADLESS") stealRandom(2);
     else if (pending.type === "SUP_BLOODFIEND") stealRandom(3);
     else if (pending.type === "SUP_DEVOURER")
       discardPile.push(
@@ -2160,8 +2186,6 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
   const getAttackSuccessLog = (type, sourceName, targetName) => {
     if (type === "STEAL")
       return `${sourceName} stole a card from ${targetName}.`;
-    if (type === "SUP_HEADLESS")
-      return `${sourceName}'s Headless stole 2 cards from ${targetName}.`;
     if (type === "SUP_DEVOURER")
       return `${sourceName}'s Devourer ripped a card from ${targetName}'s hand into the void.`;
     // UPDATED: Removed "drew from the deck and" since the draw happened earlier
@@ -2188,7 +2212,10 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
         pending.blockedBy = pending.blockedBy || [];
         pending.blockedBy.push(me.name);
       } else {
-        // Took the hit
+        // NEW: Player Took the hit -> DO NOT ASK AGAIN FOR THIS ATTACK
+        pending.rejectedAmulets = pending.rejectedAmulets || [];
+        pending.rejectedAmulets.push(me.id);
+
         const stolen = me.hand.splice(Math.floor(Math.random() * me.hand.length), 1)[0];
         source.hand.push(stolen);
         pending.stolenCount = pending.stolenCount || {};
@@ -2559,7 +2586,7 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
         {showGuide && <HowToPlayModal onClose={() => setShowGuide(false)} />}
 
         {/* Top Bar */}
-        <div className="h-16 bg-slate-950/90 border-b border-fuchsia-900/30 flex items-center justify-between px-6 z-40 shrink-0 backdrop-blur-md shadow-lg">
+        <div className="h-16 bg-slate-950/90 border-b border-fuchsia-900/30 flex items-center justify-between px-6 z-160 shrink-0 backdrop-blur-md shadow-lg">
           <div className="flex items-center gap-4">
             <Moon
               className="text-fuchsia-600 drop-shadow-[0_0_8px_rgba(192,38,211,0.8)]"
@@ -2570,17 +2597,24 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
             </span>
           </div>
           <div className="flex gap-4 items-center">
-            <div className="flex gap-2">
-              <div className="bg-slate-900 px-4 py-1.5 rounded-lg text-xs font-bold text-fuchsia-300 tracking-widest uppercase border border-fuchsia-900/50 shadow-inner flex items-center gap-2">
-                <Layers size={14} /> Deck: {gameState.deck.length}
+            {/* Unified Deck & Void Button */}
+            <button
+              onClick={() => setShowDiscard(true)}
+              className="bg-slate-900/80 hover:bg-slate-800 transition-colors px-3 sm:px-4 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold tracking-widest uppercase border border-slate-700 shadow-inner flex items-center gap-3 sm:gap-4 cursor-pointer active:scale-95"
+            >
+              <div className="flex items-center gap-1.5 text-fuchsia-300" title="Cards in Deck">
+                <Layers size={14} className="sm:w-4 sm:h-4" /> 
+                <span className="hidden sm:inline">Deck:</span> {gameState.deck.length}
               </div>
-              <button
-                onClick={() => setShowDiscard(true)}
-                className="bg-slate-900 hover:bg-slate-800 transition-colors px-4 py-1.5 rounded-lg text-xs font-bold text-red-400 tracking-widest uppercase border border-red-900/50 shadow-inner flex items-center gap-2 cursor-pointer active:scale-95"
-              >
-                <Flame size={14} /> Void: {gameState.discardPile.length}
-              </button>
-            </div>
+              
+              {/* Subtle Divider */}
+              <div className="w-[1px] h-4 bg-slate-700" />
+              
+              <div className="flex items-center gap-1.5 text-red-400" title="Cards in Void">
+                <Flame size={14} className="sm:w-4 sm:h-4" /> 
+                <span className="hidden sm:inline">Void:</span> {gameState.discardPile.length}
+              </div>
+            </button>
             <button
               onClick={() => setShowGuide(true)}
               className="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-fuchsia-400 transition-colors"
@@ -2604,7 +2638,7 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
 
         {/* Logs Drawer */}
         {showLogs && (
-          <div className="fixed top-16 right-4 w-64 max-h-60 bg-slate-900/95 border border-slate-700 rounded-xl z-50 overflow-y-auto p-2 shadow-2xl backdrop-blur-md">
+          <div className="fixed top-16 right-4 w-64 max-h-60 bg-slate-900/95 border border-slate-700 rounded-xl z-150 overflow-y-auto p-2 shadow-2xl backdrop-blur-md">
             <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 sticky top-0 bg-slate-900/95 py-2">
               Ritual Log
             </h4>
@@ -3103,79 +3137,121 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
             </div>
           )}
 
-        {/* Amulet Prompt */}
+        {/* Amulet Prompt - Scaled Down */}
         {amITarget && (
-          <div className="fixed inset-0 z-[100] bg-red-950/95 flex flex-col items-center justify-center p-6 backdrop-blur-xl">
-            <div className="relative">
-              <div className="absolute inset-0 bg-red-500 blur-[50px] opacity-30 rounded-full animate-pulse"></div>
-              <Shield
-                size={96}
-                className="text-red-500 animate-bounce mb-8 drop-shadow-2xl relative z-10"
-              />
-            </div>
-            <h2 className="text-3xl md:text-5xl font-black text-white uppercase tracking-widest mb-4 text-center drop-shadow-lg">
-              You are targeted!
-            </h2>
-            <p className="text-red-200 mb-10 uppercase tracking-widest text-sm md:text-lg text-center font-bold bg-red-900/40 px-6 py-3 rounded-2xl border border-red-500/30">
-              An opponent's dark entity strikes. Burn your Amulet to block?
-            </p>
-            <div className="flex flex-col sm:flex-row gap-6">
-              <button
-                onClick={() => handleAmuletResponse(true)}
-                className="bg-gradient-to-b from-red-600 to-red-800 hover:from-red-500 hover:to-red-700 text-white px-10 py-5 rounded-2xl uppercase font-black tracking-widest shadow-[0_0_30px_rgba(220,38,38,0.6)] hover:scale-105 transition-all active:scale-95 text-lg border border-red-400/50"
-              >
-                Burn Amulet
-              </button>
-              <button
-                onClick={() => handleAmuletResponse(false)}
-                className="bg-slate-900/80 hover:bg-slate-800 text-slate-400 px-10 py-5 rounded-2xl uppercase font-bold tracking-widest border border-slate-700 hover:text-slate-300 transition-all hover:scale-105 active:scale-95"
-              >
-                Take Hit
-              </button>
+          <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4">
+            <div className="bg-slate-950 border border-red-900/80 rounded-3xl p-6 sm:p-8 max-w-sm w-full flex flex-col items-center text-center shadow-[0_0_50px_rgba(220,38,38,0.2)] animate-in zoom-in-95 duration-200">
+              
+              <div className="relative mb-4">
+                <div className="absolute inset-0 bg-red-500 blur-[30px] opacity-30 rounded-full animate-pulse"></div>
+                <Shield
+                  size={48}
+                  className="text-red-500 animate-bounce relative z-10 drop-shadow-lg"
+                />
+              </div>
+              
+              <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-widest mb-2 drop-shadow-md">
+                Incoming Attack!
+              </h2>
+              
+              <p className="text-red-300 mb-8 uppercase tracking-wider text-xs font-bold bg-red-950/40 px-4 py-2.5 rounded-xl border border-red-900/50 w-full">
+                An entity strikes. Burn your Amulet?
+              </p>
+              
+              <div className="flex w-full gap-3">
+                <button
+                  onClick={() => handleAmuletResponse(true)}
+                  className="flex-1 bg-gradient-to-b from-red-700 to-red-900 hover:from-red-600 hover:to-red-800 text-white py-3 sm:py-4 rounded-xl uppercase font-black tracking-widest shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:scale-105 transition-all active:scale-95 text-xs sm:text-sm border border-red-500/50"
+                >
+                  Burn
+                </button>
+                <button
+                  onClick={() => handleAmuletResponse(false)}
+                  className="flex-1 bg-slate-900/80 hover:bg-slate-800 text-slate-400 py-3 sm:py-4 rounded-xl uppercase font-bold tracking-widest border border-slate-700 hover:text-slate-200 transition-all hover:scale-105 active:scale-95 text-xs sm:text-sm"
+                >
+                  Take Hit
+                </button>
+              </div>
+
             </div>
           </div>
         )}
 
-        {/* Discard Pile (The Void) Modal */}
+        {/* Game State Overview Modal (Hand & Void) */}
         {showDiscard && (
           <div className="fixed inset-0 z-[250] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in fade-in">
-            <div className="bg-slate-950 border border-red-900/50 rounded-3xl w-full max-w-4xl flex flex-col shadow-[0_0_50px_rgba(220,38,38,0.15)] overflow-hidden">
+            <div className="bg-slate-950 border border-slate-700/50 rounded-3xl w-full max-w-4xl flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden max-h-[85vh]">
+              
               {/* Modal Header */}
-              <div className="flex justify-between items-center p-4 md:p-6 border-b border-slate-800 bg-slate-900/50">
-                <h3 className="text-xl md:text-2xl font-black text-red-500 uppercase tracking-widest flex items-center gap-3">
-                  <Flame className="text-red-600 animate-pulse" /> The Void
-                  <span className="text-xs text-slate-500 tracking-widest bg-slate-950 px-3 py-1 rounded-full border border-slate-800">
-                    {gameState.discardPile.length} Cards
-                  </span>
+              <div className="flex justify-between items-center p-4 md:p-6 border-b border-slate-800 bg-slate-900/50 shrink-0">
+                <h3 className="text-xl md:text-2xl font-black text-slate-200 uppercase tracking-widest flex items-center gap-3 drop-shadow-md">
+                  <BookOpen className="text-fuchsia-500" /> State of the Ritual
                 </h3>
                 <button
                   onClick={() => setShowDiscard(false)}
-                  className="p-2 bg-slate-900 rounded-full text-slate-400 hover:text-red-400 hover:bg-red-950/30 border border-slate-800 transition-colors"
+                  className="p-2 bg-slate-900 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 transition-colors"
                 >
                   <X size={20} />
                 </button>
               </div>
 
-              {/* Cards Grid */}
-              <div className="p-6 overflow-y-auto custom-scrollbar max-h-[60vh] flex flex-wrap gap-4 justify-center content-start">
-                {gameState.discardPile.length === 0 ? (
-                  <div className="text-slate-600 uppercase tracking-widest font-black py-12 flex flex-col items-center gap-4">
-                    <Ghost size={48} className="opacity-20" />
-                    The void is currently empty.
-                  </div>
-                ) : (
-                  /* Reversing the array so the most recently discarded cards show up first */
-                  [...gameState.discardPile].reverse().map((c, i) => (
-                    <div key={`${c.uid}-${i}`} className="relative group">
-                      {i === 0 && (
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-950 text-red-400 text-[9px] font-black uppercase px-2 py-0.5 rounded border border-red-900/50 z-20 shadow-md">
-                          Top
+              {/* Scrollable Content */}
+              <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar flex flex-col gap-8">
+                
+                {/* Your Hand Section */}
+                <div>
+                  <h4 className="text-sm font-black text-fuchsia-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
+                    <Hand size={16} /> Your Hand 
+                    <span className="text-xs bg-slate-900 px-2 py-0.5 rounded-full text-slate-400 border border-slate-800">
+                      {me.hand.length}/7
+                    </span>
+                  </h4>
+                  <div className="flex flex-wrap gap-4 content-start">
+                    {me.hand.length === 0 ? (
+                      <div className="text-slate-600 uppercase tracking-widest font-black py-6 flex flex-col items-center gap-3 w-full bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
+                        <Ghost size={32} className="opacity-20" />
+                        Your hand is empty.
+                      </div>
+                    ) : (
+                      me.hand.map((c, i) => (
+                        <div key={`${c.uid}-${i}`} className="hover:-translate-y-2 transition-transform">
+                          <CardDisplay cardId={c.cardId} />
                         </div>
-                      )}
-                      <CardDisplay cardId={c.cardId} />
-                    </div>
-                  ))
-                )}
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {/* The Void Section */}
+                <div>
+                  <h4 className="text-sm font-black text-red-500 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
+                    <Flame size={16} /> The Void 
+                    <span className="text-xs bg-slate-900 px-2 py-0.5 rounded-full text-slate-400 border border-slate-800">
+                      {gameState.discardPile.length}
+                    </span>
+                  </h4>
+                  <div className="flex flex-wrap gap-4 content-start">
+                    {gameState.discardPile.length === 0 ? (
+                      <div className="text-slate-600 uppercase tracking-widest font-black py-6 flex flex-col items-center gap-3 w-full bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
+                        <Ghost size={32} className="opacity-20" />
+                        The void is currently empty.
+                      </div>
+                    ) : (
+                      /* Reversing so the most recently discarded cards show up first */
+                      [...gameState.discardPile].reverse().map((c, i) => (
+                        <div key={`${c.uid}-${i}`} className="relative group">
+                          {i === 0 && (
+                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-950 text-red-400 text-[9px] font-black uppercase px-2 py-0.5 rounded border border-red-900/50 z-20 shadow-md">
+                              Top
+                            </div>
+                          )}
+                          <CardDisplay cardId={c.cardId} />
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
               </div>
             </div>
           </div>

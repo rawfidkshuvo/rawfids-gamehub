@@ -1380,7 +1380,7 @@ export default function ReverieGame() {
 
         {/* END GAME MODAL */}
         {gameState.status === "finished" && (
-          <div className="fixed inset-0 z-[250] bg-black/90 flex items-center justify-center backdrop-blur-md pt-16 sm:pt-20 pb-10 px-4">
+          <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center backdrop-blur-md pt-16 sm:pt-20 pb-10 px-4">
             <div className="bg-zinc-900 p-6 md:p-8 rounded-3xl border-2 border-fuchsia-500 text-center shadow-[0_0_50px_rgba(217,70,239,0.4)] animate-in zoom-in max-w-lg w-full flex flex-col relative max-h-[90vh]">
               <div className="shrink-0 mb-4 sm:mb-6">
                 <Crown className="w-16 h-16 sm:w-20 sm:h-20 text-yellow-500 mx-auto mb-2 sm:mb-4 animate-bounce" />

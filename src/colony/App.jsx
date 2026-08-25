@@ -1874,7 +1874,7 @@ export default function ColonyGame() {
 
         {/* END GAME MODAL */}
         {gameState.status === "finished" && (
-          <div className="fixed inset-0 z-[250] bg-black/90 flex items-center justify-center backdrop-blur-md pt-20 pb-10 px-4">
+          <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center backdrop-blur-md pt-20 pb-10 px-4">
             <div className="bg-slate-900 p-6 md:p-8 rounded-2xl border-2 border-yellow-500 text-center shadow-2xl animate-in zoom-in max-w-lg w-full flex flex-col relative">
               <div className="shrink-0 mb-4">
                 <Trophy size={64} className="text-yellow-400 mx-auto mb-2 animate-bounce" />
