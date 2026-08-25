@@ -708,7 +708,7 @@ const SplashScreen = ({ onStart }) => {
 
   useEffect(() => {
     // 1. Check Session immediately
-    const saved = localStorage.getItem("angryvirus_roomId");
+    const saved = localStorage.getItem("dark_roomId");
     setHasSession(!!saved);
 
     // 2. Preload the image

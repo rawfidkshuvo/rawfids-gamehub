@@ -396,7 +396,7 @@ const SplashScreen = ({ onStart }) => {
 
   useEffect(() => {
     // 1. Check Session immediately
-    const saved = localStorage.getItem("equilibrium_roomId");
+    const saved = localStorage.getItem("reverie_roomId");
     setHasSession(!!saved);
 
     // 2. Preload the image

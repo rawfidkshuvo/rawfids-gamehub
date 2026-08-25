@@ -603,7 +603,6 @@ const INITIAL_GAMES = [
     minPlayers: 2,
     maxPlayers: 6,
     hasBots: false,
-    betaTesting: true,
     complexity: "Medium",
     duration: "20-30m",
     link: "./immune/",
