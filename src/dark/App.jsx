@@ -419,25 +419,47 @@ const calculateScore = (tableau) => {
 // ---------------------------------------------------------------------------
 const DarkAtmosphere = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-    <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black opacity-90" />
-    <div className="absolute inset-0 opacity-20 mix-blend-overlay bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')]" />
-    {[...Array(25)].map((_, i) => (
-      <div
-        key={i}
-        className="absolute rounded-full animate-float opacity-30"
-        style={{
-          left: `${Math.random() * 100}%`,
-          top: `${Math.random() * 100}%`,
-          width: `${Math.random() * 4 + 1}px`,
-          height: `${Math.random() * 4 + 1}px`,
-          backgroundColor: Math.random() > 0.5 ? "#d946ef" : "#8b5cf6",
-          animationDuration: `${10 + Math.random() * 20}s`,
-          animationDelay: `${Math.random() * -20}s`,
-          boxShadow: "0 0 15px 2px rgba(217,70,239,0.4)",
-        }}
-      />
-    ))}
-    <style>{`@keyframes float { 0%, 100% { transform: translate(0,0) scale(1); opacity:0.1; } 50% { transform: translate(${Math.random() * 40 - 20}px, -60px) scale(1.5); opacity:0.6; } } .animate-float { animation: float infinite ease-in-out; }`}</style>
+    {/* Clean, deep gradient background (No hazy overlays) */}
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
+    
+    {/* Crisp Particles */}
+    {[...Array(25)].map((_, i) => {
+      // Calculate individual random drifts using CSS variables
+      const driftX = `${Math.random() * 40 - 20}px`;
+      
+      return (
+        <div
+          key={i}
+          className="absolute rounded-full animate-float"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            width: `${Math.random() * 4 + 1}px`,
+            height: `${Math.random() * 4 + 1}px`,
+            backgroundColor: Math.random() > 0.5 ? "#d946ef" : "#8b5cf6",
+            animationDuration: `${10 + Math.random() * 20}s`,
+            animationDelay: `${Math.random() * -20}s`,
+            boxShadow: "0 0 12px 2px rgba(217,70,239,0.8)", // Brighter glow
+            "--driftX": driftX, // Passes individual random drift to CSS
+          }}
+        />
+      );
+    })}
+    <style>{`
+      @keyframes float { 
+        0%, 100% { 
+          transform: translate(0, 0) scale(1); 
+          opacity: 0.2; 
+        } 
+        50% { 
+          transform: translate(var(--driftX), -60px) scale(1.5); 
+          opacity: 1; /* Shines at full brightness */
+        } 
+      } 
+      .animate-float { 
+        animation: float infinite ease-in-out; 
+      }
+    `}</style>
   </div>
 ));
 
@@ -2306,7 +2328,7 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
 
   if (!user)
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-fuchsia-500 animate-pulse">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-fuchsia-500 animate-pulse">
         Eradicating darkness...
       </div>
     );
@@ -2314,7 +2336,7 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
   // RECONNECTING STATE
   if (roomId && !gameState && !error) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
         <DarkAtmosphere />
         <div className="bg-zinc-900/80 backdrop-blur p-8 rounded-2xl border border-zinc-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
           <Loader size={48} className="text-fuchsia-500 animate-spin" />
@@ -2336,7 +2358,7 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
         <nav className="absolute top-0 left-0 w-full p-6 z-50">
           <a
             href={getBaseUrl()}
-            className="flex items-center gap-2 text-slate-500 hover:text-fuchsia-400 font-bold tracking-widest uppercase transition-colors w-fit group"
+            className="flex items-center gap-2 text-fuchsia-500 hover:text-fuchsia-400 font-bold tracking-widest uppercase transition-colors w-fit group"
           >
             <StepBack
               size={18}
@@ -2348,7 +2370,7 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
         <div className="z-10 text-center mb-12">
           <Moon
             size={64}
-            className="mx-auto mb-6 text-fuchsia-600 animate-pulse drop-shadow-[0_0_20px_rgba(192,38,211,0.6)]"
+            className="mx-auto mb-6 text-fuchsia-600 drop-shadow-[0_0_20px_rgba(192,38,211,0.6)]"
           />
           <h1 className="text-7xl font-black tracking-[0.4em] uppercase text-transparent bg-clip-text bg-gradient-to-b from-slate-100 to-slate-600 drop-shadow-xl">
             DARK

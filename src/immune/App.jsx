@@ -131,32 +131,54 @@ const FloatingBackground = React.memo(() => {
 
 const DarkAtmosphere = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-    <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black opacity-90" />
-    <div className="absolute inset-0 opacity-20 mix-blend-overlay bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')]" />
-    {[...Array(25)].map((_, i) => (
-      <div
-        key={i}
-        className="absolute rounded-full animate-float opacity-30"
-        style={{
-          left: `${Math.random() * 100}%`,
-          top: `${Math.random() * 100}%`,
-          width: `${Math.random() * 4 + 1}px`,
-          height: `${Math.random() * 4 + 1}px`,
-          backgroundColor: Math.random() > 0.5 ? "#d946ef" : "#8b5cf6",
-          animationDuration: `${10 + Math.random() * 20}s`,
-          animationDelay: `${Math.random() * -20}s`,
-          boxShadow: "0 0 15px 2px rgba(217,70,239,0.4)",
-        }}
-      />
-    ))}
-    <style>{`@keyframes float { 0%, 100% { transform: translate(0,0) scale(1); opacity:0.1; } 50% { transform: translate(${Math.random() * 40 - 20}px, -60px) scale(1.5); opacity:0.6; } } .animate-float { animation: float infinite ease-in-out; }`}</style>
+    {/* Clean, deep gradient background (No hazy overlays) */}
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
+    
+    {/* Crisp Particles */}
+    {[...Array(25)].map((_, i) => {
+      // Calculate individual random drifts using CSS variables
+      const driftX = `${Math.random() * 40 - 20}px`;
+      
+      return (
+        <div
+          key={i}
+          className="absolute rounded-full animate-float"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            width: `${Math.random() * 4 + 1}px`,
+            height: `${Math.random() * 4 + 1}px`,
+            backgroundColor: Math.random() > 0.5 ? "#0df15d" : "#08eb9b",
+            animationDuration: `${10 + Math.random() * 20}s`,
+            animationDelay: `${Math.random() * -20}s`,
+            boxShadow: "0 0 12px 2px rgba(0, 255, 200, 0.8)", // Brighter glow
+            "--driftX": driftX, // Passes individual random drift to CSS
+          }}
+        />
+      );
+    })}
+    <style>{`
+      @keyframes float { 
+        0%, 100% { 
+          transform: translate(0, 0) scale(1); 
+          opacity: 0.2; 
+        } 
+        50% { 
+          transform: translate(var(--driftX), -60px) scale(1.5); 
+          opacity: 1; /* Shines at full brightness */
+        } 
+      } 
+      .animate-float { 
+        animation: float infinite ease-in-out; 
+      }
+    `}</style>
   </div>
 ));
 
 const Logo = () => (
-  <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-4 pt-4 relative z-10">
-    <HeartPulse size={14} className="text-emerald-500" />
-    <span className="text-xs font-black tracking-widest text-emerald-500 uppercase">
+  <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10">
+    <HeartPulse size={12} className="text-emerald-500" />
+    <span className="text-[10px] font-black tracking-widest text-emerald-500 uppercase">
       IMMUNE
     </span>
   </div>
@@ -1504,7 +1526,7 @@ export default function ImmuneGame() {
   // ---------------------------------------------------------------------------
   if (isMaintenance) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4 text-center">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4 text-center">
         <GlobalStyles />
         <DarkAtmosphere />
         <LogoBig />
@@ -1533,7 +1555,7 @@ export default function ImmuneGame() {
 
   if (!user)
       return (
-        <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-emerald-500 animate-pulse">
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center text-emerald-500 animate-pulse">
           Treating organs...
         </div>
       );
@@ -1541,7 +1563,7 @@ export default function ImmuneGame() {
     // RECONNECTING STATE
     if (roomId && !gameState && !error) {
       return (
-        <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4">
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
           <DarkAtmosphere />
           <div className="bg-zinc-900/80 backdrop-blur p-8 rounded-2xl border border-zinc-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
             <Loader size={48} className="text-emerald-500 animate-spin" />
@@ -1558,7 +1580,7 @@ export default function ImmuneGame() {
 
   if (view === "menu") {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans select-none">
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans select-none">
         <GlobalStyles />
         <DarkAtmosphere />
         <nav className="absolute top-0 left-0 w-full p-4 z-50">
@@ -1638,7 +1660,7 @@ export default function ImmuneGame() {
       gameState.players.length >= 2 && gameState.players.length <= 6;
 
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-4 sm:p-6 relative">
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 sm:p-6 relative">
         <GlobalStyles />
         <DarkAtmosphere />
         <LogoBig />
@@ -1901,7 +1923,7 @@ export default function ImmuneGame() {
     };
 
     return (
-      <div className="fixed inset-0 bg-zinc-950 text-white flex flex-col overflow-hidden font-sans select-none">
+      <div className="fixed inset-0 bg-slate-950 text-white flex flex-col overflow-hidden font-sans select-none">
         <GlobalStyles />
         <DarkAtmosphere />
 

@@ -87,25 +87,47 @@ const GlobalStyles = () => (
 
 const DarkAtmosphere = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-    <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black opacity-90" />
-    <div className="absolute inset-0 opacity-20 mix-blend-overlay bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPjxyZWN0IHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')]" />
-    {[...Array(25)].map((_, i) => (
-      <div
-        key={i}
-        className="absolute rounded-full animate-float opacity-30"
-        style={{
-          left: `${Math.random() * 100}%`,
-          top: `${Math.random() * 100}%`,
-          width: `${Math.random() * 4 + 1}px`,
-          height: `${Math.random() * 4 + 1}px`,
-          backgroundColor: Math.random() > 0.5 ? "#d946ef" : "#8b5cf6",
-          animationDuration: `${10 + Math.random() * 20}s`,
-          animationDelay: `${Math.random() * -20}s`,
-          boxShadow: "0 0 15px 2px rgba(217,70,239,0.4)",
-        }}
-      />
-    ))}
-    <style>{`@keyframes float { 0%, 100% { transform: translate(0,0) scale(1); opacity:0.1; } 50% { transform: translate(${Math.random() * 40 - 20}px, -60px) scale(1.5); opacity:0.6; } } .animate-float { animation: float infinite ease-in-out; }`}</style>
+    {/* Clean, deep gradient background (No hazy overlays) */}
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
+    
+    {/* Crisp Particles */}
+    {[...Array(25)].map((_, i) => {
+      // Calculate individual random drifts using CSS variables
+      const driftX = `${Math.random() * 40 - 20}px`;
+      
+      return (
+        <div
+          key={i}
+          className="absolute rounded-full animate-float"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            width: `${Math.random() * 4 + 1}px`,
+            height: `${Math.random() * 4 + 1}px`,
+            backgroundColor: Math.random() > 0.5 ? "#ff0000" : "#eb0c62",
+            animationDuration: `${10 + Math.random() * 20}s`,
+            animationDelay: `${Math.random() * -20}s`,
+            boxShadow: "0 0 12px 2px rgba(238, 12, 12, 0.8)", // Brighter glow
+            "--driftX": driftX, // Passes individual random drift to CSS
+          }}
+        />
+      );
+    })}
+    <style>{`
+      @keyframes float { 
+        0%, 100% { 
+          transform: translate(0, 0) scale(1); 
+          opacity: 0.2; 
+        } 
+        50% { 
+          transform: translate(var(--driftX), -60px) scale(1.5); 
+          opacity: 1; /* Shines at full brightness */
+        } 
+      } 
+      .animate-float { 
+        animation: float infinite ease-in-out; 
+      }
+    `}</style>
   </div>
 ));
 
@@ -720,13 +742,10 @@ export default function CryptGame() {
   // ---------------------------------------------------------------------------
   if (isMaintenance) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4 text-center">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4 text-center">
         <GlobalStyles />
         <DarkAtmosphere />
         <GameLogoBig />
-        <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10 mb-8">
-          <Flower size={48} className="text-rose-600 animate-pulse-red" />
-        </div>
         <div className="bg-rose-900/10 p-8 rounded-2xl border border-rose-900/30">
           <Hammer size={64} className="text-rose-600 mx-auto mb-4 animate-bounce" />
           <h1 className="text-3xl font-bold mb-2">The Crypt is Sealed</h1>
@@ -747,7 +766,7 @@ export default function CryptGame() {
 
   if (!user)
       return (
-        <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-red-500 animate-pulse">
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center text-red-500 animate-pulse">
           Spreading scent...
         </div>
       );
@@ -755,7 +774,7 @@ export default function CryptGame() {
     // RECONNECTING STATE
     if (roomId && !gameState && !error) {
       return (
-        <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4">
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
           <DarkAtmosphere />
           <div className="bg-zinc-900/80 backdrop-blur p-8 rounded-2xl border border-zinc-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
             <Loader size={48} className="text-red-500 animate-spin" />
@@ -772,7 +791,7 @@ export default function CryptGame() {
 
   if (view === "menu") {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans select-none">
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans select-none">
         <GlobalStyles />
         <DarkAtmosphere />
         <nav className="absolute top-0 left-0 w-full p-4 z-50">
@@ -807,7 +826,7 @@ export default function CryptGame() {
     const canStart = gameState.players.length >= 3 && gameState.players.length <= 6;
     
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6 relative">
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative">
         <GlobalStyles />
         <DarkAtmosphere />
         <GameLogoBig />
@@ -879,7 +898,7 @@ export default function CryptGame() {
     const hasEveryonePlayedOne = !gameState.players.some(p => !p.isEliminated && p.played.length === 0);
 
     return (
-      <div className="fixed inset-0 bg-zinc-950 text-white flex flex-col overflow-hidden font-sans select-none">
+      <div className="fixed inset-0 bg-slate-950 text-white flex flex-col overflow-hidden font-sans select-none">
         <GlobalStyles />
         <DarkAtmosphere />
 
