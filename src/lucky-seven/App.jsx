@@ -93,7 +93,7 @@ const FloatingBackground = React.memo(() => {
   }, []);
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-slate-900 via-zinc-950 to-black" />
+      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black" />
       <div className="absolute top-0 left-0 w-full h-full opacity-40">
         {backgroundIcons}
       </div>
@@ -238,8 +238,8 @@ const GameCard = ({ card, size = "md", isBust = false }) => {
 
   if (!card) return null;
 
-  let bgClass = "bg-zinc-800";
-  let borderClass = "border-zinc-600";
+  let bgClass = "bg-slate-800";
+  let borderClass = "border-slate-600";
   let textClass = "text-white";
   let icon = null;
 
@@ -302,7 +302,7 @@ const FeedbackOverlay = ({ type, message, subtext, icon: Icon }) => (
 );
 
 const RulesModal = ({ onClose }) => (
-  <div className="fixed inset-0 z-[200] bg-zinc-950/95 backdrop-blur-md flex items-center justify-center p-4">
+  <div className="fixed inset-0 z-[200] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4">
     <div className="bg-slate-900 border border-cyan-900/50 w-full max-w-3xl rounded-3xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col">
       <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors">
         <X className="text-white" size={24}/>
@@ -356,7 +356,7 @@ const RulesModal = ({ onClose }) => (
 );
 
 const ScoreboardModal = ({ gameState, onClose }) => (
-  <div className="fixed inset-0 z-[100] bg-zinc-950/95 backdrop-blur-md flex items-center justify-center pt-16 sm:pt-20 pb-10 px-4">
+  <div className="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-md flex items-center justify-center pt-16 sm:pt-20 pb-10 px-4">
     <div className="bg-slate-900 border border-cyan-900/50 w-full max-w-lg rounded-3xl shadow-2xl p-4 sm:p-6 relative flex flex-col max-h-full">
       <button onClick={onClose} className="absolute top-3 sm:top-4 right-3 sm:right-4 p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors z-10"><X className="w-5 h-5 sm:w-6 sm:h-6 text-white"/></button>
       <div className="shrink-0 mb-4 sm:mb-6">
@@ -410,7 +410,7 @@ const SplashScreen = ({ onStart }) => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
       {/* --- NEW: LOADING INDICATOR --- */}
       {/* This shows only while the image is NOT loaded yet */}
       {!isLoaded && (
@@ -902,13 +902,13 @@ export default function Lucky7Game() {
         <div className="bg-cyan-900/10 p-6 sm:p-8 rounded-2xl border border-cyan-900/30 max-w-sm w-full">
           <Hammer className="w-12 h-12 sm:w-16 sm:h-16 text-cyan-500 mx-auto mb-4 animate-bounce"/>
           <h1 className="text-2xl sm:text-3xl font-bold mb-2">Deck is Shuffling</h1>
-          <p className="text-sm sm:text-base text-zinc-400">Maintenance is currently underway. Return soon.</p>
+          <p className="text-sm sm:text-base text-slate-400">Maintenance is currently underway. Return soon.</p>
         </div>
         <div className="h-8"></div>
         <a href={import.meta.env.BASE_URL}>
           <div className="flex items-center justify-center gap-3 mb-2">
             <div className="text-center pb-12 animate-pulse">
-              <div className="inline-flex items-center gap-2 sm:gap-3 px-6 py-3 sm:px-8 sm:py-4 bg-zinc-900/50 rounded-full border border-cyan-900/20 text-cyan-300 font-bold tracking-widest text-xs sm:text-sm uppercase backdrop-blur-sm"><StepBack size={16}/> Return to Gamehub <StepBack size={16}/></div>
+              <div className="inline-flex items-center gap-2 sm:gap-3 px-6 py-3 sm:px-8 sm:py-4 bg-slate-900/50 rounded-full border border-cyan-900/20 text-cyan-300 font-bold tracking-widest text-xs sm:text-sm uppercase backdrop-blur-sm"><StepBack size={16}/> Return to Gamehub <StepBack size={16}/></div>
             </div>
           </div>
         </a>
@@ -929,11 +929,11 @@ export default function Lucky7Game() {
       return (
         <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
           <DarkAtmosphere />
-          <div className="bg-zinc-900/80 backdrop-blur p-8 rounded-2xl border border-zinc-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
+          <div className="bg-slate-900/80 backdrop-blur p-8 rounded-2xl border border-slate-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
             <Loader size={48} className="text-cyan-500 animate-spin" />
             <div className="text-center">
               <h2 className="text-xl font-bold">Reconnecting...</h2>
-              <p className="text-zinc-400 text-sm">Resuming your session</p>
+              <p className="text-slate-400 text-sm">Resuming your session</p>
             </div>
           </div>
         </div>
@@ -964,7 +964,7 @@ export default function Lucky7Game() {
               <button onClick={createRoom} disabled={loading} className="bg-gradient-to-br from-cyan-500 to-blue-700 hover:from-cyan-400 hover:to-blue-600 p-3 sm:p-4 rounded-xl font-bold flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-[0_0_20px_rgba(6,182,212,0.4)] border border-cyan-300/30"><Zap className="w-5 h-5 sm:w-6 sm:h-6"/> <span className="text-sm sm:text-base">Create</span></button>
               <div className="flex flex-col gap-2">
                 <input className="bg-black/50 border border-cyan-900/50 focus:border-cyan-400 p-2 rounded-xl text-white text-center uppercase font-mono font-bold tracking-widest outline-none h-10 sm:h-12 text-sm sm:text-base shadow-inner" placeholder="CODE" value={roomCode} onChange={(e) => setRoomCode(e.target.value)} maxLength={6} />
-                <button onClick={joinRoom} disabled={loading} className="bg-zinc-800 hover:bg-zinc-700 p-2 rounded-xl font-bold text-zinc-300 transition-all active:scale-95 h-full text-sm sm:text-base border border-white/5">Join</button>
+                <button onClick={joinRoom} disabled={loading} className="bg-slate-800 hover:bg-slate-700 p-2 rounded-xl font-bold text-slate-300 transition-all active:scale-95 h-full text-sm sm:text-base border border-white/5">Join</button>
               </div>
             </div>
             <button onClick={() => setShowGuide(true)} className="w-full mt-4 text-cyan-500 hover:text-cyan-400 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-colors py-2"><BookOpen className="w-4 h-4 sm:w-5 sm:h-5"/> How to Play</button>
@@ -991,7 +991,7 @@ export default function Lucky7Game() {
               <div className="flex items-center gap-2 sm:gap-3 mt-1">
                 <div className="text-2xl sm:text-4xl font-mono text-white font-black drop-shadow-md">{roomId}</div>
                 <div className="relative">
-                  <button onClick={copyToClipboard} className="p-2 bg-white/5 hover:bg-white/20 rounded-full transition-colors text-zinc-300 hover:text-white border border-white/10">{isCopied ? <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400"/> : <Copy className="w-4 h-4 sm:w-5 sm:h-5"/>}</button>
+                  <button onClick={copyToClipboard} className="p-2 bg-white/5 hover:bg-white/20 rounded-full transition-colors text-slate-300 hover:text-white border border-white/10">{isCopied ? <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400"/> : <Copy className="w-4 h-4 sm:w-5 sm:h-5"/>}</button>
                   {isCopied && <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-cyan-500 text-white text-[10px] sm:text-xs font-bold px-2 py-1 rounded shadow-[0_0_10px_rgba(6,182,212,0.5)] animate-fade-in-up whitespace-nowrap">Copied!</div>}
                 </div>
               </div>
@@ -1002,7 +1002,7 @@ export default function Lucky7Game() {
           </div>
 
           <div className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
-            <h3 className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 flex items-center gap-2"><User size={14}/> Players ({gameState.players.length}/6)</h3>
+            <h3 className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-2"><User size={14}/> Players ({gameState.players.length}/6)</h3>
             {gameState.players.map((p) => (
               <div key={p.id} className="flex justify-between items-center bg-black/30 p-3 sm:p-4 rounded-xl border border-white/5 shadow-inner">
                 <span className="font-bold flex items-center gap-2 sm:gap-3 text-sm sm:text-lg">
@@ -1013,7 +1013,7 @@ export default function Lucky7Game() {
                 )}
               </div>
             ))}
-            {Array.from({ length: 6 - gameState.players.length }).map((_, i) => <div key={i} className="border-2 border-dashed border-white/5 rounded-xl p-3 sm:p-4 flex items-center justify-center text-zinc-600 font-bold uppercase text-xs sm:text-sm bg-black/10">Empty Slot</div>)}
+            {Array.from({ length: 6 - gameState.players.length }).map((_, i) => <div key={i} className="border-2 border-dashed border-white/5 rounded-xl p-3 sm:p-4 flex items-center justify-center text-slate-600 font-bold uppercase text-xs sm:text-sm bg-black/10">Empty Slot</div>)}
           </div>
 
           {isHost ? (
@@ -1021,16 +1021,16 @@ export default function Lucky7Game() {
               <button onClick={startGame} disabled={!canStart} className="w-full flex justify-center items-center gap-2 px-6 py-3 sm:px-8 sm:py-4 rounded-xl font-black tracking-widest text-base sm:text-lg transition-all bg-gradient-to-br from-cyan-500 to-blue-700 text-white hover:from-cyan-400 hover:to-blue-600 hover:scale-[1.02] shadow-[0_0_25px_rgba(6,182,212,0.4)] disabled:opacity-50 disabled:hover:scale-100 border border-cyan-300/30"><Zap className="w-5 h-5 sm:w-6 sm:h-6"/> Deal Cards</button>
               {!canStart && <div className="text-center text-[10px] sm:text-xs font-bold text-cyan-500 uppercase tracking-wider mt-1">Requires 2 to 6 players to start</div>}
             </div>
-          ) : <div className="text-center text-zinc-400 text-xs sm:text-sm font-bold uppercase tracking-widest animate-pulse border border-white/5 bg-black/30 py-4 rounded-xl">Waiting for host...</div>}
+          ) : <div className="text-center text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-widest animate-pulse border border-white/5 bg-black/30 py-4 rounded-xl">Waiting for host...</div>}
         </div>
 
         {showLeaveConfirm && (
           <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-slate-900 border border-white/10 p-6 rounded-2xl max-w-xs w-full text-center shadow-2xl">
               <h3 className="text-lg sm:text-xl font-bold text-white mb-2 uppercase">Leave Table?</h3>
-              <p className="text-zinc-400 mb-6 text-xs sm:text-sm">{gameState.hostId === user.uid ? "As Host, leaving ends the game for everyone." : "You will disconnect from this session."}</p>
+              <p className="text-slate-400 mb-6 text-xs sm:text-sm">{gameState.hostId === user.uid ? "As Host, leaving ends the game for everyone." : "You will disconnect from this session."}</p>
               <div className="flex gap-2">
-                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-zinc-800 hover:bg-zinc-700 py-3 rounded-xl font-bold text-zinc-300 text-sm sm:text-base transition-colors">Stay</button>
+                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-slate-800 hover:bg-slate-700 py-3 rounded-xl font-bold text-slate-300 text-sm sm:text-base transition-colors">Stay</button>
                 <button onClick={handleLeave} className="flex-1 bg-rose-600 hover:bg-rose-500 py-3 rounded-xl font-bold text-white text-sm sm:text-base transition-colors shadow-[0_0_15px_rgba(225,29,72,0.4)]">Leave</button>
               </div>
             </div>
@@ -1057,12 +1057,12 @@ export default function Lucky7Game() {
           <div className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-slate-900 border border-white/10 p-6 rounded-2xl max-w-xs w-full text-center shadow-2xl">
               <h3 className="text-lg sm:text-xl font-bold text-white mb-2 uppercase">Abandon Game?</h3>
-              <p className="text-zinc-400 mb-6 text-xs sm:text-sm">{gameState.hostId === user.uid ? "Leaving deletes the game for everyone." : "You will leave this ongoing game."}</p>
+              <p className="text-slate-400 mb-6 text-xs sm:text-sm">{gameState.hostId === user.uid ? "Leaving deletes the game for everyone." : "You will leave this ongoing game."}</p>
               <div className="flex gap-2">
-                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-zinc-800 hover:bg-zinc-700 py-3 rounded-xl font-bold text-zinc-300 text-sm sm:text-base transition-colors">Stay</button>
+                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-slate-800 hover:bg-slate-700 py-3 rounded-xl font-bold text-slate-300 text-sm sm:text-base transition-colors">Stay</button>
                 <button onClick={handleLeave} className="flex-1 bg-rose-600 hover:bg-rose-500 py-3 rounded-xl font-bold text-white text-sm sm:text-base transition-colors shadow-[0_0_15px_rgba(225,29,72,0.4)]">Leave</button>
               </div>
-              {gameState.hostId === user.uid && <button onClick={() => { returnToLobby(); setShowLeaveConfirm(false); }} className="w-full bg-zinc-800 hover:bg-zinc-700 py-3 rounded-xl font-bold text-rose-400 mt-2 text-xs sm:text-sm border border-white/5 transition-colors">Return All to Lobby</button>}
+              {gameState.hostId === user.uid && <button onClick={() => { returnToLobby(); setShowLeaveConfirm(false); }} className="w-full bg-slate-800 hover:bg-slate-700 py-3 rounded-xl font-bold text-rose-400 mt-2 text-xs sm:text-sm border border-white/5 transition-colors">Return All to Lobby</button>}
             </div>
           </div>
         )}
@@ -1079,14 +1079,14 @@ export default function Lucky7Game() {
               <div className="font-black text-xs sm:text-sm tracking-widest text-white drop-shadow-md">LUCKY 7</div>
               <div className="text-[8px] sm:text-[10px] font-bold uppercase tracking-wider">
                 {gameState.status === "finished" ? <span className="text-amber-400">GAME OVER</span> : 
-                 <><span className="text-zinc-400">Turn:</span> <span className="text-cyan-400">{activePlayer?.name}</span></>}
+                 <><span className="text-slate-400">Turn:</span> <span className="text-cyan-400">{activePlayer?.name}</span></>}
               </div>
             </div>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 relative z-10">
             <button onClick={() => setShowScoreboard(true)} className="p-1.5 sm:p-2 hover:bg-white/10 rounded-full text-amber-400 hover:text-white transition-colors"><BarChart2 className="w-4 h-4 sm:w-5 sm:h-5"/></button>
-            <button onClick={() => setShowGuide(true)} className="p-1.5 sm:p-2 hover:bg-white/10 rounded-full text-zinc-300 hover:text-white transition-colors"><BookOpen className="w-4 h-4 sm:w-5 sm:h-5"/></button>
-            <button onClick={() => setShowLogs(!showLogs)} className={`p-1.5 sm:p-2 rounded-full transition-colors ${showLogs ? "bg-cyan-500/20 text-cyan-400" : "text-zinc-300 hover:bg-white/10"}`}><History className="w-4 h-4 sm:w-5 sm:h-5"/></button>
+            <button onClick={() => setShowGuide(true)} className="p-1.5 sm:p-2 hover:bg-white/10 rounded-full text-slate-300 hover:text-white transition-colors"><BookOpen className="w-4 h-4 sm:w-5 sm:h-5"/></button>
+            <button onClick={() => setShowLogs(!showLogs)} className={`p-1.5 sm:p-2 rounded-full transition-colors ${showLogs ? "bg-cyan-500/20 text-cyan-400" : "text-slate-300 hover:bg-white/10"}`}><History className="w-4 h-4 sm:w-5 sm:h-5"/></button>
             <button onClick={() => setShowLeaveConfirm(true)} className="p-1.5 sm:p-2 hover:bg-rose-900/50 rounded-full text-rose-400 transition-colors ml-1"><LogOut className="w-4 h-4 sm:w-5 sm:h-5"/></button>
           </div>
         </div>
@@ -1097,7 +1097,7 @@ export default function Lucky7Game() {
             <h4 className="text-[10px] sm:text-xs font-black text-white uppercase tracking-widest mb-2 sticky top-0 bg-slate-900/95 py-1 sm:py-2 border-b border-white/5">World History</h4>
             <div className="space-y-2 mt-2">
               {gameState.logs.slice().reverse().map((log) => (
-                <div key={log.id} className={`text-[10px] sm:text-xs p-2.5 rounded-xl border-l-4 font-bold ${log.type === "success" ? "border-emerald-400 bg-emerald-900/20 text-emerald-100" : log.type === "warning" ? "border-amber-400 bg-amber-900/20 text-amber-100" : log.type === "failure" ? "border-rose-400 bg-rose-900/20 text-rose-100" : "border-zinc-500 bg-black/30 text-zinc-300"}`}>
+                <div key={log.id} className={`text-[10px] sm:text-xs p-2.5 rounded-xl border-l-4 font-bold ${log.type === "success" ? "border-emerald-400 bg-emerald-900/20 text-emerald-100" : log.type === "warning" ? "border-amber-400 bg-amber-900/20 text-amber-100" : log.type === "failure" ? "border-rose-400 bg-rose-900/20 text-rose-100" : "border-slate-500 bg-black/30 text-slate-300"}`}>
                   {log.text}
                 </div>
               ))}
@@ -1108,7 +1108,7 @@ export default function Lucky7Game() {
         {/* TOP SCORES BANNER */}
         <div className="w-full bg-black/40 border-b border-white/5 flex overflow-x-auto custom-scrollbar py-2 px-2 gap-2 shadow-inner">
            {gameState.players.map(p => (
-              <div key={p.id} className={`flex items-center gap-2 px-3 py-1 rounded-full border ${p.id === activePlayer?.id ? 'bg-cyan-900/50 border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.3)]' : 'bg-zinc-900 border-white/10'} shrink-0 transition-all`}>
+              <div key={p.id} className={`flex items-center gap-2 px-3 py-1 rounded-full border ${p.id === activePlayer?.id ? 'bg-cyan-900/50 border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.3)]' : 'bg-slate-900 border-white/10'} shrink-0 transition-all`}>
                  <div className={`w-2 h-2 rounded-full ${PLAYER_COLORS[p.colorIdx].bg} ${PLAYER_COLORS[p.colorIdx].glow}`} />
                  <span className="text-xs font-bold text-white truncate max-w-[80px]">{p.name}</span>
                  <span className="text-xs font-black text-amber-400 drop-shadow-md">{p.score}</span>
@@ -1147,7 +1147,7 @@ export default function Lucky7Game() {
                         </div>
                         <div className="flex flex-col items-end bg-black/40 px-3 py-1 rounded-xl border border-white/10">
                            <span className="text-2xl font-black text-white leading-none drop-shadow-md">{pScore}</span>
-                           <span className="text-[8px] text-zinc-400 font-bold uppercase tracking-widest">Turn Score</span>
+                           <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest">Turn Score</span>
                         </div>
                      </div>
 
@@ -1163,7 +1163,7 @@ export default function Lucky7Game() {
                            <GameCard key={i} card={c} size="sm" isBust={c.isBust} />
                         ))}
                         {(!p.activeCards || p.activeCards.length === 0) && isActive && (
-                           <div className="w-14 h-20 sm:w-16 sm:h-24 border-2 border-dashed border-white/10 rounded-xl flex items-center justify-center text-zinc-500 text-[10px] font-black uppercase tracking-widest bg-black/20">Empty</div>
+                           <div className="w-14 h-20 sm:w-16 sm:h-24 border-2 border-dashed border-white/10 rounded-xl flex items-center justify-center text-slate-500 text-[10px] font-black uppercase tracking-widest bg-black/20">Empty</div>
                         )}
                      </div>
 
@@ -1186,7 +1186,7 @@ export default function Lucky7Game() {
               <div className="flex items-center gap-2">
                 <span className="text-[10px] sm:text-xs font-black text-amber-400 bg-amber-500/10 border border-amber-500/30 px-3 py-0.5 rounded-full uppercase drop-shadow-md">Score: {me?.score || 0}</span>
               </div>
-              <div className="text-[10px] sm:text-xs font-black text-zinc-300 bg-white/5 border border-white/10 px-3 py-0.5 rounded-full uppercase tracking-widest">
+              <div className="text-[10px] sm:text-xs font-black text-slate-300 bg-white/5 border border-white/10 px-3 py-0.5 rounded-full uppercase tracking-widest">
                  Deck: {gameState.deck.length}
               </div>
             </div>
@@ -1197,7 +1197,7 @@ export default function Lucky7Game() {
                       {gameState.turnPhase === "PLAYING" ? (
                          <div className="flex gap-4 w-full">
                             <button onClick={flipCard} className="flex-1 bg-gradient-to-br from-cyan-500 to-blue-700 hover:from-cyan-400 hover:to-blue-600 border border-cyan-300/50 text-white font-black py-4 rounded-2xl uppercase tracking-widest shadow-[0_0_25px_rgba(6,182,212,0.4)] transition-all animate-pulse-cyan text-sm sm:text-xl">FLIP CARD</button>
-                            <button onClick={bankScore} disabled={me.forcedFlips > 0 || (me.activeCards || []).length === 0} className="flex-1 bg-gradient-to-br from-amber-500 to-orange-700 hover:from-amber-400 hover:to-orange-600 disabled:from-zinc-800 disabled:to-zinc-900 disabled:border-zinc-700 disabled:text-zinc-600 disabled:shadow-none border border-amber-300/50 text-white font-black py-4 rounded-2xl uppercase tracking-widest shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all text-sm sm:text-xl">BANK SCORE</button>
+                            <button onClick={bankScore} disabled={me.forcedFlips > 0 || (me.activeCards || []).length === 0} className="flex-1 bg-gradient-to-br from-amber-500 to-orange-700 hover:from-amber-400 hover:to-orange-600 disabled:from-slate-800 disabled:to-slate-900 disabled:border-slate-700 disabled:text-slate-600 disabled:shadow-none border border-amber-300/50 text-white font-black py-4 rounded-2xl uppercase tracking-widest shadow-[0_0_20px_rgba(245,158,11,0.4)] transition-all text-sm sm:text-xl">BANK SCORE</button>
                          </div>
                       ) : gameState.turnPhase === "ACTION_TARGET" ? (
                          <div className="flex flex-row items-center justify-center gap-3 w-full p-2 sm:p-4 border border-rose-400/50 rounded-2xl bg-gradient-to-r from-rose-900/30 via-fuchsia-900/30 to-rose-900/30 shadow-[0_0_30px_rgba(244,63,94,0.3)]">
@@ -1210,7 +1210,7 @@ export default function Lucky7Game() {
                             </div>
                          </div>
                       ) : (
-                         <div className="w-full text-center text-zinc-500 text-xs font-bold uppercase tracking-widest py-5 border border-white/5 rounded-2xl bg-black/20">Please Wait...</div>
+                         <div className="w-full text-center text-slate-500 text-xs font-bold uppercase tracking-widest py-5 border border-white/5 rounded-2xl bg-black/20">Please Wait...</div>
                       )}
                     </>
                 ) : (
@@ -1221,12 +1221,12 @@ export default function Lucky7Game() {
                                 <GameCard card={gameState.pendingAction?.card} size="sm" />
                              </div>
                              <div className="flex flex-col text-left">
-                                <span className="text-zinc-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest leading-tight">Waiting for {activePlayer?.name}</span>
+                                <span className="text-slate-400 text-[10px] sm:text-xs font-bold uppercase tracking-widest leading-tight">Waiting for {activePlayer?.name}</span>
                                 <span className="text-rose-400 text-xs sm:text-sm font-black uppercase drop-shadow-md leading-tight">To use {gameState.pendingAction?.card?.value?.replace('_', ' ')}</span>
                              </div>
                          </div>
                       ) : (
-                         <div className="w-full text-center text-zinc-400 text-xs sm:text-sm font-black uppercase tracking-widest py-5 border border-white/5 rounded-2xl bg-black/20 shadow-inner">
+                         <div className="w-full text-center text-slate-400 text-xs sm:text-sm font-black uppercase tracking-widest py-5 border border-white/5 rounded-2xl bg-black/20 shadow-inner">
                              Waiting for {activePlayer?.name}
                          </div>
                       )}
@@ -1249,7 +1249,7 @@ export default function Lucky7Game() {
             <div className="bg-slate-900 p-6 md:p-8 rounded-3xl border border-cyan-500/50 text-center shadow-[0_0_80px_rgba(6,182,212,0.3)] animate-in zoom-in max-w-lg w-full flex flex-col relative max-h-[90vh]">
               <div className="shrink-0 mb-4 sm:mb-6">
                 <Crown className="w-20 h-20 sm:w-24 sm:h-24 text-yellow-400 mx-auto mb-2 sm:mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]"/>
-                <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-400 uppercase mb-1 sm:mb-2 leading-tight drop-shadow-xl truncate px-2">
+                <h2 className="text-3xl sm:text-5xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 uppercase mb-1 sm:mb-2 leading-tight drop-shadow-xl truncate px-2">
                   {gameState.players.slice().sort((a,b)=>b.score - a.score)[0]?.name}
                 </h2>
                 <p className="text-cyan-400 font-black tracking-[0.3em] text-xs sm:text-sm uppercase drop-shadow-md">Ultimate Flipper</p>
@@ -1270,7 +1270,7 @@ export default function Lucky7Game() {
                 </div>
               ) : (
                 <div className="shrink-0 pt-2">
-                  <button disabled className="bg-zinc-800 border border-white/5 px-4 sm:px-6 py-4 rounded-2xl font-black w-full text-zinc-500 uppercase tracking-widest text-sm sm:text-base shadow-inner">Waiting for Host...</button>
+                  <button disabled className="bg-slate-800 border border-white/5 px-4 sm:px-6 py-4 rounded-2xl font-black w-full text-slate-500 uppercase tracking-widest text-sm sm:text-base shadow-inner">Waiting for Host...</button>
                 </div>
               )}
             </div>

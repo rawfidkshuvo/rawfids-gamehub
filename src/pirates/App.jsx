@@ -274,6 +274,52 @@ const FloatingBackground = React.memo(() => {
   );
 });
 
+const DarkAtmosphere = React.memo(() => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    {/* Clean, deep gradient background (No hazy overlays) */}
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
+    
+    {/* Crisp Particles */}
+    {[...Array(25)].map((_, i) => {
+      // Calculate individual random drifts using CSS variables
+      const driftX = `${Math.random() * 40 - 20}px`;
+      
+      return (
+        <div
+          key={i}
+          className="absolute rounded-full animate-float"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            width: `${Math.random() * 4 + 1}px`,
+            height: `${Math.random() * 4 + 1}px`,
+            backgroundColor: Math.random() > 0.5 ? "#ff0000" : "#fc3b00",
+            animationDuration: `${10 + Math.random() * 20}s`,
+            animationDelay: `${Math.random() * -20}s`,
+            boxShadow: "0 0 12px 2px rgba(219, 28, 28, 0.8)", // Brighter glow
+            "--driftX": driftX, // Passes individual random drift to CSS
+          }}
+        />
+      );
+    })}
+    <style>{`
+      @keyframes float { 
+        0%, 100% { 
+          transform: translate(0, 0) scale(1); 
+          opacity: 0.2; 
+        } 
+        50% { 
+          transform: translate(var(--driftX), -60px) scale(1.5); 
+          opacity: 1; /* Shines at full brightness */
+        } 
+      } 
+      .animate-float { 
+        animation: float infinite ease-in-out; 
+      }
+    `}</style>
+  </div>
+));
+
 const PiratesLogo = () => (
   <div className="flex items-center justify-center gap-1 opacity-40 mt-auto pb-2 pt-2 relative z-10">
     <Ship size={12} className="text-red-500" />
@@ -685,7 +731,7 @@ const SplashScreen = ({ onStart }) => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
       {/* --- NEW: LOADING INDICATOR --- */}
       {/* This shows only while the image is NOT loaded yet */}
       {!isLoaded && (
@@ -1022,7 +1068,7 @@ export default function PiratesGame() {
 
   if (isMaintenance) {
     return (
-      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-white p-4 text-center">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4 text-center">
         <PiratesLogoBig />
         <div className="bg-orange-500/10 p-8 rounded-2xl border border-orange-500/30">
           <Hammer
@@ -2312,7 +2358,7 @@ export default function PiratesGame() {
 
   if (!user)
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-red-500 animate-pulse">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-red-500 animate-pulse">
         Setting sail...
       </div>
     );
@@ -2320,13 +2366,13 @@ export default function PiratesGame() {
   // RECONNECTING STATE
   if (roomId && !gameState && !error) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4">
-        <FloatingBackground />
-        <div className="bg-zinc-900/80 backdrop-blur p-8 rounded-2xl border border-zinc-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
+        <DarkAtmosphere />
+        <div className="bg-slate-900/80 backdrop-blur p-8 rounded-2xl border border-slate-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
           <Loader size={48} className="text-red-500 animate-spin" />
           <div className="text-center">
             <h2 className="text-xl font-bold">Reconnecting...</h2>
-            <p className="text-zinc-400 text-sm">Resuming your session</p>
+            <p className="text-slate-400 text-sm">Resuming your session</p>
           </div>
         </div>
       </div>
@@ -2339,8 +2385,8 @@ export default function PiratesGame() {
 
   if (view === "menu") {
     return (
-      <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
-        <FloatingBackground />
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+        <DarkAtmosphere />
         {/* --- START OF BACK BUTTON --- */}
         <nav className="absolute top-0 left-0 w-full p-4 z-50">
           <a
@@ -2419,8 +2465,8 @@ export default function PiratesGame() {
     const playerCount = gameState.players.length;
 
     return (
-      <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center p-6 relative">
-        <FloatingBackground />
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative">
+        <DarkAtmosphere />
         <PiratesLogoBig />
         {showLeaveConfirm && (
           <LeaveConfirmModal
@@ -2434,8 +2480,8 @@ export default function PiratesGame() {
             inGame={false}
           />
         )}
-        <div className="z-10 w-full max-w-lg bg-gray-900/90 backdrop-blur p-8 rounded-2xl border border-red-900/50 shadow-2xl mb-4">
-          <div className="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
+        <div className="z-10 w-full max-w-lg bg-slate-900/90 backdrop-blur p-8 rounded-2xl border border-red-900/50 shadow-2xl mb-4">
+          <div className="flex justify-between items-center mb-8 border-b border-slate-700 pb-4">
             {/* Grouping Title and Copy Button together on the left */}
             <div>
               <h2 className="text-lg md:text-xl text-red-500 font-bold uppercase">
@@ -2628,8 +2674,8 @@ export default function PiratesGame() {
     const isHost = gameState.hostId === user.uid;
 
     return (
-      <div className="min-h-screen bg-gray-950 text-white flex flex-col relative overflow-hidden font-sans">
-        <FloatingBackground />
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col relative overflow-hidden font-sans">
+        <DarkAtmosphere />
 
         {/* FEEDBACK OVERLAY */}
         {feedbackOverlay && (

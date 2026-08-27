@@ -185,6 +185,52 @@ const FloatingBackground = React.memo(() => {
   );
 });
 
+const DarkAtmosphere = React.memo(() => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    {/* Clean, deep gradient background (No hazy overlays) */}
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
+    
+    {/* Crisp Particles */}
+    {[...Array(25)].map((_, i) => {
+      // Calculate individual random drifts using CSS variables
+      const driftX = `${Math.random() * 40 - 20}px`;
+      
+      return (
+        <div
+          key={i}
+          className="absolute rounded-full animate-float"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            width: `${Math.random() * 4 + 1}px`,
+            height: `${Math.random() * 4 + 1}px`,
+            backgroundColor: Math.random() > 0.5 ? "#ef4646" : "#07df00",
+            animationDuration: `${10 + Math.random() * 20}s`,
+            animationDelay: `${Math.random() * -20}s`,
+            boxShadow: "0 0 12px 2px rgba(255, 0, 76, 0.8)", // Brighter glow
+            "--driftX": driftX, // Passes individual random drift to CSS
+          }}
+        />
+      );
+    })}
+    <style>{`
+      @keyframes float { 
+        0%, 100% { 
+          transform: translate(0, 0) scale(1); 
+          opacity: 0.2; 
+        } 
+        50% { 
+          transform: translate(var(--driftX), -60px) scale(1.5); 
+          opacity: 1; /* Shines at full brightness */
+        } 
+      } 
+      .animate-float { 
+        animation: float infinite ease-in-out; 
+      }
+    `}</style>
+  </div>
+));
+
 const Card = ({
   val,
   type,
@@ -278,12 +324,12 @@ const LeaveConfirmModal = ({
   inGame,
 }) => (
   <div className="fixed inset-0 bg-black/90 z-200 flex items-center justify-center p-4 animate-in fade-in">
-    <div className="bg-stone-900 rounded-xl border border-red-900/50 p-6 max-w-sm w-full text-center shadow-2xl relative overflow-hidden">
+    <div className="bg-slate-900 rounded-xl border border-red-900/50 p-6 max-w-sm w-full text-center shadow-2xl relative overflow-hidden">
       <div className="absolute top-0 left-0 w-full h-1 bg-linear-to-r from-red-600 to-transparent" />
       <h3 className="text-xl font-bold text-white mb-2 flex items-center justify-center gap-2">
         <Biohazard className="text-red-500" /> Abandon Zone?
       </h3>
-      <p className="text-gray-400 mb-6 text-sm">
+      <p className="text-slate-400 mb-6 text-sm">
         {isHost
           ? "WARNING: As Host, leaving will disband the group and return everyone to the menu."
           : inGame
@@ -318,7 +364,7 @@ const LeaveConfirmModal = ({
 
 const GameGuideModal = ({ onClose }) => (
   <div className="fixed inset-0 bg-black/95 z-150 flex items-center justify-center p-4">
-    <div className="bg-stone-900 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden border border-red-900/30 flex flex-col">
+    <div className="bg-slate-900 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden border border-red-900/30 flex flex-col">
       <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-black/50">
         <h2 className="text-2xl font-black text-red-500 uppercase tracking-widest flex items-center gap-2">
           <Skull /> Survival Guide
@@ -421,7 +467,7 @@ const SplashScreen = ({ onStart }) => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
       {/* --- NEW: LOADING INDICATOR --- */}
       {/* This shows only while the image is NOT loaded yet */}
       {!isLoaded && (
@@ -1179,7 +1225,8 @@ export default function LastOfUs() {
 
   if (isMaintenance) {
     return (
-      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-white p-4 text-center">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4 text-center">
+        <DarkAtmosphere />
         <LogoBig />
         <div className="bg-orange-500/10 p-8 rounded-2xl border border-orange-500/30">
           <Hammer
@@ -1213,7 +1260,7 @@ export default function LastOfUs() {
 
   if (!user)
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-red-500 animate-pulse">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-red-500 animate-pulse">
         Vital boost incoming...
       </div>
     );
@@ -1221,13 +1268,12 @@ export default function LastOfUs() {
   // RECONNECTING STATE
   if (roomId && !gameState && !error) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4">
-        <FloatingBackground />
-        <div className="bg-zinc-900/80 backdrop-blur p-8 rounded-2xl border border-zinc-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
+        <div className="bg-slate-900/80 backdrop-blur p-8 rounded-2xl border border-slate-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
           <Loader size={48} className="text-red-500 animate-spin" />
           <div className="text-center">
             <h2 className="text-xl font-bold">Reconnecting...</h2>
-            <p className="text-zinc-400 text-sm">Resuming your session</p>
+            <p className="text-slate-400 text-sm">Resuming your session</p>
           </div>
         </div>
       </div>
@@ -1241,8 +1287,8 @@ export default function LastOfUs() {
 
   if (view === "menu") {
     return (
-      <div className="min-h-screen bg-stone-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
-        <FloatingBackground />
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+        <DarkAtmosphere />
         {/* --- START OF BACK BUTTON --- */}
         <nav className="absolute top-0 left-0 w-full p-4 z-50">
           <a
@@ -1272,14 +1318,14 @@ export default function LastOfUs() {
           </p>
         </div>
 
-        <div className="bg-stone-900/80 backdrop-blur border border-red-900/30 p-6 md:p-8 rounded-2xl w-full max-w-md shadow-2xl z-10 mx-4">
+        <div className="bg-slate-900/80 backdrop-blur border border-red-900/30 p-6 md:p-8 rounded-2xl w-full max-w-md shadow-2xl z-10 mx-4">
           {error && (
             <div className="bg-red-900/50 text-red-200 p-2 mb-4 rounded text-center text-sm border border-red-800">
               {error}
             </div>
           )}
           <input
-            className="w-full bg-black/50 border border-stone-700 p-3 rounded-xl mb-4 text-white focus:border-red-500 outline-none text-sm"
+            className="w-full bg-black/50 border border-slate-700 p-3 rounded-xl mb-4 text-white focus:border-red-500 outline-none text-sm"
             placeholder="Survivor Name"
             value={playerName}
             onChange={(e) => setPlayerName(e.target.value)}
@@ -1293,7 +1339,7 @@ export default function LastOfUs() {
           </button>
           <div className="flex gap-2 mb-4">
             <input
-              className="flex-1 bg-black/50 border border-stone-700 p-3 rounded-xl text-white focus:border-red-500 outline-none uppercase text-sm"
+              className="flex-1 bg-black/50 border border-slate-700 p-3 rounded-xl text-white focus:border-red-500 outline-none uppercase text-sm"
               placeholder="CODE"
               value={roomCodeInput}
               onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
@@ -1301,14 +1347,14 @@ export default function LastOfUs() {
             <button
               onClick={joinRoom}
               disabled={loading}
-              className="bg-stone-700 hover:bg-stone-600 px-6 rounded-xl font-bold transition-all text-sm"
+              className="bg-slate-700 hover:bg-slate-600 px-6 rounded-xl font-bold transition-all text-sm"
             >
               Join
             </button>
           </div>
           <button
             onClick={() => setShowGuide(true)}
-            className="w-full text-center text-stone-500 hover:text-stone-300 text-sm flex items-center justify-center gap-2"
+            className="w-full text-center text-slate-500 hover:text-slate-300 text-sm flex items-center justify-center gap-2"
           >
             <BookOpen size={14} /> Survival Guide
           </button>
@@ -1321,8 +1367,8 @@ export default function LastOfUs() {
   if (view === "lobby" && gameState) {
     const isHost = gameState.hostId === user.uid;
     return (
-      <div className="min-h-screen bg-stone-950 text-white flex flex-col items-center justify-center p-6 relative">
-        <FloatingBackground />
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative">
+        <DarkAtmosphere />
         <LogoBig />
         {showLeaveConfirm && (
           <LeaveConfirmModal
@@ -1334,8 +1380,8 @@ export default function LastOfUs() {
           />
         )}
 
-        <div className="z-10 w-full max-w-lg bg-stone-900/90 backdrop-blur p-8 rounded-2xl border border-red-900/30 shadow-2xl">
-          <div className="flex justify-between items-center mb-6 pb-4 border-b border-stone-800">
+        <div className="z-10 w-full max-w-lg bg-slate-900/90 backdrop-blur p-8 rounded-2xl border border-red-900/30 shadow-2xl">
+          <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-800">
             <div>
               {/* Grouping Title and Copy Button together on the left */}
               <div>
@@ -1387,12 +1433,12 @@ export default function LastOfUs() {
                 className="flex items-center justify-between bg-black/40 p-3 rounded-xl border border-stone-800"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-full bg-stone-800">
-                    <User size={18} className="text-stone-400" />
+                  <div className="p-2 rounded-full bg-slate-800">
+                    <User size={18} className="text-slate-400" />
                   </div>
                   <span
                     className={`font-bold ${
-                      p.id === user.uid ? "text-red-500" : "text-stone-400"
+                      p.id === user.uid ? "text-red-500" : "text-slate-400"
                     }`}
                   >
                     {p.name}
@@ -1405,7 +1451,7 @@ export default function LastOfUs() {
                   {isHost && p.id !== user.uid && (
                     <button
                       onClick={() => kickPlayer(p.id)}
-                      className="text-stone-600 hover:text-red-500 p-1 transition-colors"
+                      className="text-red-600 hover:text-red-500 p-1 transition-colors"
                       title="Kick Player"
                     >
                       <Trash2 size={18} />
@@ -1415,7 +1461,7 @@ export default function LastOfUs() {
               </div>
             ))}
             {gameState.players.length < 2 && (
-              <div className="text-center text-stone-600 py-4 italic">
+              <div className="text-center text-slate-600 py-4 italic">
                 Need at least 2 survivors...
               </div>
             )}
@@ -1429,7 +1475,7 @@ export default function LastOfUs() {
               Start Survival
             </button>
           ) : (
-            <div className="w-full py-4 rounded-xl font-bold text-center text-stone-500 bg-stone-800/50 border border-stone-700 animate-pulse">
+            <div className="w-full py-4 rounded-xl font-bold text-center text-slate-500 bg-slate-800/50 border border-slate-700 animate-pulse">
               Waiting for Host...
             </div>
           )}
@@ -1443,7 +1489,7 @@ export default function LastOfUs() {
     const me = gameState.players.find((p) => p.id === user.uid);
     if (!me)
       return (
-        <div className="min-h-screen bg-stone-950 flex items-center justify-center text-white">
+        <div className="min-h-screen bg-slate-950 flex items-center justify-center text-white">
           Loading...
         </div>
       );
@@ -1460,8 +1506,8 @@ export default function LastOfUs() {
       .every((p) => p.ready);
 
     return (
-      <div className="h-screen bg-stone-950 text-white flex flex-col relative overflow-hidden font-sans">
-        <FloatingBackground />
+      <div className="h-screen bg-slate-950 text-white flex flex-col relative overflow-hidden font-sans">
+        <DarkAtmosphere />
         {showLeaveConfirm && (
           <LeaveConfirmModal
             onConfirmLeave={leaveRoom}
@@ -1474,7 +1520,7 @@ export default function LastOfUs() {
         {showGuide && <GameGuideModal onClose={() => setShowGuide(false)} />}
 
         {/* Header */}
-        <div className="h-14 bg-stone-900/90 border-b border-stone-800 flex items-center justify-between px-4 z-160 sticky top-0 backdrop-blur-md">
+        <div className="h-14 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between px-4 z-160 sticky top-0 backdrop-blur-md">
           <div className="flex items-center gap-2">
             <Biohazard className="text-red-600" size={24} />
             <span className="font-black uppercase hidden md:block">
@@ -1484,7 +1530,7 @@ export default function LastOfUs() {
           <div className="flex gap-2">
             <button
               onClick={() => setShowGuide(true)}
-              className="p-2 text-stone-400 hover:bg-stone-800 rounded-full"
+              className="p-2 text-slate-400 hover:bg-slate-800 rounded-full"
             >
               <BookOpen size={20} />
             </button>
@@ -1493,7 +1539,7 @@ export default function LastOfUs() {
               className={`p-2 rounded-full ${
                 showLogs
                   ? "bg-red-900/50 text-red-200"
-                  : "text-stone-400 hover:bg-stone-800"
+                  : "text-slate-400 hover:bg-slate-800"
               }`}
             >
               <History size={20} />
@@ -1509,14 +1555,14 @@ export default function LastOfUs() {
 
         {/* Logs Overlay - Modal */}
         {showLogs && (
-          <div className="fixed top-16 right-4 z-155 bg-stone-900/95 border border-stone-700 p-2 rounded-xl max-h-60 overflow-y-auto w-64 shadow-2xl">
+          <div className="fixed top-16 right-4 z-155 bg-slate-900/95 border border-slate-700 p-2 rounded-xl max-h-60 overflow-y-auto w-64 shadow-2xl">
             {[...gameState.logs].reverse().map((l, i) => (
               <div
                 key={i}
                 className={`text-xs p-2 mb-1 rounded border-l-2 ${
                   l.type === "danger"
                     ? "bg-red-900/20 border-red-500 text-red-200"
-                    : "bg-stone-800 border-stone-600 text-gray-400"
+                    : "bg-slate-800 border-slate-600 text-slate-400"
                 }`}
               >
                 {l.text}
@@ -1532,7 +1578,7 @@ export default function LastOfUs() {
             <h1 className="text-5xl font-black text-white mb-4">
               Survivor Found!
             </h1>
-            <p className="text-2xl text-stone-300 mb-8">
+            <p className="text-2xl text-slate-300 mb-8">
               {gameState.winner ? gameState.winner.name : "Unknown Survivor"}{" "}
               cleared their hand!
             </p>
@@ -1541,7 +1587,7 @@ export default function LastOfUs() {
               {gameState.players.map((p) => (
                 <div
                   key={p.id}
-                  className="bg-stone-800 p-4 rounded-xl flex justify-between items-center border border-stone-700"
+                  className="bg-slate-800 p-4 rounded-xl flex justify-between items-center border border-slate-700"
                 >
                   <div className="flex items-center gap-2">
                     {p.ready && (
@@ -1551,7 +1597,7 @@ export default function LastOfUs() {
                       className={
                         p.id === gameState.winner?.id
                           ? "text-yellow-400 font-bold"
-                          : "text-gray-400"
+                          : "text-slate-400"
                       }
                     >
                       {p.name}
@@ -1572,7 +1618,7 @@ export default function LastOfUs() {
                     Ready for Next Game
                   </button>
                 ) : (
-                  <div className="w-full py-3 bg-stone-800 rounded-xl font-bold text-green-400 border border-green-500/50 flex items-center justify-center gap-2">
+                  <div className="w-full py-3 bg-slate-800 rounded-xl font-bold text-green-400 border border-green-500/50 flex items-center justify-center gap-2">
                     <CheckCircle size={20} /> Waiting for host...
                   </div>
                 )
@@ -1624,7 +1670,7 @@ export default function LastOfUs() {
                 className={`flex flex-col items-center min-w-[80px] md:min-w-[100px] p-2 rounded-xl border ${
                   p.quarantined
                     ? "border-red-900 bg-red-900/20 opacity-50"
-                    : "border-stone-700 bg-stone-900/50"
+                    : "border-slate-700 bg-slate-900/50"
                 } ${
                   // FIX: Use optional chaining (?.) here too
                   gameState.players[gameState.turnIndex]?.id === p.id
@@ -1644,7 +1690,7 @@ export default function LastOfUs() {
                       {p.hand.map((_, i) => (
                         <div
                           key={i}
-                          className="w-4 md:w-6 h-6 md:h-8 bg-stone-700 rounded border border-stone-600 shadow-sm"
+                          className="w-4 md:w-6 h-6 md:h-8 bg-slate-700 rounded border border-slate-600 shadow-sm"
                         />
                       ))}
                     </div>
@@ -1652,7 +1698,7 @@ export default function LastOfUs() {
                     <span className="text-[10px] text-green-500">Safe</span>
                   )}
                 </div>
-                <span className="text-[10px] text-stone-500">
+                <span className="text-[10px] text-slate-500">
                   {p.hand.length} Cards
                 </span>
               </div>
@@ -1660,7 +1706,7 @@ export default function LastOfUs() {
           </div>
 
           {/* Board (Center) */}
-          <div className="flex-1 flex flex-col items-center justify-center relative min-h-0 bg-stone-900/30 rounded-2xl border border-stone-800/30 mx-2">
+          <div className="flex-1 flex flex-col items-center justify-center relative min-h-0 bg-slate-900/30 rounded-2xl border border-slate-800/30 mx-2">
             {/* Center Logs & Errors (Vertically Stacked Flex Container) */}
             <div className="absolute top-4 left-0 right-0 flex flex-col items-center pointer-events-none z-10 w-full space-y-2">
               {!showLogs &&
@@ -1670,7 +1716,7 @@ export default function LastOfUs() {
                     className={`px-4 py-1 rounded-full text-[10px] md:text-xs font-bold shadow-lg backdrop-blur-md border animate-in fade-in zoom-in duration-300 ${
                       l.type === "danger"
                         ? "bg-red-900/50 border-red-500 text-red-100"
-                        : "bg-stone-800/50 border-stone-600 text-stone-300"
+                        : "bg-slate-800/50 border-slate-600 text-slate-300"
                     }`}
                   >
                     {l.text}
@@ -1686,7 +1732,7 @@ export default function LastOfUs() {
             </div>
 
             {gameState.board.length === 0 ? (
-              <div className="text-stone-600 text-sm font-bold border-2 border-dashed border-stone-800 rounded-xl p-8">
+              <div className="text-slate-600 text-sm font-bold border-2 border-dashed border-slate-800 rounded-xl p-8">
                 Board Empty
               </div>
             ) : (
@@ -1757,19 +1803,19 @@ export default function LastOfUs() {
               </div>
             )}
             {!isMyTurn && (
-              <div className="absolute bottom-4 px-4 py-2 bg-stone-900 rounded-full text-stone-500 text-sm border border-stone-800 animate-pulse">
+              <div className="absolute bottom-4 px-4 py-2 bg-slate-900 rounded-full text-slate-500 text-sm border border-slate-800 animate-pulse">
                 Waiting for survivors...
               </div>
             )}
           </div>
 
           {/* My Hand (Bottom) */}
-          <div className="flex-none bg-stone-900/95 p-2 md:p-4 rounded-t-3xl border-t border-red-900/30 shadow-2xl relative z-30 w-full overflow-hidden">
+          <div className="flex-none bg-slate-900/95 p-2 md:p-4 rounded-t-3xl border-t border-red-900/30 shadow-2xl relative z-30 w-full overflow-hidden">
             <div className="flex justify-between items-center mb-2 px-2">
-              <span className="text-[10px] md:text-xs font-bold text-stone-400 uppercase tracking-widest">
+              <span className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest">
                 Inventory ({me.hand.length})
               </span>
-              <span className="text-[8px] md:text-[10px] font-bold text-stone-500">
+              <span className="text-[8px] md:text-[10px] font-bold text-slate-500">
                 Match count on edges
               </span>
             </div>

@@ -215,6 +215,52 @@ const calculateScore = (cards) => {
 
 // --- Visual Components ---
 
+const DarkAtmosphere = React.memo(() => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    {/* Clean, deep gradient background (No hazy overlays) */}
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
+    
+    {/* Crisp Particles */}
+    {[...Array(25)].map((_, i) => {
+      // Calculate individual random drifts using CSS variables
+      const driftX = `${Math.random() * 40 - 20}px`;
+      
+      return (
+        <div
+          key={i}
+          className="absolute rounded-full animate-float"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            width: `${Math.random() * 4 + 1}px`,
+            height: `${Math.random() * 4 + 1}px`,
+            backgroundColor: Math.random() > 0.5 ? "#eeff00" : "#f6cd03",
+            animationDuration: `${10 + Math.random() * 20}s`,
+            animationDelay: `${Math.random() * -20}s`,
+            boxShadow: "0 0 12px 2px rgba(255, 251, 0, 0.8)", // Brighter glow
+            "--driftX": driftX, // Passes individual random drift to CSS
+          }}
+        />
+      );
+    })}
+    <style>{`
+      @keyframes float { 
+        0%, 100% { 
+          transform: translate(0, 0) scale(1); 
+          opacity: 0.2; 
+        } 
+        50% { 
+          transform: translate(var(--driftX), -60px) scale(1.5); 
+          opacity: 1; /* Shines at full brightness */
+        } 
+      } 
+      .animate-float { 
+        animation: float infinite ease-in-out; 
+      }
+    `}</style>
+  </div>
+));
+
 const FloatingBackground = React.memo(() => {
   // useMemo ensures these random positions are calculated ONLY ONCE
   // This keeps the performance high and stops icons from resetting.
@@ -749,7 +795,7 @@ const SplashScreen = ({ onStart }) => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
       {/* --- NEW: LOADING INDICATOR --- */}
       {/* This shows only while the image is NOT loaded yet */}
       {!isLoaded && (
@@ -1592,7 +1638,7 @@ export default function FructoseFury() {
 
   if (isMaintenance) {
     return (
-      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-white p-4 text-center">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4 text-center">
         <LogoBig />
         <div className="bg-orange-500/10 p-8 rounded-2xl border border-orange-500/30">
           <Hammer
@@ -1626,7 +1672,7 @@ export default function FructoseFury() {
 
   if (!user)
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-yellow-500 animate-pulse">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-yellow-500 animate-pulse">
         Harvest approaching...
       </div>
     );
@@ -1634,13 +1680,13 @@ export default function FructoseFury() {
   // RECONNECTING STATE
   if (roomId && !gameState && !error) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4">
-        <FloatingBackground />
-        <div className="bg-zinc-900/80 backdrop-blur p-8 rounded-2xl border border-zinc-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
+        <DarkAtmosphere />
+        <div className="bg-slate-900/80 backdrop-blur p-8 rounded-2xl border border-slate-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
           <Loader size={48} className="text-yellow-500 animate-spin" />
           <div className="text-center">
             <h2 className="text-xl font-bold">Reconnecting...</h2>
-            <p className="text-zinc-400 text-sm">Resuming your session</p>
+            <p className="text-slate-400 text-sm">Resuming your session</p>
           </div>
         </div>
       </div>
@@ -1654,8 +1700,8 @@ export default function FructoseFury() {
 
   if (view === "menu") {
     return (
-      <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
-        <FloatingBackground />
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+        <DarkAtmosphere />
         {/* --- START OF BACK BUTTON --- */}
         <nav className="absolute top-0 left-0 w-full p-4 z-50">
           <a
@@ -1735,12 +1781,12 @@ export default function FructoseFury() {
   if (view === "lobby" && gameState) {
     const isHost = gameState.hostId === user.uid;
     return (
-      <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center p-6 relative">
-        <FloatingBackground />
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative">
+        <DarkAtmosphere />
         <LogoBig />
 
-        <div className="z-10 w-full max-w-lg bg-gray-900/90 backdrop-blur p-8 rounded-2xl border border-orange-500/30 shadow-2xl">
-          <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-800">
+        <div className="z-10 w-full max-w-lg bg-slate-900/90 backdrop-blur p-8 rounded-2xl border border-orange-500/30 shadow-2xl">
+          <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-700">
             <div>
               <h2 className="text-xl text-yellow-500 font-bold uppercase tracking-wider">
                 Fruit Stand
@@ -1903,11 +1949,11 @@ export default function FructoseFury() {
 
     return (
       <div
-        className={`h-screen bg-gray-950 text-white flex flex-col relative overflow-hidden transition-colors duration-100 ${
+        className={`h-screen bg-slate-950 text-white flex flex-col relative overflow-hidden transition-colors duration-100 ${
           isBusted ? "animate-shake bg-red-900!" : ""
         }`}
       >
-        <FloatingBackground />
+        <DarkAtmosphere />
         <EventOverlay event={currentEvent} currentUserId={user.uid} />
 
         {/* Feature: Victim Modal */}
@@ -1927,7 +1973,7 @@ export default function FructoseFury() {
         )}
 
         {/* Header */}
-        <div className="h-14 bg-gray-900/90 border-b border-gray-800 flex items-center justify-between px-4 z-160 sticky top-0 backdrop-blur-md shrink-0">
+        <div className="h-14 bg-slate-900/90 border-b border-slate-700 flex items-center justify-between px-4 z-160 sticky top-0 backdrop-blur-md shrink-0">
           <div className="flex items-center gap-2">
             <Banana className="text-yellow-500" size={20} />
             <span className="font-black uppercase tracking-tight text-lg hidden md:block">

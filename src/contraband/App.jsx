@@ -548,6 +548,52 @@ const getUpdatedStats = (currentStats, playerId, updates) => {
 
 // --- Sub-Components ---
 
+const DarkAtmosphere = React.memo(() => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    {/* Clean, deep gradient background (No hazy overlays) */}
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
+    
+    {/* Crisp Particles */}
+    {[...Array(25)].map((_, i) => {
+      // Calculate individual random drifts using CSS variables
+      const driftX = `${Math.random() * 40 - 20}px`;
+      
+      return (
+        <div
+          key={i}
+          className="absolute rounded-full animate-float"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            width: `${Math.random() * 4 + 1}px`,
+            height: `${Math.random() * 4 + 1}px`,
+            backgroundColor: Math.random() > 0.5 ? "#00ff99" : "#00fe44",
+            animationDuration: `${10 + Math.random() * 20}s`,
+            animationDelay: `${Math.random() * -20}s`,
+            boxShadow: "0 0 12px 2px rgba(18, 252, 135, 0.8)", // Brighter glow
+            "--driftX": driftX, // Passes individual random drift to CSS
+          }}
+        />
+      );
+    })}
+    <style>{`
+      @keyframes float { 
+        0%, 100% { 
+          transform: translate(0, 0) scale(1); 
+          opacity: 0.2; 
+        } 
+        50% { 
+          transform: translate(var(--driftX), -60px) scale(1.5); 
+          opacity: 1; /* Shines at full brightness */
+        } 
+      } 
+      .animate-float { 
+        animation: float infinite ease-in-out; 
+      }
+    `}</style>
+  </div>
+));
+
 const FloatingBackground = React.memo(() => {
   // useMemo ensures these random positions are calculated ONLY ONCE
   // This keeps the performance high and stops icons from resetting.
@@ -618,7 +664,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
     );
 
     return (
-      <div className="flex flex-row gap-4 p-6 bg-zinc-900/50 overflow-x-auto pb-8 snap-x">
+      <div className="flex flex-row gap-4 p-6 bg-slate-900/50 overflow-x-auto pb-8 snap-x">
         {sortedPlayers.map((p, i) => {
           // Categorize and Count Items
           const legal = [];
@@ -656,14 +702,14 @@ const ReportCard = ({ players, roundData, isFinal }) => {
             <div
               key={p.id}
               // CHANGED: Reduced width to 320px (standard card size)
-              className={`flex flex-col w-[320px] shrink-0 bg-zinc-800 rounded-xl border snap-center ${
+              className={`flex flex-col w-[320px] shrink-0 bg-slate-800 rounded-xl border snap-center ${
                 i === 0
                   ? "border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.1)]"
-                  : "border-zinc-700"
+                  : "border-slate-700"
               } overflow-hidden`}
             >
               {/* Player Header */}
-              <div className="p-3 bg-black/20 w-full flex flex-row justify-between items-center border-b border-zinc-700">
+              <div className="p-3 bg-black/20 w-full flex flex-row justify-between items-center border-b border-slate-700">
                 <div>
                   <div className="font-bold text-md text-white">{p.name}</div>
                 </div>
@@ -678,7 +724,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
               <div className="flex-1 p-3 flex flex-col gap-4">
                 {/* Section 1: Exports Inventory */}
                 <div className="space-y-3 flex-1">
-                  <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest border-b border-zinc-700 pb-1">
+                  <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-700 pb-1">
                     Exports Manifest
                   </h4>
 
@@ -762,15 +808,15 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                   {legal.length === 0 &&
                     royal.length === 0 &&
                     contraband.length === 0 && (
-                      <div className="text-zinc-600 italic text-xs">
+                      <div className="text-slate-600 italic text-xs">
                         No goods exported.
                       </div>
                     )}
                 </div>
 
                 {/* Section 2: King/Queen Bonuses */}
-                <div className="bg-black/20 -mx-3 -mb-3 p-3 border-t border-zinc-700 mt-auto">
-                  <h4 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2">
+                <div className="bg-black/20 -mx-3 -mb-3 p-3 border-t border-slate-700 mt-auto">
+                  <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
                     Titles & Honors
                   </h4>
                   {p.kqDetails && p.kqDetails.length > 0 ? (
@@ -797,18 +843,18 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                       })}
                     </div>
                   ) : (
-                    <div className="text-zinc-600 italic text-[10px] mb-3">
+                    <div className="text-slate-600 italic text-[10px] mb-3">
                       No titles awarded.
                     </div>
                   )}
 
                   {/* Total Bonus Cash Display */}
-                  <div className="flex justify-between items-center border-t border-zinc-700 pt-2">
-                    <span className="text-[10px] text-zinc-500 uppercase">
+                  <div className="flex justify-between items-center border-t border-slate-700 pt-2">
+                    <span className="text-[10px] text-slate-500 uppercase">
                       Bonus Payout
                     </span>
                     <span
-                      className={`font-mono font-bold ${p.kqIncome > 0 ? "text-yellow-400 text-sm" : "text-zinc-600 text-xs"}`}
+                      className={`font-mono font-bold ${p.kqIncome > 0 ? "text-yellow-400 text-sm" : "text-slate-600 text-xs"}`}
                     >
                       +${p.kqIncome}
                     </span>
@@ -978,7 +1024,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
 
       if (!stats)
         return (
-          <div className="p-12 text-center text-zinc-500 italic">
+          <div className="p-12 text-center text-slate-500 italic">
             No Data Available
           </div>
         );
@@ -1007,58 +1053,58 @@ const ReportCard = ({ players, roundData, isFinal }) => {
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-zinc-900/50 text-xs uppercase text-zinc-500 font-bold tracking-wider">
-              <th className="px-6 py-3 border-b border-zinc-800">Agent</th>
+            <tr className="bg-slate-900/50 text-xs uppercase text-slate-500 font-bold tracking-wider">
+              <th className="px-6 py-3 border-b border-slate-800">Agent</th>
               {isFinalView ? (
                 <>
-                  <th className="px-6 py-3 border-b border-zinc-800 text-right">
+                  <th className="px-6 py-3 border-b border-slate-800 text-right">
                     Cash
                   </th>
-                  <th className="px-6 py-3 border-b border-zinc-800 text-right text-emerald-300">
+                  <th className="px-6 py-3 border-b border-slate-800 text-right text-emerald-300">
                     Stash
                   </th>
-                  <th className="px-6 py-3 border-b border-zinc-800 text-right text-purple-400">
+                  <th className="px-6 py-3 border-b border-slate-800 text-right text-purple-400">
                     Insp. Impact
                   </th>
-                  <th className="px-6 py-3 border-b border-zinc-800 text-right text-orange-400">
+                  <th className="px-6 py-3 border-b border-slate-800 text-right text-orange-400">
                     Black Market
                   </th>
-                  <th className="px-6 py-3 border-b border-zinc-800 text-right text-yellow-400">
+                  <th className="px-6 py-3 border-b border-slate-800 text-right text-yellow-400">
                     Role Bonus
                   </th>
-                  <th className="px-6 py-3 border-b border-zinc-800 text-right text-blue-400">
+                  <th className="px-6 py-3 border-b border-slate-800 text-right text-blue-400">
                     Event Impact
                   </th>
-                  <th className="px-6 py-3 border-b border-zinc-800 text-right text-yellow-200">
+                  <th className="px-6 py-3 border-b border-slate-800 text-right text-yellow-200">
                     King/Queen
                   </th>
-                  <th className="px-6 py-3 border-b border-zinc-800 text-right text-red-400">
+                  <th className="px-6 py-3 border-b border-slate-800 text-right text-red-400">
                     Loan
                   </th>
-                  <th className="px-6 py-3 border-b border-zinc-800 text-right text-white">
+                  <th className="px-6 py-3 border-b border-slate-800 text-right text-white">
                     Final Score
                   </th>
                 </>
               ) : (
                 <>
-                  <th className="px-6 py-3 border-b border-zinc-800">
+                  <th className="px-6 py-3 border-b border-slate-800">
                     Event Impact
                   </th>
-                  <th className="px-6 py-3 border-b border-zinc-800">Market</th>
-                  <th className="px-6 py-3 border-b border-zinc-800">
+                  <th className="px-6 py-3 border-b border-slate-800">Market</th>
+                  <th className="px-6 py-3 border-b border-slate-800">
                     Role Bonus
                   </th>
-                  <th className="px-6 py-3 border-b border-zinc-800 w-1/3">
+                  <th className="px-6 py-3 border-b border-slate-800 w-1/3">
                     Activity Log
                   </th>
-                  <th className="px-6 py-3 border-b border-zinc-800 text-right">
+                  <th className="px-6 py-3 border-b border-slate-800 text-right">
                     Net Change
                   </th>
                 </>
               )}
             </tr>
           </thead>
-          <tbody className="divide-y divide-zinc-800 text-sm">
+          <tbody className="divide-y divide-slate-800 text-sm">
             {displayData.map((d, i) => {
               const RoleIcon = ROLES[d.role]?.icon;
               const RoleColor = ROLES[d.role]?.color;
@@ -1066,19 +1112,19 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                 return (
                   <tr
                     key={d.id}
-                    className={`group hover:bg-zinc-800/30 transition-colors ${
+                    className={`group hover:bg-slate-800/30 transition-colors ${
                       d.isWinner ? "bg-emerald-900/10" : ""
                     }`}
                   >
                     <td className="px-6 py-4 align-top">
                       <div className="flex items-center gap-3">
                         <div
-                          className={`flex items-center justify-center w-6 h-6 rounded-full font-bold text-[10px] ${d.isWinner ? "bg-yellow-500 text-black" : "bg-zinc-800 text-zinc-500"}`}
+                          className={`flex items-center justify-center w-6 h-6 rounded-full font-bold text-[10px] ${d.isWinner ? "bg-yellow-500 text-black" : "bg-slate-800 text-slate-500"}`}
                         >
                           {i + 1}
                         </div>
                         <span
-                          className={`font-medium ${d.isWinner ? "text-white" : "text-zinc-400"}`}
+                          className={`font-medium ${d.isWinner ? "text-white" : "text-slate-400"}`}
                         >
                           {d.name}
                         </span>
@@ -1087,7 +1133,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-right font-mono text-zinc-400 align-top">
+                    <td className="px-6 py-4 text-right font-mono text-slate-400 align-top">
                       ${d.cash}
                     </td>
                     <td className="px-6 py-4 text-right font-mono text-emerald-300 align-top">
@@ -1096,7 +1142,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                     <td className="px-6 py-4 text-right align-top">
                       <div className="flex flex-col items-end">
                         <span
-                          className={`font-mono ${d.inspectionNet > 0 ? "text-purple-400" : d.inspectionNet < 0 ? "text-red-400" : "text-zinc-600"}`}
+                          className={`font-mono ${d.inspectionNet > 0 ? "text-purple-400" : d.inspectionNet < 0 ? "text-red-400" : "text-slate-600"}`}
                         >
                           {d.inspectionNet > 0 ? "+" : ""}
                           {d.inspectionNet}
@@ -1104,7 +1150,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                         {d.inspectionDetails.map((det, idx) => (
                           <span
                             key={idx}
-                            className="text-[9px] text-zinc-500 whitespace-nowrap"
+                            className="text-[9px] text-slate-500 whitespace-nowrap"
                           >
                             {det}
                           </span>
@@ -1114,14 +1160,14 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                     <td className="px-6 py-4 text-right align-top">
                       <div className="flex flex-col items-end">
                         <span
-                          className={`font-mono ${d.marketCost > 0 ? "text-orange-400" : "text-zinc-600"}`}
+                          className={`font-mono ${d.marketCost > 0 ? "text-orange-400" : "text-slate-600"}`}
                         >
                           -${d.marketCost}
                         </span>
                         {d.marketDetails.map((det, idx) => (
                           <span
                             key={idx}
-                            className="text-[9px] text-zinc-500 whitespace-nowrap"
+                            className="text-[9px] text-slate-500 whitespace-nowrap"
                           >
                             {det}
                           </span>
@@ -1136,7 +1182,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                         {d.bonusDetails.map((det, idx) => (
                           <span
                             key={idx}
-                            className="text-[9px] text-zinc-500 whitespace-nowrap"
+                            className="text-[9px] text-slate-500 whitespace-nowrap"
                           >
                             {det}
                           </span>
@@ -1146,7 +1192,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                     <td className="px-6 py-4 text-right align-top">
                       <div className="flex flex-col items-end">
                         <span
-                          className={`font-mono ${d.eventBonus > 0 ? "text-blue-400" : d.eventBonus < 0 ? "text-red-400" : "text-zinc-600"}`}
+                          className={`font-mono ${d.eventBonus > 0 ? "text-blue-400" : d.eventBonus < 0 ? "text-red-400" : "text-slate-600"}`}
                         >
                           {d.eventBonus > 0 ? "+" : ""}
                           {d.eventBonus}
@@ -1154,7 +1200,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                         {d.eventDetails.map((det, idx) => (
                           <span
                             key={idx}
-                            className="text-[9px] text-zinc-500 whitespace-nowrap"
+                            className="text-[9px] text-slate-500 whitespace-nowrap"
                           >
                             {det}
                           </span>
@@ -1164,7 +1210,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                     <td className="px-6 py-4 text-right align-top">
                       <div className="flex flex-col items-end">
                         <span
-                          className={`font-mono ${d.kqIncome > 0 ? "text-yellow-200" : "text-zinc-600"}`}
+                          className={`font-mono ${d.kqIncome > 0 ? "text-yellow-200" : "text-slate-600"}`}
                         >
                           {d.kqIncome > 0 ? "+" : ""}
                           {d.kqIncome}
@@ -1172,7 +1218,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                         {d.kqDetails.map((det, idx) => (
                           <span
                             key={idx}
-                            className="text-[9px] text-zinc-500 whitespace-nowrap"
+                            className="text-[9px] text-slate-500 whitespace-nowrap"
                           >
                             {det}
                           </span>
@@ -1189,18 +1235,18 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                 );
               } else {
                 return (
-                  <tr key={d.id} className="group hover:bg-zinc-800/30">
+                  <tr key={d.id} className="group hover:bg-slate-800/30">
                     <td className="px-6 py-4 align-top">
                       <div className="font-medium text-white mb-1">
                         {d.name}
                       </div>
-                      <div className="flex items-center gap-1 text-xs text-zinc-500 mb-2">
+                      <div className="flex items-center gap-1 text-xs text-slate-500 mb-2">
                         {d.isInspector ? (
                           <Siren size={12} className="text-red-500" />
                         ) : (
                           <RoleIcon
                             size={12}
-                            className={RoleColor ?? "text-zinc-400"}
+                            className={RoleColor ?? "text-slate-400"}
                           />
                         )}
                         {d.isInspector ? "Inspector" : ROLES[d.role]?.name}
@@ -1208,8 +1254,8 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                     </td>
                     <td className="px-6 py-4 align-top">
                       {d.activeEvent && (
-                        <div className="text-xs text-zinc-400 mb-1">
-                          <div className="font-bold text-zinc-300">
+                        <div className="text-xs text-slate-400 mb-1">
+                          <div className="font-bold text-slate-300">
                             {d.activeEvent.name}
                           </div>
                         </div>
@@ -1222,7 +1268,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                           {d.eventImpact}
                         </span>
                       ) : (
-                        <span className="text-zinc-600 text-xs">-</span>
+                        <span className="text-slate-600 text-xs">-</span>
                       )}
                     </td>
                     <td className="px-6 py-4 align-top">
@@ -1233,7 +1279,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                             return (
                               <div
                                 key={idx}
-                                className="text-xs text-zinc-400 flex items-center gap-1"
+                                className="text-xs text-slate-400 flex items-center gap-1"
                               >
                                 <ShoppingBag size={10} /> {S?.name}{" "}
                                 <span className="text-red-400">
@@ -1244,7 +1290,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                           })}
                         </div>
                       ) : (
-                        <span className="text-zinc-600 italic text-xs">-</span>
+                        <span className="text-slate-600 italic text-xs">-</span>
                       )}
                     </td>
                     <td className="px-6 py-4 align-top">
@@ -1253,23 +1299,23 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                           +${d.roleBonus}
                         </span>
                       ) : (
-                        <span className="text-zinc-600 text-xs">-</span>
+                        <span className="text-slate-600 text-xs">-</span>
                       )}
                     </td>
                     <td className="px-6 py-4 align-top">
                       <div className="space-y-2">
                         {d.transactions.length === 0 ? (
-                          <span className="text-zinc-600 italic text-xs">
+                          <span className="text-slate-600 italic text-xs">
                             No activity.
                           </span>
                         ) : (
                           d.transactions.map((t, idx) => (
                             <div
                               key={idx}
-                              className="flex flex-col text-xs border-b border-zinc-800 pb-1 last:border-0"
+                              className="flex flex-col text-xs border-b border-slate-800 pb-1 last:border-0"
                             >
                               <div className="flex justify-between w-full">
-                                <span className="text-zinc-300 font-bold">
+                                <span className="text-slate-300 font-bold">
                                   {t.label}
                                 </span>
                                 <span
@@ -1284,7 +1330,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                                   {t.items.map((c, ci) => (
                                     <div
                                       key={ci}
-                                      className="bg-black/40 p-0.5 rounded border border-zinc-700"
+                                      className="bg-black/40 p-0.5 rounded border border-slate-700"
                                       title={GOODS[c]?.name}
                                     >
                                       <CardIcon typeId={c} size={10} />
@@ -1293,7 +1339,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                                 </div>
                               )}
                               {t.detail && (
-                                <div className="text-[10px] text-zinc-500 mt-0.5">
+                                <div className="text-[10px] text-slate-500 mt-0.5">
                                   {t.detail}
                                 </div>
                               )}
@@ -1323,15 +1369,15 @@ const ReportCard = ({ players, roundData, isFinal }) => {
   };
 
   return (
-    <div className="w-full max-w-5xl bg-zinc-900 rounded-xl border border-zinc-700 overflow-hidden shadow-2xl mb-6 animate-in fade-in slide-in-from-bottom-10 duration-700">
-      <div className="bg-zinc-950 px-6 py-4 border-b border-zinc-800 flex justify-between items-center">
+    <div className="w-full max-w-5xl bg-slate-900 rounded-xl border border-slate-700 overflow-hidden shadow-2xl mb-6 animate-in fade-in slide-in-from-bottom-10 duration-700">
+      <div className="bg-slate-950 px-6 py-4 border-b border-slate-800 flex justify-between items-center">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-emerald-900/30 rounded-lg border border-emerald-500/20">
             <FileText className="text-emerald-500" size={20} />
           </div>
           <div>
             <h3 className="text-lg font-bold text-white">Mission Report</h3>
-            <p className="text-xs text-zinc-500 uppercase tracking-wider">
+            <p className="text-xs text-slate-500 uppercase tracking-wider">
               {isFinal ? "Final Operation Audit" : "Round Summary"}
             </p>
           </div>
@@ -1339,7 +1385,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
       </div>
 
       {isFinal && (
-        <div className="flex border-b border-zinc-800 bg-zinc-900/50 overflow-x-auto">
+        <div className="flex border-b border-slate-800 bg-slate-900/50 overflow-x-auto">
           {tabs.map((tab) => (
             <button
               key={tab}
@@ -1347,7 +1393,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
               className={`px-6 py-3 text-sm font-bold transition-colors whitespace-nowrap ${
                 activeTab === tab
                   ? "text-emerald-400 border-b-2 border-emerald-500 bg-emerald-900/10"
-                  : "text-zinc-500 hover:text-zinc-300"
+                  : "text-slate-500 hover:text-slate-300"
               }`}
             >
               {tab}
@@ -1366,14 +1412,14 @@ const ReportCard = ({ players, roundData, isFinal }) => {
 
 const StashModal = ({ stash, onClose }) => (
   <div className="fixed inset-0 bg-black/90 z-160 flex items-center justify-center p-4 animate-in fade-in">
-    <div className="bg-zinc-900 rounded-xl border border-zinc-700 p-6 max-w-lg w-full shadow-2xl flex flex-col max-h-[80vh]">
-      <div className="flex justify-between items-center mb-4 border-b border-zinc-800 pb-2">
+    <div className="bg-slate-900 rounded-xl border border-slate-700 p-6 max-w-lg w-full shadow-2xl flex flex-col max-h-[80vh]">
+      <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-2">
         <h3 className="text-xl font-bold text-white flex items-center gap-2">
           <Briefcase className="text-emerald-500" /> Stash ({stash.length})
         </h3>
         <button
           onClick={onClose}
-          className="p-1 hover:bg-zinc-800 rounded text-zinc-400"
+          className="p-1 hover:bg-slate-800 rounded text-slate-400"
         >
           <X size={20} />
         </button>
@@ -1381,7 +1427,7 @@ const StashModal = ({ stash, onClose }) => (
 
       <div className="flex-1 overflow-y-auto grid grid-cols-4 gap-2">
         {stash.length === 0 ? (
-          <div className="col-span-4 text-center text-zinc-500 py-8 italic">
+          <div className="col-span-4 text-center text-slate-500 py-8 italic">
             Your stash is empty.
           </div>
         ) : (
@@ -1402,13 +1448,13 @@ const StashModal = ({ stash, onClose }) => (
                 <span className={`text-[10px] font-bold ${info.color}`}>
                   {info.name}
                 </span>
-                <span className="text-[9px] text-zinc-500">${info.val}</span>
+                <span className="text-[9px] text-slate-500">${info.val}</span>
               </div>
             );
           })
         )}
       </div>
-      <div className="mt-4 pt-2 border-t border-zinc-800 text-center text-xs text-zinc-500">
+      <div className="mt-4 pt-2 border-t border-slate-800 text-center text-xs text-slate-500">
         Total Base Value: $
         {stash.reduce((acc, c) => acc + (GOODS[c]?.val || 0), 0)}
       </div>
@@ -1426,14 +1472,14 @@ const OpponentStashModal = ({ player, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/90 z-160 flex items-center justify-center p-4 animate-in fade-in">
-      <div className="bg-zinc-900 rounded-xl border border-zinc-700 p-6 max-w-lg w-full shadow-2xl flex flex-col max-h-[80vh]">
-        <div className="flex justify-between items-center mb-4 border-b border-zinc-800 pb-2">
+      <div className="bg-slate-900 rounded-xl border border-slate-700 p-6 max-w-lg w-full shadow-2xl flex flex-col max-h-[80vh]">
+        <div className="flex justify-between items-center mb-4 border-b border-slate-800 pb-2">
           <div>
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
-              <User size={20} className="text-zinc-400" />
+              <User size={20} className="text-slate-400" />
               {player.name}'s Cargo
             </h3>
-            <div className="text-xs text-zinc-500 mt-1">
+            <div className="text-xs text-slate-500 mt-1">
               Visible:{" "}
               <span className="text-emerald-400">{legalCount} Legal</span> •
               Suspicious:{" "}
@@ -1442,7 +1488,7 @@ const OpponentStashModal = ({ player, onClose }) => {
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-zinc-800 rounded text-zinc-400"
+            className="p-1 hover:bg-slate-800 rounded text-slate-400"
           >
             <X size={20} />
           </button>
@@ -1450,7 +1496,7 @@ const OpponentStashModal = ({ player, onClose }) => {
 
         <div className="flex-1 overflow-y-auto p-2">
           {stash.length === 0 ? (
-            <div className="text-center text-zinc-500 py-12 italic border-2 border-dashed border-zinc-800 rounded-xl">
+            <div className="text-center text-slate-500 py-12 italic border-2 border-dashed border-slate-800 rounded-xl">
               Cargo Hold Empty
             </div>
           ) : (
@@ -1471,8 +1517,8 @@ const OpponentStashModal = ({ player, onClose }) => {
           )}
         </div>
 
-        <div className="mt-4 pt-3 border-t border-zinc-800 text-center">
-          <div className="text-xs text-zinc-600 uppercase tracking-widest">
+        <div className="mt-4 pt-3 border-t border-slate-800 text-center">
+          <div className="text-xs text-slate-600 uppercase tracking-widest">
             Official Public Record
           </div>
         </div>
@@ -1495,7 +1541,7 @@ const Card = ({ typeId, small, selected, onClick, faceDown }) => {
     return (
       <div
         className={`
-        relative shrink-0 rounded-xl border-2 border-zinc-700 bg-zinc-800 
+        relative shrink-0 rounded-xl border-2 border-slate-700 bg-slate-800 
         flex flex-col items-center justify-center shadow-lg
         ${small ? "w-10 h-14" : "w-20 h-32"}
       `}
@@ -1535,7 +1581,7 @@ const Card = ({ typeId, small, selected, onClick, faceDown }) => {
         <span
           className={`font-black ${
             small ? "text-[8px]" : "text-xs"
-          } text-zinc-500`}
+          } text-slate-500`}
         >
           {isTrap ? "TRAP" : isRoyal ? "ROYAL" : isIllegal ? "!!" : "OK"}
         </span>
@@ -1557,7 +1603,7 @@ const Card = ({ typeId, small, selected, onClick, faceDown }) => {
       </div>
 
       {!small && (
-        <div className="w-full bg-black/40 rounded p-1 text-[8px] text-zinc-400 text-center leading-tight">
+        <div className="w-full bg-black/40 rounded p-1 text-[8px] text-slate-400 text-center leading-tight">
           {isTrap ? (
             "Inspector pays fine"
           ) : (
@@ -1631,11 +1677,11 @@ const calculateKingQueenBonuses = (players) => {
 
 const LeaveConfirmModal = ({ onConfirm, onCancel, isHost, onLobby }) => (
   <div className="fixed inset-0 bg-black/90 z-200 flex items-center justify-center p-4 animate-in fade-in">
-    <div className="bg-zinc-900 rounded-xl border border-zinc-700 p-6 max-w-sm w-full text-center shadow-2xl">
+    <div className="bg-slate-900 rounded-xl border border-slate-700 p-6 max-w-sm w-full text-center shadow-2xl">
       <h3 className="text-xl font-bold text-white mb-2">
         {isHost ? "Disband Operation?" : "Abandon Cargo?"}
       </h3>
-      <p className="text-zinc-400 mb-6 text-sm">
+      <p className="text-slate-400 mb-6 text-sm">
         {isHost
           ? "You are the Host. Leaving will close the checkpoint and kick all players."
           : "Leaving now will forfeit your progress."}
@@ -1644,7 +1690,7 @@ const LeaveConfirmModal = ({ onConfirm, onCancel, isHost, onLobby }) => (
         {isHost && onLobby && (
           <button
             onClick={onLobby}
-            className="bg-zinc-700 hover:bg-zinc-600 text-white py-3 rounded font-bold transition-colors flex items-center justify-center gap-2"
+            className="bg-slate-700 hover:bg-slate-600 text-white py-3 rounded font-bold transition-colors flex items-center justify-center gap-2"
           >
             <Home size={18} /> Return Everyone to Lobby
           </button>
@@ -1657,7 +1703,7 @@ const LeaveConfirmModal = ({ onConfirm, onCancel, isHost, onLobby }) => (
         </button>
         <button
           onClick={onCancel}
-          className="text-zinc-500 hover:text-white py-2 text-sm"
+          className="text-slate-500 hover:text-white py-2 text-sm"
         >
           Cancel
         </button>
@@ -1679,7 +1725,7 @@ const FeedbackOverlay = ({ type, message, subtext, icon: Icon }) => (
       }
       ${type === "danger" ? "bg-red-900/90 border-red-500 text-red-100" : ""}
       ${
-        type === "neutral" ? "bg-zinc-800/90 border-zinc-500 text-zinc-100" : ""
+        type === "neutral" ? "bg-slate-800/90 border-slate-500 text-slate-100" : ""
       }
       ${
         type === "bribe"
@@ -1709,20 +1755,20 @@ const ShopModal = ({ isOpen, onClose, player, onBuy }) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black/90 z-100 flex items-center justify-center p-4 animate-in fade-in">
-      <div className="bg-zinc-900 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col border border-yellow-600/30 shadow-2xl overflow-hidden">
-        <div className="p-4 bg-zinc-950 border-b border-zinc-800 flex justify-between items-center">
+      <div className="bg-slate-900 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col border border-yellow-600/30 shadow-2xl overflow-hidden">
+        <div className="p-4 bg-slate-950 border-b border-slate-800 flex justify-between items-center">
           <h2 className="text-2xl font-bold text-yellow-500 flex items-center gap-2">
             <ShoppingBag /> Black Market
           </h2>
           <div className="flex items-center gap-4">
-            <span className="text-white font-mono flex items-center gap-1 bg-zinc-800 px-3 py-1 rounded-full">
+            <span className="text-white font-mono flex items-center gap-1 bg-slate-800 px-3 py-1 rounded-full">
               <Coins size={14} className="text-yellow-500" /> ${player.coins}
             </span>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-zinc-800 rounded-full"
+              className="p-2 hover:bg-slate-800 rounded-full"
             >
-              <X className="text-zinc-400" />
+              <X className="text-slate-400" />
             </button>
           </div>
         </div>
@@ -1733,30 +1779,30 @@ const ShopModal = ({ isOpen, onClose, player, onBuy }) => {
             return (
               <div
                 key={item.id}
-                className="bg-zinc-800/50 p-4 rounded-xl border border-zinc-700 flex flex-col justify-between group hover:border-yellow-500/50 transition-colors"
+                className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 flex flex-col justify-between group hover:border-yellow-500/50 transition-colors"
               >
                 <div className="flex justify-between items-start mb-2">
                   <div className="p-2 bg-black/50 rounded-lg text-yellow-500">
                     <item.icon size={24} />
                   </div>
-                  <span className="text-sm font-mono text-zinc-400">
+                  <span className="text-sm font-mono text-slate-400">
                     ${item.cost}
                   </span>
                 </div>
                 <h3 className="font-bold text-lg text-white mb-1">
                   {item.name}
                 </h3>
-                <p className="text-xs text-zinc-400 mb-4 h-8">{item.desc}</p>
+                <p className="text-xs text-slate-400 mb-4 h-8">{item.desc}</p>
                 <button
                   onClick={() => onBuy(item)}
                   disabled={hasItem || !canAfford}
                   className={`w-full py-2 rounded font-bold text-sm transition-all
                     ${
                       hasItem
-                        ? "bg-zinc-700 text-zinc-500 cursor-default"
+                        ? "bg-slate-700 text-slate-500 cursor-default"
                         : canAfford
                           ? "bg-yellow-600 hover:bg-yellow-500 text-black shadow-lg shadow-yellow-900/20"
-                          : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+                          : "bg-slate-800 text-slate-600 cursor-not-allowed"
                     }`}
                 >
                   {hasItem ? "OWNED" : canAfford ? "BUY" : "TOO POOR"}
@@ -1771,17 +1817,17 @@ const ShopModal = ({ isOpen, onClose, player, onBuy }) => {
 };
 
 const LogViewer = ({ logs, onClose }) => (
-  <div className="fixed top-16 right-4 w-64 max-h-60 bg-gray-900/95 border border-gray-700 rounded-xl z-155 overflow-y-auto p-2 shadow-2xl">
-    <div className="bg-zinc-900 w-full md:max-w-md h-full md:h-[70vh] rounded-none md:rounded-xl flex flex-col border-none md:border border-zinc-700 shadow-2xl">
-      <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-950">
+  <div className="fixed top-16 right-4 w-64 max-h-60 bg-slate-900/95 border border-gray-700 rounded-xl z-155 overflow-y-auto p-2 shadow-2xl">
+    <div className="bg-slate-900 w-full md:max-w-md h-full md:h-[70vh] rounded-none md:rounded-xl flex flex-col border-none md:border border-slate-700 shadow-2xl">
+      <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950">
         <h3 className="text-white font-bold text-lg flex items-center gap-2">
           <History size={18} className="text-emerald-500" /> Operation Logs
         </h3>
         <button
           onClick={onClose}
-          className="p-2 bg-zinc-800 rounded-full hover:bg-zinc-700"
+          className="p-2 bg-slate-800 rounded-full hover:bg-slate-700"
         >
-          <X className="text-zinc-400" />
+          <X className="text-slate-400" />
         </button>
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
@@ -1795,7 +1841,7 @@ const LogViewer = ({ logs, onClose }) => (
                   ? "bg-green-900/10 border-green-500 text-green-300"
                   : log.type === "bribe"
                     ? "bg-yellow-900/10 border-yellow-500 text-yellow-300"
-                    : "bg-zinc-800/50 border-zinc-600 text-zinc-400"
+                    : "bg-slate-800/50 border-slate-600 text-slate-400"
             }`}
           >
             <span className="opacity-50 mr-2 font-mono">
@@ -1817,26 +1863,26 @@ const LogViewer = ({ logs, onClose }) => (
 
 const RulesModal = ({ onClose }) => (
   <div className="fixed inset-0 bg-black/95 z-150 flex items-center justify-center p-0 md:p-4 animate-in fade-in">
-    <div className="bg-zinc-900 md:rounded-2xl w-full max-w-4xl h-full md:h-auto md:max-h-[90vh] overflow-hidden border-none md:border border-emerald-500/30 flex flex-col shadow-2xl">
-      <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-950">
+    <div className="bg-slate-900 md:rounded-2xl w-full max-w-4xl h-full md:h-auto md:max-h-[90vh] overflow-hidden border-none md:border border-emerald-500/30 flex flex-col shadow-2xl">
+      <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950">
         <h2 className="text-2xl font-bold text-white flex items-center gap-2 tracking-wider">
           <BookOpen className="text-emerald-500" /> Smuggler's Guide
         </h2>
         <button
           onClick={onClose}
-          className="p-2 hover:bg-zinc-800 rounded-full text-zinc-400"
+          className="p-2 hover:bg-slate-800 rounded-full text-slate-400"
         >
           <X />
         </button>
       </div>
 
-      <div className="p-6 overflow-y-auto text-zinc-300 space-y-8 scrollbar-thin scrollbar-thumb-zinc-700">
+      <div className="p-6 overflow-y-auto text-slate-300 space-y-8 scrollbar-thin scrollbar-thumb-slate-700">
         {/* Intro */}
         <section className="text-center space-y-2">
           <h3 className="text-3xl font-black text-emerald-400 uppercase tracking-widest">
             The Goal
           </h3>
-          <p className="text-lg text-zinc-400">
+          <p className="text-lg text-slate-400">
             Amass the biggest fortune. Money is earned by smuggling goods and
             collecting fines. The player with the highest total value (Cash +
             Stash + Bonus).
@@ -1845,7 +1891,7 @@ const RulesModal = ({ onClose }) => (
 
         {/* Game Loop */}
         <section className="grid md:grid-cols-3 gap-4">
-          <div className="bg-zinc-800/50 p-4 rounded-xl border border-zinc-700">
+          <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
             <h4 className="font-bold text-yellow-500 mb-2 flex items-center gap-2">
               <ShoppingBag size={16} /> 1. The Market
             </h4>
@@ -1854,7 +1900,7 @@ const RulesModal = ({ onClose }) => (
               extensions, and scanners can turn the tide.
             </p>
           </div>
-          <div className="bg-zinc-800/50 p-4 rounded-xl border border-zinc-700">
+          <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
             <h4 className="font-bold text-emerald-500 mb-2 flex items-center gap-2">
               <Package size={16} /> 2. Load & Bluff
             </h4>
@@ -1864,7 +1910,7 @@ const RulesModal = ({ onClose }) => (
               the Inspector.
             </p>
           </div>
-          <div className="bg-zinc-800/50 p-4 rounded-xl border border-zinc-700">
+          <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
             <h4 className="font-bold text-red-500 mb-2 flex items-center gap-2">
               <Siren size={16} /> 3. Inspection
             </h4>
@@ -1877,7 +1923,7 @@ const RulesModal = ({ onClose }) => (
         </section>
 
         {/* Inspection Details */}
-        <section className="bg-zinc-800/30 p-5 rounded-xl border border-zinc-700/50">
+        <section className="bg-slate-800/30 p-5 rounded-xl border border-slate-700/50">
           <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
             <ShieldCheck className="text-emerald-500" /> Inspection Mechanics
           </h3>
@@ -1931,7 +1977,7 @@ const RulesModal = ({ onClose }) => (
               <div className="flex items-center gap-2 font-bold text-blue-400 mb-1">
                 <Flag size={16} /> Diplomat
               </div>
-              <div className="text-xs text-zinc-400">
+              <div className="text-xs text-slate-400">
                 Pays 50% less fines when caught.
               </div>
             </div>
@@ -1939,7 +1985,7 @@ const RulesModal = ({ onClose }) => (
               <div className="flex items-center gap-2 font-bold text-purple-400 mb-1">
                 <Ghost size={16} /> Yakuza
               </div>
-              <div className="text-xs text-zinc-400">
+              <div className="text-xs text-slate-400">
                 +20% immediate value for Illegal goods.
               </div>
             </div>
@@ -1947,7 +1993,7 @@ const RulesModal = ({ onClose }) => (
               <div className="flex items-center gap-2 font-bold text-emerald-400 mb-1">
                 <Briefcase size={16} /> Merchant
               </div>
-              <div className="text-xs text-zinc-400">
+              <div className="text-xs text-slate-400">
                 +20% immediate value for Legal goods.
               </div>
             </div>
@@ -1955,7 +2001,7 @@ const RulesModal = ({ onClose }) => (
               <div className="flex items-center gap-2 font-bold text-yellow-400 mb-1">
                 <Eye size={16} /> Snitch
               </div>
-              <div className="text-xs text-zinc-400">
+              <div className="text-xs text-slate-400">
                 Get $100 whenever someone else is fined.
               </div>
             </div>
@@ -1971,17 +2017,17 @@ const RulesModal = ({ onClose }) => (
             {Object.values(SHOP_ITEMS).map((item) => (
               <div
                 key={item.id}
-                className="p-3 bg-zinc-800/50 border border-yellow-600/20 rounded-lg flex flex-col gap-1"
+                className="p-3 bg-slate-800/50 border border-yellow-600/20 rounded-lg flex flex-col gap-1"
               >
                 <div className="flex justify-between items-start">
                   <div className="flex items-center gap-2 font-bold text-yellow-500">
                     <item.icon size={16} /> {item.name}
                   </div>
-                  <span className="text-xs font-mono text-zinc-300 bg-black/40 px-2 py-0.5 rounded border border-zinc-700">
+                  <span className="text-xs font-mono text-slate-300 bg-black/40 px-2 py-0.5 rounded border border-slate-700">
                     ${item.cost}
                   </span>
                 </div>
-                <div className="text-xs text-zinc-400">{item.desc}</div>
+                <div className="text-xs text-slate-400">{item.desc}</div>
               </div>
             ))}
           </div>
@@ -1992,45 +2038,45 @@ const RulesModal = ({ onClose }) => (
         <section>
           <h3 className="text-xl font-bold text-white mb-4">Global Events</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-            <div className="flex items-center gap-3 p-2 bg-zinc-800 rounded">
+            <div className="flex items-center gap-3 p-2 bg-slate-800 rounded">
               <Bomb size={16} className="text-red-500" />{" "}
               <span>
                 <strong>War Zone:</strong> Weapons sell for 2x
                 value.
               </span>
             </div>
-            <div className="flex items-center gap-3 p-2 bg-zinc-800 rounded">
+            <div className="flex items-center gap-3 p-2 bg-slate-800 rounded">
               <Skull size={16} className="text-purple-500" />{" "}
               <span>
                 <strong>Pandemic:</strong> Meds and Foods sell for 2x value.
               </span>
             </div>
-            <div className="flex items-center gap-3 p-2 bg-zinc-800 rounded">
+            <div className="flex items-center gap-3 p-2 bg-slate-800 rounded">
               <Factory size={16} className="text-green-500" />{" "}
               <span>
                 <strong>Industrial Revolution:</strong> Uniforms and Machinery sell for 2x
                 value.
               </span>
             </div>
-            <div className="flex items-center gap-3 p-2 bg-zinc-800 rounded">
+            <div className="flex items-center gap-3 p-2 bg-slate-800 rounded">
               <Siren size={16} className="text-blue-500" />{" "}
               <span>
                 <strong>Crackdown:</strong> All fines are doubled.
               </span>
             </div>
-            <div className="flex items-center gap-3 p-2 bg-zinc-800 rounded">
+            <div className="flex items-center gap-3 p-2 bg-slate-800 rounded">
               <TrendingUp size={16} className="text-green-500" />{" "}
               <span>
                 <strong>Free Trade:</strong> All fines are halved.
               </span>
             </div>
-            <div className="flex items-center gap-3 p-2 bg-zinc-800 rounded">
+            <div className="flex items-center gap-3 p-2 bg-slate-800 rounded">
               <BanknoteArrowDown size={16} className="text-purple-500" />{" "}
               <span>
                 <strong>Deflation:</strong> Legal Goods value -20%.
               </span>
             </div>
-            <div className="flex items-center gap-3 p-2 bg-zinc-800 rounded">
+            <div className="flex items-center gap-3 p-2 bg-slate-800 rounded">
               <TrendingDown size={16} className="text-red-500" />{" "}
               <span>
                 <strong>Recession:</strong> Contraband value -20%.
@@ -2073,7 +2119,7 @@ const SplashScreen = ({ onStart }) => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
       {/* --- NEW: LOADING INDICATOR --- */}
       {/* This shows only while the image is NOT loaded yet */}
       {!isLoaded && (
@@ -3403,7 +3449,7 @@ export default function ContrabandGame() {
 
   if (isMaintenance) {
     return (
-      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-white p-4 text-center">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4 text-center">
         <ContrabandLogoBig />
         <div className="bg-orange-500/10 p-8 rounded-2xl border border-orange-500/30">
           <Hammer
@@ -3436,7 +3482,7 @@ export default function ContrabandGame() {
 
   if (!user)
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-green-500 animate-pulse">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-green-500 animate-pulse">
         Moving Shipments...
       </div>
     );
@@ -3444,13 +3490,13 @@ export default function ContrabandGame() {
   // RECONNECTING STATE
   if (roomId && !gameState && !error) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4">
-        <FloatingBackground />
-        <div className="bg-zinc-900/80 backdrop-blur p-8 rounded-2xl border border-zinc-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
+        <DarkAtmosphere />
+        <div className="bg-slate-900/80 backdrop-blur p-8 rounded-2xl border border-slate-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
           <Loader size={48} className="text-green-500 animate-spin" />
           <div className="text-center">
             <h2 className="text-xl font-bold">Reconnecting...</h2>
-            <p className="text-zinc-400 text-sm">Resuming your session</p>
+            <p className="text-slate-400 text-sm">Resuming your session</p>
           </div>
         </div>
       </div>
@@ -3466,8 +3512,8 @@ export default function ContrabandGame() {
 
   if (view === "menu") {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
-        <FloatingBackground />
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+        <DarkAtmosphere />
         {/* --- START OF BACK BUTTON --- */}
         <nav className="absolute top-0 left-0 w-full p-4 z-50">
           <a
@@ -3496,14 +3542,14 @@ export default function ContrabandGame() {
             Black Market Edition
           </p>
         </div>
-        <div className="bg-zinc-900/80 backdrop-blur border border-emerald-500/30 p-8 rounded-2xl w-full max-w-md shadow-2xl z-10">
+        <div className="bg-slate-900/80 backdrop-blur border border-emerald-500/30 p-8 rounded-2xl w-full max-w-md shadow-2xl z-10">
           {error && (
             <div className="bg-red-900/50 text-red-200 p-2 mb-4 rounded text-center text-sm">
               {error}
             </div>
           )}
           <input
-            className="w-full bg-black/50 border border-zinc-600 p-3 rounded mb-4 text-white placeholder-zinc-500 focus:border-emerald-500 outline-none"
+            className="w-full bg-black/50 border border-slate-600 p-3 rounded mb-4 text-white placeholder-slate-500 focus:border-emerald-500 outline-none"
             placeholder="Alias"
             value={playerName}
             onChange={(e) => setPlayerName(e.target.value)}
@@ -3517,7 +3563,7 @@ export default function ContrabandGame() {
           </button>
           <div className="flex gap-2 mb-4">
             <input
-              className="flex-1 min-w-0 bg-black/50 border border-zinc-600 p-3 rounded text-white placeholder-zinc-500 uppercase tracking-wider"
+              className="flex-1 min-w-0 bg-black/50 border border-slate-600 p-3 rounded text-white placeholder-slate-500 uppercase tracking-wider"
               placeholder="CODE"
               value={roomCodeInput}
               onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
@@ -3525,14 +3571,14 @@ export default function ContrabandGame() {
             <button
               onClick={joinRoom}
               disabled={loading}
-              className="bg-zinc-800 hover:bg-zinc-700 px-6 rounded font-bold shrink-0"
+              className="bg-slate-800 hover:bg-slate-700 px-6 rounded font-bold shrink-0"
             >
               Join
             </button>
           </div>
           <button
             onClick={() => setShowRules(true)}
-            className="w-full text-center text-zinc-500 hover:text-white text-sm mt-2 flex items-center justify-center gap-2"
+            className="w-full text-center text-slate-500 hover:text-white text-sm mt-2 flex items-center justify-center gap-2"
           >
             <BookOpen size={14} /> Smuggler's Guide
           </button>
@@ -3543,8 +3589,8 @@ export default function ContrabandGame() {
 
   if (view === "lobby" && gameState) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6 relative">
-        <FloatingBackground />
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative">
+        <DarkAtmosphere />
         <ContrabandLogoBig />
 
         {showLeaveConfirm && (
@@ -3555,7 +3601,7 @@ export default function ContrabandGame() {
           />
         )}
 
-        <div className="z-10 w-full max-w-lg bg-zinc-900/90 backdrop-blur p-8 rounded-2xl border border-emerald-900/50 shadow-2xl">
+        <div className="z-10 w-full max-w-lg bg-slate-900/90 backdrop-blur p-8 rounded-2xl border border-emerald-900/50 shadow-2xl">
           <div className="flex justify-between items-center mb-6">
             <div>
               <h2 className="text-lg md:text-xl text-green-500 font-bold uppercase">
@@ -3603,13 +3649,13 @@ export default function ContrabandGame() {
             {gameState.players.map((p) => (
               <div
                 key={p.id}
-                className="flex items-center justify-between bg-zinc-800/50 p-3 rounded border border-zinc-700/50"
+                className="flex items-center justify-between bg-slate-800/50 p-3 rounded border border-slate-700/50"
               >
                 <span className="font-bold flex items-center gap-2">
                   <User
                     size={14}
                     className={
-                      p.id === user.uid ? "text-emerald-500" : "text-zinc-500"
+                      p.id === user.uid ? "text-emerald-500" : "text-slate-500"
                     }
                   />
                   {p.name}{" "}
@@ -3618,12 +3664,12 @@ export default function ContrabandGame() {
                   )}
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="text-zinc-500 text-xs">Waiting</span>
+                  <span className="text-slate-500 text-xs">Waiting</span>
                   {/* KICK BUTTON - Only for Host, cannot kick self */}
                   {gameState.hostId === user.uid && p.id !== user.uid && (
                     <button
                       onClick={() => kickPlayer(p.id)}
-                      className="p-1.5 bg-zinc-700 hover:bg-red-900/50 text-zinc-400 hover:text-red-400 rounded transition-colors"
+                      className="p-1.5 bg-slate-700 hover:bg-red-900/50 text-red-400 hover:text-red-400 rounded transition-colors"
                       title="Kick Player"
                     >
                       <Trash size={12} />
@@ -3635,7 +3681,7 @@ export default function ContrabandGame() {
           </div>
           {gameState.hostId === user.uid && (
             <div className="flex justify-center mb-4">
-              <div className="bg-zinc-800 p-1 rounded-lg flex items-center">
+              <div className="bg-slate-800 p-1 rounded-lg flex items-center">
                 <button
                   onClick={() =>
                     updateDoc(
@@ -3651,7 +3697,7 @@ export default function ContrabandGame() {
                       { gameLength: "SHORT" },
                     )
                   }
-                  className={`px-4 py-2 rounded text-xs font-bold transition-all ${gameState.gameLength === "SHORT" ? "bg-emerald-600 text-white" : "text-zinc-500 hover:text-zinc-300"}`}
+                  className={`px-4 py-2 rounded text-xs font-bold transition-all ${gameState.gameLength === "SHORT" ? "bg-emerald-600 text-white" : "text-slate-500 hover:text-slate-300"}`}
                 >
                   SHORT (1x)
                 </button>
@@ -3670,7 +3716,7 @@ export default function ContrabandGame() {
                       { gameLength: "LONG" },
                     )
                   }
-                  className={`px-4 py-2 rounded text-xs font-bold transition-all ${gameState.gameLength === "LONG" ? "bg-emerald-600 text-white" : "text-zinc-500 hover:text-zinc-300"}`}
+                  className={`px-4 py-2 rounded text-xs font-bold transition-all ${gameState.gameLength === "LONG" ? "bg-emerald-600 text-white" : "text-slate-500 hover:text-slate-300"}`}
                 >
                   LONG (2x)
                 </button>
@@ -3679,7 +3725,7 @@ export default function ContrabandGame() {
           )}
 
           {/* Show Length to everyone */}
-          <div className="text-center text-xs text-zinc-500 mb-4 uppercase tracking-widest">
+          <div className="text-center text-xs text-slate-500 mb-4 uppercase tracking-widest">
             Game Length: {gameState.gameLength || "SHORT"}
           </div>
           {gameState.hostId === user.uid && (
@@ -3711,18 +3757,18 @@ export default function ContrabandGame() {
 
     if (!inspector || !currentUser) {
       return (
-        <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-6 relative overflow-hidden">
-          <FloatingBackground />
-          <div className="z-10 bg-zinc-900/90 p-8 rounded-2xl border border-red-500/50 shadow-2xl text-center max-w-md animate-in fade-in zoom-in">
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-6 relative overflow-hidden">
+          <DarkAtmosphere />
+          <div className="z-10 bg-slate-900/90 p-8 rounded-2xl border border-red-500/50 shadow-2xl text-center max-w-md animate-in fade-in zoom-in">
             <Siren size={64} className="text-red-500 mx-auto mb-4 animate-pulse" />
             <h2 className="text-2xl font-bold text-white mb-2">MISSION COMPROMISED</h2>
-            <p className="text-zinc-400 mb-6">
+            <p className="text-slate-400 mb-6">
               An agent has disconnected or the operation data is out of sync. 
               The current round cannot continue.
             </p>
             <button 
               onClick={returnToLobby}
-              className="w-full py-3 bg-zinc-700 hover:bg-zinc-600 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
+              className="w-full py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
             >
               <RotateCcw size={18} /> Return to Lobby
             </button>
@@ -3737,8 +3783,8 @@ export default function ContrabandGame() {
     const shopDisabled = me.ready || gameState.turnState !== "SHOPPING";
 
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex flex-col relative overflow-hidden font-sans">
-        <FloatingBackground />
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col relative overflow-hidden font-sans">
+        <DarkAtmosphere />
 
         {feedback && (
           <FeedbackOverlay
@@ -3786,10 +3832,10 @@ export default function ContrabandGame() {
         />
 
         {/* --- Top Bar --- */}
-        <div className="h-16 bg-zinc-900/90 border-b border-zinc-800 flex items-center justify-between px-4 z-50 backdrop-blur-md sticky top-0 shadow-xl">
+        <div className="h-16 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between px-4 z-50 backdrop-blur-md sticky top-0 shadow-xl">
           <div className="flex items-center gap-4">
             <div className="hidden md:flex flex-col">
-              <span className="text-xs text-zinc-500 uppercase tracking-widest">
+              <span className="text-xs text-slate-500 uppercase tracking-widest">
                 Event
               </span>
               <span className="text-sm font-bold text-yellow-500 flex items-center gap-1">
@@ -3799,19 +3845,19 @@ export default function ContrabandGame() {
                 {currentEvent.name}
               </span>
             </div>
-            <div className="bg-black/40 px-3 py-1 rounded-full border border-zinc-700 flex items-center gap-2">
+            <div className="bg-black/40 px-3 py-1 rounded-full border border-slate-700 flex items-center gap-2">
               <Coins size={14} className="text-yellow-500" />
               <span className="font-mono font-bold">${me.coins}</span>
             </div>
             {/* Round Counter */}
-            <div className="text-xs text-zinc-500 bg-black/50 px-2 py-1 rounded border border-zinc-800 flex items-center gap-1">
+            <div className="text-xs text-slate-500 bg-black/50 px-2 py-1 rounded border border-slate-800 flex items-center gap-1">
               <Repeat size={14} />
               <span>
                 {gameState.currentRound}/{totalRounds}
               </span>
             </div>
             {/* Deck Counter */}
-            <div className="text-xs text-zinc-500 bg-black/50 px-2 py-1 rounded border border-zinc-800 flex items-center gap-1">
+            <div className="text-xs text-slate-500 bg-black/50 px-2 py-1 rounded border border-slate-800 flex items-center gap-1">
               <Layers size={14} />
               {gameState.deck.length}
             </div>
@@ -3824,14 +3870,14 @@ export default function ContrabandGame() {
               className={`p-2 rounded-full ${
                 showLogs
                   ? "bg-green-900 text-green-400"
-                  : "text-gray-400 hover:bg-gray-800"
+                  : "text-slate-400 hover:bg-slate-800"
               }`}
             >
               <History size={20} />
             </button>
             <button
               onClick={() => setShowRules(true)}
-              className="p-2 hover:bg-zinc-800 rounded text-zinc-400"
+              className="p-2 hover:bg-slate-800 rounded text-slate-400"
             >
               <BookOpen size={20} />
             </button>
@@ -3891,7 +3937,7 @@ export default function ContrabandGame() {
 
               // --- CHANGE 1: Determine Icon (Siren for Inspector, Role for others) ---
               let StatusIcon = User;
-              let iconColor = "text-zinc-500";
+              let iconColor = "text-slate-500";
               let StatusName = "Player";
 
               if (isInsp) {
@@ -3908,11 +3954,11 @@ export default function ContrabandGame() {
               return (
                 <div
                   key={p.id}
-                  className={`relative bg-zinc-900/90 p-3 rounded-xl border-2 w-32 transition-all flex flex-col items-center ${
+                  className={`relative bg-slate-900/90 p-3 rounded-xl border-2 w-32 transition-all flex flex-col items-center ${
                     isInsp
                       ? "border-red-500 shadow-[0_0_16px_rgba(239,68,68,0.3)]"
-                      : "border-zinc-700 shadow-[0_0_16px_rgba(34,197,94,0.3)]"
-                  } ${p.loadedCrate ? "bg-zinc-800" : ""}`}
+                      : "border-slate-700 shadow-[0_0_16px_rgba(34,197,94,0.3)]"
+                  } ${p.loadedCrate ? "bg-slate-800" : ""}`}
                 >
                   {/* Top Right Icon */}
                   <div className="relative flex flex-col items-center pt-4">
@@ -3927,13 +3973,13 @@ export default function ContrabandGame() {
                     {/* User icon */}
                     <User
                       size={24}
-                      className={isInsp ? "text-red-500" : "text-zinc-600"}
+                      className={isInsp ? "text-red-500" : "text-slate-600"}
                     />
 
                     {/* Name */}
                     <span
                       className={`font-bold text-xs truncate w-full text-center mt-1 ${
-                        isInsp ? "text-red-200" : "text-zinc-400"
+                        isInsp ? "text-red-200" : "text-slate-400"
                       }`}
                     >
                       {p.name}
@@ -3942,7 +3988,7 @@ export default function ContrabandGame() {
                       onClick={() => setOpponentStashId(p.id)}
                       className="mt-auto pt-2 w-full"
                     >
-                      <div className="w-full py-1.5 bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 rounded text-[10px] text-zinc-400 hover:text-white transition-colors flex items-center justify-center gap-1 uppercase font-bold tracking-wider">
+                      <div className="w-full py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded text-[10px] text-slate-400 hover:text-white transition-colors flex items-center justify-center gap-1 uppercase font-bold tracking-wider">
                         <Briefcase size={10} /> View Stash
                       </div>
                     </button>
@@ -3957,7 +4003,7 @@ export default function ContrabandGame() {
                         return (
                           <div
                             key={uId}
-                            className="p-0.5 bg-zinc-800 rounded border border-zinc-600 text-yellow-500"
+                            className="p-0.5 bg-slate-800 rounded border border-slate-600 text-yellow-500"
                             title={item.name}
                           >
                             <item.icon size={10} />
@@ -3969,16 +4015,16 @@ export default function ContrabandGame() {
                   {/* --- NEW CODE ENDS HERE --- */}
 
                   {p.loadedCrate ? (
-                    <div className="mt-2 w-full bg-black/40 rounded p-2 text-center border border-zinc-600">
+                    <div className="mt-2 w-full bg-black/40 rounded p-2 text-center border border-slate-600">
                       {/* --- CHANGE 2: Show Loaded Item Count --- */}
                       <div className="flex justify-center items-center gap-1 mb-1">
-                        <div className="bg-zinc-700 text-zinc-300 text-[9px] px-1.5 py-0.5 rounded flex items-center gap-1">
+                        <div className="bg-slate-700 text-slate-300 text-[9px] px-1.5 py-0.5 rounded flex items-center gap-1">
                           <Box size={8} /> {p.loadedCrate.cards.length}
                         </div>
                       </div>
                       {/* ---------------------------------------- */}
 
-                      <div className="text-[10px] text-zinc-500 uppercase flex justify-center items-center gap-1">
+                      <div className="text-[10px] text-slate-500 uppercase flex justify-center items-center gap-1">
                         {GOODS[p.loadedCrate.declaration].name}{" "}
                         {p.loadedCrate.bribe > 0 && (
                           <Coins size={10} className="text-yellow-500" />
@@ -4025,7 +4071,7 @@ export default function ContrabandGame() {
                     </div>
                   ) : (
                     !isInsp && (
-                      <div className="mt-2 text-[9px] text-zinc-600 animate-pulse">
+                      <div className="mt-2 text-[9px] text-slate-600 animate-pulse">
                         {p.ready ? "Ready" : "Thinking..."}
                       </div>
                     )
@@ -4037,7 +4083,7 @@ export default function ContrabandGame() {
 
           {/* Bottom Player Area */}
           <div
-            className={`w-full max-w-4xl bg-zinc-900/95 p-4 md:p-6 rounded-t-3xl border-t border-emerald-500/30 backdrop-blur-md mt-auto shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-20 transition-opacity duration-500 ${
+            className={`w-full max-w-4xl bg-slate-900/95 p-4 md:p-6 rounded-t-3xl border-t border-emerald-500/30 backdrop-blur-md mt-auto shadow-[0_-10px_40px_rgba(0,0,0,0.5)] z-20 transition-opacity duration-500 ${
               gameState.status === "finished"
                 ? "opacity-20 pointer-events-none"
                 : "opacity-100"
@@ -4069,7 +4115,7 @@ export default function ContrabandGame() {
                         })}
                       {me.name}
                     </div>
-                    <div className="text-xs text-zinc-500">
+                    <div className="text-xs text-slate-500">
                       {ROLES[me.role]?.desc}
                     </div>
                   </>
@@ -4077,15 +4123,15 @@ export default function ContrabandGame() {
                 {/* -------------------------------------------------------- */}
 
                 {/* Event Info Display */}
-                <div className="mt-2 border-t border-zinc-700 pt-2">
-                  <div className="text-[10px] text-zinc-500 uppercase font-bold mb-1 flex items-center gap-1">
+                <div className="mt-2 border-t border-slate-700 pt-2">
+                  <div className="text-[10px] text-slate-500 uppercase font-bold mb-1 flex items-center gap-1">
                     <Info size={10} /> Event Active
                   </div>
                   {/* ... existing event code ... */}
                   <div className="text-sm font-bold text-yellow-500">
                     {currentEvent.name}
                   </div>
-                  <div className="text-[10px] text-zinc-400 leading-tight">
+                  <div className="text-[10px] text-slate-400 leading-tight">
                     {currentEvent.desc}
                   </div>
                 </div>
@@ -4097,7 +4143,7 @@ export default function ContrabandGame() {
                     return (
                       <div
                         key={u}
-                        className="p-1 bg-zinc-800 rounded border border-zinc-700 text-yellow-500"
+                        className="p-1 bg-slate-800 rounded border border-slate-700 text-yellow-500"
                         title={SHOP_ITEMS[u].name}
                       >
                         <ItemIcon size={12} />
@@ -4108,7 +4154,7 @@ export default function ContrabandGame() {
 
                 <button
                   onClick={() => setShowStash(true)}
-                  className="mt-2 w-full py-2 bg-zinc-800 hover:bg-zinc-700 rounded text-xs text-zinc-300 border border-zinc-600 flex items-center justify-center gap-2 transition-colors"
+                  className="mt-2 w-full py-2 bg-slate-800 hover:bg-slate-700 rounded text-xs text-slate-300 border border-slate-600 flex items-center justify-center gap-2 transition-colors"
                 >
                   <Briefcase size={12} /> View Stash ({me.stash.length})
                 </button>
@@ -4123,7 +4169,7 @@ export default function ContrabandGame() {
                       className={`mt-2 w-full py-2 rounded text-xs border flex items-center justify-center gap-2 transition-colors ${
                         !shopDisabled
                           ? "bg-yellow-900/20 hover:bg-yellow-900/30 text-yellow-500 border-yellow-500/50"
-                          : "bg-zinc-800 text-zinc-600 border-zinc-700 cursor-not-allowed"
+                          : "bg-slate-800 text-slate-600 border-slate-700 cursor-not-allowed"
                       }`}
                     >
                       <ShoppingBag size={12} /> Open Black Market
@@ -4134,7 +4180,7 @@ export default function ContrabandGame() {
                       className={`mt-2 py-2 px-4 rounded font-bold transition-all ${
                         me.ready
                           ? "bg-green-600/50 text-white/50 cursor-not-allowed"
-                          : "bg-zinc-700 text-zinc-300 hover:bg-zinc-600"
+                          : "bg-slate-700 text-slate-300 hover:bg-slate-600"
                       }`}
                     >
                       {me.ready ? "READY" : "MARKET DONE"}
@@ -4171,12 +4217,12 @@ export default function ContrabandGame() {
                     </div>
 
                     {/* Status Badge */}
-                    <div className="flex items-center gap-3 bg-zinc-900/80 px-4 py-2 rounded-full border border-emerald-500/30 text-xs shadow-xl backdrop-blur-md whitespace-nowrap z-20">
+                    <div className="flex items-center gap-3 bg-slate-900/80 px-4 py-2 rounded-full border border-emerald-500/30 text-xs shadow-xl backdrop-blur-md whitespace-nowrap z-20">
                       <span className="flex items-center gap-1 text-emerald-400 font-bold">
                         <Lock size={12} /> LOCKED
                       </span>
-                      <div className="w-px h-3 bg-zinc-700"></div>
-                      <span className="text-zinc-400">
+                      <div className="w-px h-3 bg-slate-700"></div>
+                      <span className="text-slate-400">
                         Declared:{" "}
                         <strong className="text-white">
                           {GOODS[me.loadedCrate.declaration]?.name}
@@ -4184,7 +4230,7 @@ export default function ContrabandGame() {
                       </span>
                       {me.loadedCrate.bribe > 0 && (
                         <>
-                          <div className="w-px h-3 bg-zinc-700"></div>
+                          <div className="w-px h-3 bg-slate-700"></div>
                           <span className="flex items-center gap-1 text-yellow-500 font-mono">
                             <Coins size={12} /> ${me.loadedCrate.bribe}
                           </span>
@@ -4214,7 +4260,7 @@ export default function ContrabandGame() {
                     ))}
                   </div>
                 ) : (
-                  <div className="h-full flex items-center justify-center text-zinc-600 italic">
+                  <div className="h-full flex items-center justify-center text-slate-600 italic">
                     Market Phase - Check Shop
                   </div>
                 )}
@@ -4226,8 +4272,8 @@ export default function ContrabandGame() {
                   {/* Phase 1: Loading (Visible when no crate yet) */}
                   {!me.loadedCrate && gameState.turnState === "LOADING" && (
                     <>
-                      <div className="bg-zinc-800 p-2 rounded-xl border border-zinc-700">
-                        <label className="text-[10px] text-zinc-500 uppercase font-bold mb-1 block">
+                      <div className="bg-slate-800 p-2 rounded-xl border border-slate-700">
+                        <label className="text-[10px] text-slate-500 uppercase font-bold mb-1 block">
                           Declare As
                         </label>
                         <div className="grid grid-cols-4 gap-1">
@@ -4238,7 +4284,7 @@ export default function ContrabandGame() {
                               className={`p-2 rounded flex items-center justify-center ${
                                 declaredType === type
                                   ? "bg-emerald-600 text-white"
-                                  : "bg-zinc-700 text-zinc-400"
+                                  : "bg-slate-700 text-slate-400"
                               }`}
                             >
                               {React.createElement(GOODS[type].icon, {
@@ -4249,8 +4295,8 @@ export default function ContrabandGame() {
                         </div>
                       </div>
 
-                      <div className="bg-zinc-800 p-2 rounded-xl border border-zinc-700 flex items-center gap-2">
-                        <div className="text-[10px] text-zinc-500 uppercase font-bold w-12">
+                      <div className="bg-slate-800 p-2 rounded-xl border border-slate-700 flex items-center gap-2">
+                        <div className="text-[10px] text-slate-500 uppercase font-bold w-12">
                           Bribe
                         </div>
                         <input
@@ -4260,7 +4306,7 @@ export default function ContrabandGame() {
                           step="10"
                           value={bribeAmount}
                           onChange={(e) => setBribeAmount(e.target.value)}
-                          className="flex-1 accent-yellow-500 h-2 bg-zinc-700 rounded-lg appearance-none cursor-pointer"
+                          className="flex-1 accent-yellow-500 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer"
                         />
                         <span className="text-xs font-mono text-yellow-500 w-10 text-right">
                           ${bribeAmount}
@@ -4279,19 +4325,19 @@ export default function ContrabandGame() {
 
                   {/* Phase 2: Updating Bribe (Visible when crate IS loaded) */}
                   {me.loadedCrate && (
-                    <div className="bg-zinc-800/80 p-3 rounded-xl border border-yellow-500/30 animate-in fade-in">
+                    <div className="bg-slate-800/80 p-3 rounded-xl border border-yellow-500/30 animate-in fade-in">
                       <div className="flex items-center justify-between mb-3">
                         <div className="text-xs font-bold text-white flex items-center gap-2">
                           <Handshake size={14} className="text-yellow-500" />{" "}
                           Negotiation
                         </div>
-                        <div className="text-[10px] text-zinc-400 uppercase tracking-wider">
+                        <div className="text-[10px] text-slate-400 uppercase tracking-wider">
                           Active
                         </div>
                       </div>
 
-                      <div className="bg-zinc-900 p-2 rounded-lg border border-zinc-700 flex items-center gap-2 mb-2">
-                        <div className="text-[10px] text-zinc-500 uppercase font-bold w-8">
+                      <div className="bg-slate-900 p-2 rounded-lg border border-slate-700 flex items-center gap-2 mb-2">
+                        <div className="text-[10px] text-slate-500 uppercase font-bold w-8">
                           Offer
                         </div>
                         <input
@@ -4304,7 +4350,7 @@ export default function ContrabandGame() {
                           step="10"
                           value={bribeAmount}
                           onChange={(e) => setBribeAmount(e.target.value)}
-                          className="flex-1 accent-yellow-500 h-2 bg-zinc-800 rounded-lg appearance-none cursor-pointer"
+                          className="flex-1 accent-yellow-500 h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer"
                         />
                         <span className="text-xs font-mono text-yellow-500 w-10 text-right">
                           ${bribeAmount}
@@ -4314,7 +4360,7 @@ export default function ContrabandGame() {
                       <button
                         onClick={updateBribe}
                         disabled={Date.now() - lastBribeUpdate < 2000}
-                        className="w-full py-2 bg-yellow-600 hover:bg-yellow-500 disabled:bg-zinc-700 disabled:text-zinc-500 text-black font-bold rounded-lg text-xs shadow-lg shadow-yellow-900/20 transition-colors flex items-center justify-center gap-2"
+                        className="w-full py-2 bg-yellow-600 hover:bg-yellow-500 disabled:bg-slate-700 disabled:text-slate-500 text-black font-bold rounded-lg text-xs shadow-lg shadow-yellow-900/20 transition-colors flex items-center justify-center gap-2"
                       >
                         {Date.now() - lastBribeUpdate < 2000 ? (
                           <>
@@ -4334,8 +4380,8 @@ export default function ContrabandGame() {
           {/* Game Over Screen Overlay */}
           {gameState.status === "finished" && (
             <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-              <div className="w-full max-w-4xl bg-zinc-900 border border-emerald-500/50 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                <div className="p-6 bg-zinc-950 border-b border-zinc-800 text-center">
+              <div className="w-full max-w-4xl bg-slate-900 border border-emerald-500/50 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                <div className="p-6 bg-slate-950 border-b border-slate-800 text-center">
                   <h2 className="text-4xl font-bold text-emerald-400 drop-shadow-md">
                     {gameState.winner} Wins!
                   </h2>
@@ -4349,14 +4395,14 @@ export default function ContrabandGame() {
                   />
                 </div>
 
-                <div className="p-6 bg-zinc-950 border-t border-zinc-800 flex justify-center gap-4">
+                <div className="p-6 bg-slate-950 border-t border-slate-800 flex justify-center gap-4">
                   {!isHost ? (
                     <button
                       onClick={toggleReady}
                       className={`px-8 py-3 rounded-xl font-bold transition-all ${
                         me.ready
                           ? "bg-green-600 text-white"
-                          : "bg-zinc-700 hover:bg-zinc-600 text-white"
+                          : "bg-slate-700 hover:bg-slate-600 text-white"
                       }`}
                     >
                       {me.ready
@@ -4371,7 +4417,7 @@ export default function ContrabandGame() {
                         className={`px-6 py-3 rounded-xl font-bold text-white shadow-lg transition-all ${
                           guestsReady
                             ? "bg-emerald-600 hover:bg-emerald-500"
-                            : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+                            : "bg-slate-800 text-slate-600 cursor-not-allowed"
                         }`}
                       >
                         New Game
@@ -4381,8 +4427,8 @@ export default function ContrabandGame() {
                         disabled={!guestsReady}
                         className={`px-6 py-3 rounded-xl font-bold text-white transition-all ${
                           guestsReady
-                            ? "bg-zinc-700 hover:bg-zinc-600"
-                            : "bg-zinc-800 text-zinc-600 cursor-not-allowed"
+                            ? "bg-slate-700 hover:bg-slate-600"
+                            : "bg-slate-800 text-slate-600 cursor-not-allowed"
                         }`}
                       >
                         Return Team to Lobby
@@ -4391,7 +4437,7 @@ export default function ContrabandGame() {
                   )}
                 </div>
                 {isHost && !guestsReady && (
-                  <div className="pb-4 text-center text-xs text-zinc-500 animate-pulse">
+                  <div className="pb-4 text-center text-xs text-slate-500 animate-pulse">
                     Waiting for squad...
                   </div>
                 )}
@@ -4402,12 +4448,12 @@ export default function ContrabandGame() {
           {/* Round Summary Overlay */}
           {gameState.turnState === "ROUND_SUMMARY" && (
             <div className="absolute inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-              <div className="w-full max-w-4xl bg-zinc-900 border border-zinc-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-                <div className="p-4 bg-zinc-950 border-b border-zinc-800 flex justify-between items-center">
+              <div className="w-full max-w-4xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                <div className="p-4 bg-slate-950 border-b border-slate-800 flex justify-between items-center">
                   <h2 className="text-2xl font-bold text-white">
                     Round {gameState.currentRound} Complete
                   </h2>
-                  <div className="text-xs text-zinc-500 uppercase tracking-widest">
+                  <div className="text-xs text-slate-500 uppercase tracking-widest">
                     {gameState.currentRound >= totalRounds
                       ? "Game Sequence Complete"
                       : "Next Event Loading..."}
@@ -4423,7 +4469,7 @@ export default function ContrabandGame() {
                   />
                 </div>
 
-                <div className="p-6 bg-zinc-950 border-t border-zinc-800 flex justify-center">
+                <div className="p-6 bg-slate-950 border-t border-slate-800 flex justify-center">
                   <button
                     onClick={toggleReady}
                     className={`px-8 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2 ${
@@ -4454,12 +4500,12 @@ export default function ContrabandGame() {
                 </div>
 
                 {/* Show who is ready */}
-                <div className="pb-4 bg-zinc-950 flex justify-center gap-2">
+                <div className="pb-4 bg-slate-950 flex justify-center gap-2">
                   {gameState.players.map((p) => (
                     <div
                       key={p.id}
                       className={`w-2 h-2 rounded-full transition-colors ${
-                        p.ready ? "bg-green-500" : "bg-zinc-700"
+                        p.ready ? "bg-green-500" : "bg-slate-700"
                       }`}
                       title={p.name}
                     />

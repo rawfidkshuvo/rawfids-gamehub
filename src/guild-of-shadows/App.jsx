@@ -270,6 +270,51 @@ const calculateWinGoal = (playerCount) => {
 // ---------------------------------------------------------------------------
 // UI COMPONENTS
 // ---------------------------------------------------------------------------
+const DarkAtmosphere = React.memo(() => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    {/* Clean, deep gradient background (No hazy overlays) */}
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
+    
+    {/* Crisp Particles */}
+    {[...Array(25)].map((_, i) => {
+      // Calculate individual random drifts using CSS variables
+      const driftX = `${Math.random() * 40 - 20}px`;
+      
+      return (
+        <div
+          key={i}
+          className="absolute rounded-full animate-float"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            width: `${Math.random() * 4 + 1}px`,
+            height: `${Math.random() * 4 + 1}px`,
+            backgroundColor: Math.random() > 0.5 ? "#301dda" : "#8b5cf6",
+            animationDuration: `${10 + Math.random() * 20}s`,
+            animationDelay: `${Math.random() * -20}s`,
+            boxShadow: "0 0 12px 2px rgba(217,70,239,0.8)", // Brighter glow
+            "--driftX": driftX, // Passes individual random drift to CSS
+          }}
+        />
+      );
+    })}
+    <style>{`
+      @keyframes float { 
+        0%, 100% { 
+          transform: translate(0, 0) scale(1); 
+          opacity: 0.2; 
+        } 
+        50% { 
+          transform: translate(var(--driftX), -60px) scale(1.5); 
+          opacity: 1; /* Shines at full brightness */
+        } 
+      } 
+      .animate-float { 
+        animation: float infinite ease-in-out; 
+      }
+    `}</style>
+  </div>
+));
 
 const FloatingBackground = React.memo(() => {
   // useMemo ensures these random positions are calculated ONLY ONCE
@@ -754,7 +799,7 @@ const SplashScreen = ({ onStart }) => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
       {/* --- NEW: LOADING INDICATOR --- */}
       {/* This shows only while the image is NOT loaded yet */}
       {!isLoaded && (
@@ -1878,7 +1923,7 @@ export default function GuildOfShadows() {
 
   if (isMaintenance) {
     return (
-      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-white p-4 text-center">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4 text-center">
         <LogoBig />
         <div className="bg-orange-500/10 p-8 rounded-2xl border border-orange-500/30">
           <Hammer
@@ -1913,7 +1958,7 @@ export default function GuildOfShadows() {
 
   if (!user)
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-purple-500 animate-pulse">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-purple-500 animate-pulse">
         Awakenning shadows...
       </div>
     );
@@ -1921,13 +1966,13 @@ export default function GuildOfShadows() {
   // RECONNECTING STATE
   if (roomId && !gameState && !error) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4">
-        <FloatingBackground />
-        <div className="bg-zinc-900/80 backdrop-blur p-8 rounded-2xl border border-zinc-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
+        <DarkAtmosphere />
+        <div className="bg-slate-900/80 backdrop-blur p-8 rounded-2xl border border-slate-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
           <Loader size={48} className="text-purple-500 animate-spin" />
           <div className="text-center">
             <h2 className="text-xl font-bold">Reconnecting...</h2>
-            <p className="text-zinc-400 text-sm">Resuming your session</p>
+            <p className="text-slate-400 text-sm">Resuming your session</p>
           </div>
         </div>
       </div>
@@ -1941,8 +1986,8 @@ export default function GuildOfShadows() {
 
   if (view === "menu") {
     return (
-      <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
-        <FloatingBackground />
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+        <DarkAtmosphere />
         {/* --- START OF BACK BUTTON --- */}
         <nav className="absolute top-0 left-0 w-full p-4 z-50">
           <a
@@ -1969,7 +2014,7 @@ export default function GuildOfShadows() {
           </p>
         </div>
 
-        <div className="bg-gray-900/80 backdrop-blur border border-purple-500/30 p-6 rounded-2xl w-full max-w-sm shadow-2xl z-10">
+        <div className="bg-slate-900/80 backdrop-blur border border-purple-500/30 p-6 rounded-2xl w-full max-w-sm shadow-2xl z-10">
           {error && (
             <div className="bg-red-900/50 text-red-200 p-2 mb-4 rounded text-center text-xs border border-red-800">
               {error}
@@ -2031,11 +2076,11 @@ export default function GuildOfShadows() {
   if (view === "lobby" && gameState) {
     const isHost = gameState.hostId === user.uid;
     return (
-      <div className="min-h-screen bg-gray-950 text-white flex flex-col items-center justify-center p-4 relative">
-        <FloatingBackground />
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 relative">
+        <DarkAtmosphere />
         <LogoBig />
-        <div className="z-10 w-full max-w-md bg-gray-900/90 backdrop-blur p-6 rounded-2xl border border-purple-900/50 shadow-2xl">
-          <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-4">
+        <div className="z-10 w-full max-w-md bg-slate-900/90 backdrop-blur p-6 rounded-2xl border border-purple-900/50 shadow-2xl">
+          <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
             {/* Grouping Title and Copy Button together on the left */}
             <div>
               <h2 className="text-lg md:text-xl text-purple-400 font-bold uppercase">
@@ -2086,7 +2131,7 @@ export default function GuildOfShadows() {
             {gameState.players.map((p) => (
               <div
                 key={p.id}
-                className="flex items-center justify-between bg-gray-800/50 p-3 rounded border border-gray-700/50 group"
+                className="flex items-center justify-between bg-slate-800/50 p-3 rounded border border-slate-700/50 group"
               >
                 <span className="font-bold flex items-center gap-2">
                   <User size={14} /> {p.name}
@@ -2101,7 +2146,7 @@ export default function GuildOfShadows() {
                   {isHost && p.id !== user.uid && (
                     <button
                       onClick={() => kickPlayer(p.id)}
-                      className="text-gray-600 hover:text-red-500 transition-colors p-1"
+                      className="text-red-600 hover:text-red-500 transition-colors p-1"
                       title="Kick Player"
                     >
                       <Trash2 size={14} />
@@ -2175,7 +2220,7 @@ export default function GuildOfShadows() {
 
   return (
     <div className="h-dvh bg-gray-950 text-white overflow-hidden flex flex-col relative font-sans">
-      <FloatingBackground />
+      <DarkAtmosphere />
 
       {/* --- NOTIFICATIONS --- */}
       {feedback && <FeedbackOverlay {...feedback} />}
@@ -2256,7 +2301,7 @@ export default function GuildOfShadows() {
       )}
 
       {/* --- TOP BAR --- */}
-      <div className="h-14 bg-gray-900/90 border-b border-gray-800 flex items-center justify-between px-4 z-160 shrink-0 shadow-md">
+      <div className="h-14 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between px-4 z-160 shrink-0 shadow-md">
         <div className="flex items-center gap-2">
           <span className="font-serif text-purple-500 font-bold hidden md:inline text-lg">
             GUILD OF SHADOWS
@@ -2309,11 +2354,11 @@ export default function GuildOfShadows() {
                     isTargetable ? handleTargetPlayerClick(p.id) : null
                   }
                   className={`
-                        relative bg-gray-900/80 backdrop-blur-sm p-3 rounded-xl border transition-all duration-200
+                        relative bg-slate-900/80 backdrop-blur-sm p-3 rounded-xl border transition-all duration-200
                         ${
                           isActive
                             ? "border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.25)] bg-purple-900/10 scale-[1.02]"
-                            : "border-gray-800"
+                            : "border-slate-800"
                         }
                         ${
                           isTargetable

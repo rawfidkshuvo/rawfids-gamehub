@@ -154,7 +154,7 @@ const FloatingBackground = React.memo(() => {
   }, []);
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-slate-900 via-zinc-950 to-black" />
+      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black" />
       <div className="absolute top-0 left-0 w-full h-full opacity-40">
         {backgroundIcons}
       </div>
@@ -218,8 +218,8 @@ const Disc = ({ type, pColor, size = "md", isFaceDown = false, isGrayscale = fal
   
   if (isFaceDown) {
       return (
-        <div className={`${sizeClasses} rounded-full flex items-center justify-center bg-zinc-800 ${pColor.border} border-dashed opacity-90 shadow-md`}>
-           <ShieldAlert className="w-1/2 h-1/2 text-zinc-600" />
+        <div className={`${sizeClasses} rounded-full flex items-center justify-center bg-slate-800 ${pColor.border} border-dashed opacity-90 shadow-md`}>
+           <ShieldAlert className="w-1/2 h-1/2 text-slate-600" />
         </div>
       );
   }
@@ -252,31 +252,31 @@ const FeedbackOverlay = ({ type, message, subtext, icon: Icon }) => (
 );
 
 const RulesModal = ({ onClose }) => (
-  <div className="fixed inset-0 z-[200] bg-zinc-950/95 backdrop-blur-md flex items-center justify-center p-4">
-    <div className="bg-zinc-900 border border-rose-900/50 w-full max-w-3xl rounded-3xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto custom-scrollbar">
-      <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-zinc-800 rounded-full hover:bg-zinc-700 transition-colors">
+  <div className="fixed inset-0 z-[200] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4">
+    <div className="bg-slate-900 border border-rose-900/50 w-full max-w-3xl rounded-3xl shadow-2xl p-6 relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <button onClick={onClose} className="absolute top-4 right-4 p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors">
         <X size={24} className="text-white" />
       </button>
       <h2 className="text-3xl font-black text-center mb-6 text-rose-500">How to Play</h2>
-      <div className="space-y-6 text-sm text-zinc-300">
+      <div className="space-y-6 text-sm text-slate-300">
         <section>
           <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Swords className="text-rose-500" /> Objective</h3>
-          <p className="bg-zinc-800 p-4 rounded-xl border border-rose-900/30">
+          <p className="bg-slate-800 p-4 rounded-xl border border-rose-900/30">
             Win two rounds to be crowned the victor, or be the last player standing. Every player starts with 3 Roses and 1 Skull.
           </p>
         </section>
         <section>
           <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><EyeOff className="text-rose-500" /> The Phases</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-zinc-800 p-4 rounded-xl border border-rose-900/30">
+            <div className="bg-slate-800 p-4 rounded-xl border border-rose-900/30">
               <strong className="text-rose-400 block mb-1">1. Placement</strong>
               <p className="text-xs">Take turns placing one disc face down on your mat. Once everyone has at least one disc down, you can either place another disc OR start a Bid.</p>
             </div>
-            <div className="bg-zinc-800 p-4 rounded-xl border border-rose-900/30">
+            <div className="bg-slate-800 p-4 rounded-xl border border-rose-900/30">
               <strong className="text-rose-400 block mb-1">2. Bidding</strong>
               <p className="text-xs">Claim how many total discs you can flip across the table WITHOUT revealing a Skull. Once a bid is placed, no more discs can be added. Players must raise the bid or Pass.</p>
             </div>
-            <div className="bg-zinc-800 p-4 rounded-xl md:col-span-2 border border-rose-900/30">
+            <div className="bg-slate-800 p-4 rounded-xl md:col-span-2 border border-rose-900/30">
               <strong className="text-rose-400 block mb-1">3. The Reveal</strong>
               <p className="text-xs mb-2">The highest bidder becomes the Challenger. They must flip exactly their bid number of discs, obeying one strict rule:</p>
               <ul className="list-disc pl-4 text-xs space-y-1 font-bold text-rose-300">
@@ -288,7 +288,7 @@ const RulesModal = ({ onClose }) => (
         </section>
         <section>
           <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2"><Skull className="text-rose-500" /> Survival</h3>
-          <p className="bg-zinc-800 p-4 rounded-xl border border-rose-900/30">
+          <p className="bg-slate-800 p-4 rounded-xl border border-rose-900/30">
             If you reveal a Skull, your challenge immediately fails, and you must destroy one of your discs permanently. If you lose all your discs, you are eliminated!
           </p>
         </section>
@@ -332,7 +332,7 @@ const SplashScreen = ({ onStart }) => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
       {/* --- NEW: LOADING INDICATOR --- */}
       {/* This shows only while the image is NOT loaded yet */}
       {!isLoaded && (
@@ -749,13 +749,13 @@ export default function CryptGame() {
         <div className="bg-rose-900/10 p-8 rounded-2xl border border-rose-900/30">
           <Hammer size={64} className="text-rose-600 mx-auto mb-4 animate-bounce" />
           <h1 className="text-3xl font-bold mb-2">The Crypt is Sealed</h1>
-          <p className="text-zinc-400">Dark rituals are currently being performed to improve the game. Return soon.</p>
+          <p className="text-slate-400">Dark rituals are currently being performed to improve the game. Return soon.</p>
         </div>
         <div className="h-8"></div>
         <a href={import.meta.env.BASE_URL}>
           <div className="flex items-center justify-center gap-3 mb-2">
             <div className="text-center pb-12 animate-pulse">
-              <div className="inline-flex items-center gap-3 px-8 py-4 bg-zinc-900/50 rounded-full border border-rose-900/20 text-rose-300 font-bold tracking-widest text-sm uppercase backdrop-blur-sm"><StepBack size={16} /> Return to Gamehub <StepBack size={16} /></div>
+              <div className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900/50 rounded-full border border-rose-900/20 text-rose-300 font-bold tracking-widest text-sm uppercase backdrop-blur-sm"><StepBack size={16} /> Return to Gamehub <StepBack size={16} /></div>
             </div>
           </div>
         </a>
@@ -776,11 +776,11 @@ export default function CryptGame() {
       return (
         <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
           <DarkAtmosphere />
-          <div className="bg-zinc-900/80 backdrop-blur p-8 rounded-2xl border border-zinc-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
+          <div className="bg-slate-900/80 backdrop-blur p-8 rounded-2xl border border-slate-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
             <Loader size={48} className="text-red-500 animate-spin" />
             <div className="text-center">
               <h2 className="text-xl font-bold">Reconnecting...</h2>
-              <p className="text-zinc-400 text-sm">Resuming your session</p>
+              <p className="text-slate-400 text-sm">Resuming your session</p>
             </div>
           </div>
         </div>
@@ -803,7 +803,7 @@ export default function CryptGame() {
           <h1 className="text-5xl md:text-7xl font-thin text-transparent bg-clip-text bg-gradient-to-b from-rose-500 to-rose-900 tracking-tighter drop-shadow-md">CRYPT & CRIMSON</h1>
           <p className="text-rose-200/40 tracking-[0.5em] uppercase mt-2 text-xs">Deceive. Reveal. Survive.</p>
         </div>
-        <div className="bg-zinc-900/80 backdrop-blur-md border border-rose-900/30 p-8 rounded-2xl w-full max-w-md shadow-2xl z-10 relative">
+        <div className="bg-slate-900/80 backdrop-blur-md border border-rose-900/30 p-8 rounded-2xl w-full max-w-md shadow-2xl z-10 relative">
           {error && <div className="bg-red-900/20 border border-red-500/50 text-red-200 p-3 mb-4 rounded text-center text-sm font-bold flex items-center justify-center gap-2"><AlertTriangle size={16} /> {error}</div>}
           <div className="space-y-4">
             <input className="w-full bg-black/50 border border-rose-900 focus:border-rose-500 p-4 rounded-xl text-white outline-none transition-all text-lg font-bold text-center" placeholder="YOUR NAME" value={playerName} onChange={(e) => setPlayerName(e.target.value)} maxLength={12} />
@@ -811,7 +811,7 @@ export default function CryptGame() {
               <button onClick={createRoom} disabled={loading} className="bg-gradient-to-br from-rose-700 to-rose-900 hover:from-rose-600 hover:to-rose-800 p-4 rounded-xl font-bold flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-lg shadow-rose-900/50"><Skull size={24} /> <span>Create</span></button>
               <div className="flex flex-col gap-2">
                 <input className="bg-black/50 border border-rose-900 focus:border-rose-500 p-2 rounded-xl text-white text-center uppercase font-mono font-bold tracking-widest outline-none h-12" placeholder="CODE" value={roomCode} onChange={(e) => setRoomCode(e.target.value)} maxLength={6} />
-                <button onClick={joinRoom} disabled={loading} className="bg-zinc-800 hover:bg-zinc-700 p-2 rounded-xl font-bold text-zinc-300 transition-all active:scale-95 h-full">Join</button>
+                <button onClick={joinRoom} disabled={loading} className="bg-slate-800 hover:bg-slate-700 p-2 rounded-xl font-bold text-slate-300 transition-all active:scale-95 h-full">Join</button>
               </div>
             </div>
             <button onClick={() => setShowGuide(true)} className="w-full mt-4 text-rose-500 hover:text-rose-400 text-sm font-bold flex items-center justify-center gap-2 transition-colors py-2"><BookOpen size={16} /> How to Play</button>
@@ -831,14 +831,14 @@ export default function CryptGame() {
         <DarkAtmosphere />
         <GameLogoBig />
         {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
-        <div className="z-10 w-full max-w-lg bg-zinc-900/90 backdrop-blur p-8 rounded-2xl border border-rose-900/30 shadow-2xl animate-in slide-in-from-bottom-8 mt-6">
-          <div className="flex justify-between items-center mb-8 border-b border-zinc-800 pb-4">
+        <div className="z-10 w-full max-w-lg bg-slate-900/90 backdrop-blur p-8 rounded-2xl border border-rose-900/30 shadow-2xl animate-in slide-in-from-bottom-8 mt-6">
+          <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-4">
             <div>
               <h2 className="text-lg md:text-xl flex items-center gap-2 text-rose-600 font-bold uppercase"><Skull size={24} /> Crypt Code:</h2>
               <div className="flex items-center gap-3 mt-1">
                 <div className="text-3xl md:text-4xl font-mono text-white font-black">{roomId}</div>
                 <div className="relative">
-                  <button onClick={copyToClipboard} className="p-2 hover:bg-white/10 rounded-full transition-colors text-zinc-400 hover:text-white">{isCopied ? <CheckCircle size={20} className="text-emerald-500" /> : <Copy size={20} />}</button>
+                  <button onClick={copyToClipboard} className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white">{isCopied ? <CheckCircle size={20} className="text-emerald-500" /> : <Copy size={20} />}</button>
                   {isCopied && <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-rose-600 text-white text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">Copied!</div>}
                 </div>
               </div>
@@ -849,9 +849,9 @@ export default function CryptGame() {
           </div>
 
           <div className="space-y-3 mb-8">
-            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Challengers ({gameState.players.length}/6)</h3>
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Challengers ({gameState.players.length}/6)</h3>
             {gameState.players.map((p) => (
-              <div key={p.id} className="flex justify-between items-center bg-zinc-800 p-4 rounded-xl border border-zinc-700">
+              <div key={p.id} className="flex justify-between items-center bg-slate-800 p-4 rounded-xl border border-slate-700">
                 <span className="font-bold flex items-center gap-3 text-lg">
                   <div className={`w-4 h-4 rounded-full ${PLAYER_COLORS[p.colorIdx].bg} shadow-lg`} /> {p.name} {p.id === gameState.hostId && <Crown size={16} className="text-yellow-500" />}
                 </span>
@@ -860,7 +860,7 @@ export default function CryptGame() {
                 )}
               </div>
             ))}
-            {Array.from({ length: 6 - gameState.players.length }).map((_, i) => <div key={i} className="border-2 border-dashed border-zinc-800 rounded-xl p-4 flex items-center justify-center text-zinc-600 font-bold uppercase text-sm">Empty Slot</div>)}
+            {Array.from({ length: 6 - gameState.players.length }).map((_, i) => <div key={i} className="border-2 border-dashed border-slate-800 rounded-xl p-4 flex items-center justify-center text-slate-600 font-bold uppercase text-sm">Empty Slot</div>)}
           </div>
 
           {isHost ? (
@@ -868,16 +868,16 @@ export default function CryptGame() {
               <button onClick={startGame} disabled={!canStart} className="w-full flex justify-center items-center gap-2 px-8 py-4 rounded-xl font-bold text-lg shadow-lg transition-all bg-gradient-to-br from-rose-700 to-rose-900 text-white hover:from-rose-600 hover:to-rose-800 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"><Skull size={24} /> Begin Ritual</button>
               {!canStart && <div className="text-center text-xs font-bold text-rose-500 uppercase tracking-wider mt-1">Requires 3 to 6 players to start</div>}
             </div>
-          ) : <div className="text-center text-zinc-500 text-sm font-bold uppercase tracking-widest animate-pulse">Waiting for host...</div>}
+          ) : <div className="text-center text-slate-500 text-sm font-bold uppercase tracking-widest animate-pulse">Waiting for host...</div>}
         </div>
 
         {showLeaveConfirm && (
           <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl max-w-xs w-full text-center shadow-2xl">
+            <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl max-w-xs w-full text-center shadow-2xl">
               <h3 className="text-xl font-bold text-white mb-2 uppercase">Leave Crypt?</h3>
-              <p className="text-zinc-400 mb-6 text-sm">{gameState.hostId === user.uid ? "As Host, leaving seals the crypt for everyone." : "You will disconnect from this session."}</p>
+              <p className="text-slate-400 mb-6 text-sm">{gameState.hostId === user.uid ? "As Host, leaving seals the crypt for everyone." : "You will disconnect from this session."}</p>
               <div className="flex gap-2">
-                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-zinc-800 hover:bg-zinc-700 py-2 rounded font-bold text-zinc-300">Stay</button>
+                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-slate-800 hover:bg-slate-700 py-2 rounded font-bold text-slate-300">Stay</button>
                 <button onClick={handleLeave} className="flex-1 bg-rose-700 hover:bg-rose-600 py-2 rounded font-bold text-white">Leave</button>
               </div>
             </div>
@@ -891,7 +891,7 @@ export default function CryptGame() {
   if (view === "game" && gameState) {
     const pIdx = gameState.players.findIndex((p) => p.id === user.uid);
     const me = gameState.players[pIdx];
-    const myColor = me ? PLAYER_COLORS[me.colorIdx] : { bg: "bg-zinc-600", border: "border-zinc-500", fill: "#52525b", text: "text-zinc-500" };
+    const myColor = me ? PLAYER_COLORS[me.colorIdx] : { bg: "bg-slate-600", border: "border-slate-500", fill: "#52525b", text: "text-slate-500" };
     const isMyTurn = gameState.turnIndex === pIdx && !me.isEliminated;
 
     const totalCardsOnTable = gameState.players.reduce((sum, p) => sum + p.played.length, 0);
@@ -904,14 +904,14 @@ export default function CryptGame() {
 
         {showLeaveConfirm && (
           <div className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-zinc-900 border border-zinc-700 p-6 rounded-xl max-w-xs w-full text-center shadow-2xl">
+            <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl max-w-xs w-full text-center shadow-2xl">
               <h3 className="text-xl font-bold text-white mb-2 uppercase">Abandon Game?</h3>
-              <p className="text-zinc-400 mb-6 text-sm">{gameState.hostId === user.uid ? "Leaving deletes the game for everyone." : "You will leave this ongoing game."}</p>
+              <p className="text-slate-400 mb-6 text-sm">{gameState.hostId === user.uid ? "Leaving deletes the game for everyone." : "You will leave this ongoing game."}</p>
               <div className="flex gap-2">
-                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-zinc-800 hover:bg-zinc-700 py-2 rounded font-bold text-zinc-300">Stay</button>
+                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-slate-800 hover:bg-slate-700 py-2 rounded font-bold text-slate-300">Stay</button>
                 <button onClick={handleLeave} className="flex-1 bg-rose-700 hover:bg-rose-600 py-2 rounded font-bold text-white">Leave</button>
               </div>
-              {gameState.hostId === user.uid && <button onClick={() => { returnToLobby(); setShowLeaveConfirm(false); }} className="w-full bg-zinc-800 hover:bg-zinc-700 py-2 rounded font-bold text-rose-500 mt-2 text-sm border border-zinc-700 transition-colors">Return All to Lobby</button>}
+              {gameState.hostId === user.uid && <button onClick={() => { returnToLobby(); setShowLeaveConfirm(false); }} className="w-full bg-slate-800 hover:bg-slate-700 py-2 rounded font-bold text-rose-500 mt-2 text-sm border border-slate-700 transition-colors">Return All to Lobby</button>}
             </div>
           </div>
         )}
@@ -919,9 +919,9 @@ export default function CryptGame() {
         {/* Discard Card Selection Modal */}
         {gameState.turnPhase === "DISCARD" && gameState.discardingPlayer === user.uid && (
           <div className="fixed inset-0 z-[250] bg-black/90 flex items-center justify-center p-4 backdrop-blur-md">
-            <div className={`p-6 md:p-10 rounded-3xl border-4 ${myColor.border} bg-zinc-900 text-center max-w-lg w-full shadow-2xl animate-in zoom-in`}>
+            <div className={`p-6 md:p-10 rounded-3xl border-4 ${myColor.border} bg-slate-900 text-center max-w-lg w-full shadow-2xl animate-in zoom-in`}>
                 <h3 className="text-3xl font-black text-white uppercase mb-2">You hit a Skull!</h3>
-                <p className="text-zinc-400 mb-8 font-bold">You must choose one of your discs to destroy permanently.</p>
+                <p className="text-slate-400 mb-8 font-bold">You must choose one of your discs to destroy permanently.</p>
                 <div className="flex justify-center gap-4 flex-wrap">
                     {me.hand.map((type, idx) => (
                         <button key={idx} onClick={() => handleSelectDiscard(idx)} className="transition-all hover:scale-110 hover:-translate-y-2">
@@ -937,29 +937,29 @@ export default function CryptGame() {
         {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
 
         {/* TOP BAR */}
-        <div className="h-14 md:h-16 bg-zinc-900 border-b border-rose-900/50 flex items-center justify-between px-2 z-[160] shrink-0 shadow-lg relative">
+        <div className="h-14 md:h-16 bg-slate-900 border-b border-rose-900/50 flex items-center justify-between px-2 z-[160] shrink-0 shadow-lg relative">
           <div className="absolute inset-0 bg-rose-900/10 pointer-events-none" />
           <div className="flex items-center gap-4 relative z-10">
             <div className="w-10 h-10 bg-rose-900/50 rounded-lg flex items-center justify-center border border-rose-700 ml-2 shadow-[0_0_10px_rgba(225,29,72,0.3)]"><Flower className="text-rose-500" size={20} /></div>
             <div>
               <div className="font-bold text-sm tracking-wider text-rose-100">CRYPT & CRIMSON</div>
-              <div className="text-[10px] font-mono uppercase">{gameState.status === "finished" ? <span className="text-rose-400">GAME OVER</span> : <><span className="text-zinc-400">Turn:</span> <span className="text-rose-400">{gameState.players[gameState.turnIndex].name}</span></>}</div>
+              <div className="text-[10px] font-mono uppercase">{gameState.status === "finished" ? <span className="text-rose-400">GAME OVER</span> : <><span className="text-slate-400">Turn:</span> <span className="text-rose-400">{gameState.players[gameState.turnIndex].name}</span></>}</div>
             </div>
           </div>
           <div className="flex items-center gap-2 relative z-10">
-            <button onClick={() => setShowGuide(true)} className="p-2 hover:bg-zinc-800 rounded text-zinc-400 hover:text-white"><BookOpen size={18} /></button>
-            <button onClick={() => setShowLogs(!showLogs)} className={`p-2 rounded-full ${showLogs ? "bg-rose-900 text-rose-400" : "text-zinc-400 hover:bg-zinc-800"}`}><History size={18} /></button>
+            <button onClick={() => setShowGuide(true)} className="p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-white"><BookOpen size={18} /></button>
+            <button onClick={() => setShowLogs(!showLogs)} className={`p-2 rounded-full ${showLogs ? "bg-rose-900 text-rose-400" : "text-slate-400 hover:bg-slate-800"}`}><History size={18} /></button>
             <button onClick={() => setShowLeaveConfirm(true)} className="p-2 hover:bg-rose-900/30 rounded text-rose-500"><LogOut size={18} /></button>
           </div>
         </div>
 
         {/* LOGS OVERLAY */}
         {showLogs && (
-          <div className="fixed top-16 right-4 w-64 max-h-60 bg-zinc-900/95 border border-zinc-700 rounded-xl z-[155] overflow-y-auto p-2 shadow-2xl custom-scrollbar">
-            <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 sticky top-0 bg-zinc-900/95 py-2">World History</h4>
+          <div className="fixed top-16 right-4 w-64 max-h-60 bg-slate-900/95 border border-slate-700 rounded-xl z-[155] overflow-y-auto p-2 shadow-2xl custom-scrollbar">
+            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 sticky top-0 bg-slate-900/95 py-2">World History</h4>
             <div className="space-y-2">
               {gameState.logs.slice().reverse().map((log) => (
-                <div key={log.id} className={`text-xs p-2 rounded border-l-2 ${log.type === "success" ? "border-emerald-500 bg-emerald-900/10 text-emerald-200" : log.type === "warning" ? "border-amber-500 bg-amber-900/10 text-amber-200" : log.type === "failure" ? "border-rose-500 bg-rose-900/10 text-rose-200" : "border-zinc-500 bg-zinc-800/30 text-zinc-300"}`}>
+                <div key={log.id} className={`text-xs p-2 rounded border-l-2 ${log.type === "success" ? "border-emerald-500 bg-emerald-900/10 text-emerald-200" : log.type === "warning" ? "border-amber-500 bg-amber-900/10 text-amber-200" : log.type === "failure" ? "border-rose-500 bg-rose-900/10 text-rose-200" : "border-slate-500 bg-slate-800/30 text-slate-300"}`}>
                   {log.text}
                 </div>
               ))}
@@ -984,7 +984,7 @@ export default function CryptGame() {
                 onClick={() => { if (canRevealThis) revealCard(p.id); }}
                 className={`relative w-28 h-36 sm:w-40 sm:h-48 rounded-xl border-4 flex flex-col items-center justify-end p-2 transition-all 
                   ${PLAYER_COLORS[p.colorIdx].matBg} backdrop-blur-sm
-                  ${isTurn ? `${PLAYER_COLORS[p.colorIdx].border} shadow-[0_0_20px_${PLAYER_COLORS[p.colorIdx].fill}80] scale-105` : "border-zinc-800/50"}
+                  ${isTurn ? `${PLAYER_COLORS[p.colorIdx].border} shadow-[0_0_20px_${PLAYER_COLORS[p.colorIdx].fill}80] scale-105` : "border-slate-800/50"}
                   ${p.isEliminated ? "opacity-30 grayscale" : ""}
                   ${canRevealThis ? "cursor-pointer hover:border-white hover:scale-110" : ""}
                 `}
@@ -995,7 +995,7 @@ export default function CryptGame() {
                 </div>
                 <div className="absolute top-2 left-2 flex items-center gap-1"><span className={`text-[9px] sm:text-xs font-black uppercase tracking-widest ${PLAYER_COLORS[p.colorIdx].text}`}>{p.name}</span></div>
 
-                {p.passed && !p.isEliminated && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/80 text-zinc-400 px-2 py-0.5 text-[8px] sm:text-[10px] sm:px-3 sm:py-1 rounded font-bold uppercase z-50 transform -rotate-12 border border-zinc-600">Passed</div>}
+                {p.passed && !p.isEliminated && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/80 text-slate-400 px-2 py-0.5 text-[8px] sm:text-[10px] sm:px-3 sm:py-1 rounded font-bold uppercase z-50 transform -rotate-12 border border-slate-600">Passed</div>}
                 {p.isEliminated && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black/90 text-rose-500 px-2 py-0.5 text-[8px] sm:text-[10px] sm:px-3 sm:py-1 rounded font-black uppercase z-50 transform -rotate-12 border border-rose-900 flex items-center gap-1"><Skull size={12}/> Eliminated</div>}
                 {isChallenger && <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-amber-500 text-black px-2 py-0.5 sm:px-3 sm:py-0.5 rounded-full font-black text-[8px] sm:text-[10px] uppercase shadow-[0_0_10px_rgba(245,158,11,0.8)] z-50 whitespace-nowrap animate-bounce">Challenger</div>}
 
@@ -1005,12 +1005,12 @@ export default function CryptGame() {
                       <Disc type={card.type} pColor={PLAYER_COLORS[p.colorIdx]} size="md" isFaceDown={!card.revealed} />
                     </div>
                   ))}
-                  {p.played.length === 0 && !p.isEliminated && <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 border-dashed border-zinc-700 flex items-center justify-center text-zinc-600 text-[8px] sm:text-[10px] uppercase font-bold">Empty</div>}
+                  {p.played.length === 0 && !p.isEliminated && <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full border-2 border-dashed border-slate-700 flex items-center justify-center text-slate-600 text-[8px] sm:text-[10px] uppercase font-bold">Empty</div>}
                 </div>
                 
                 {!isTargetMe && !p.isEliminated && (
                   <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/50 px-2 py-0.5 rounded-full flex gap-1">
-                    {Array.from({length: p.hand.length}).map((_,i) => <div key={i} className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-zinc-600 rounded-full" />)}
+                    {Array.from({length: p.hand.length}).map((_,i) => <div key={i} className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-slate-600 rounded-full" />)}
                   </div>
                 )}
               </div>
@@ -1019,11 +1019,11 @@ export default function CryptGame() {
         </div>
 
         {/* BOTTOM UI CONTROLS (My Actions) */}
-        <div className={`absolute bottom-0 left-0 right-0 bg-zinc-900/95 border-t-4 ${myColor.border} backdrop-blur-xl flex flex-col z-[60] shadow-[0_-10px_30px_rgba(0,0,0,0.5)]`}>
+        <div className={`absolute bottom-0 left-0 right-0 bg-slate-900/95 border-t-4 ${myColor.border} backdrop-blur-xl flex flex-col z-[60] shadow-[0_-10px_30px_rgba(0,0,0,0.5)]`}>
           {/* Status Bar */}
           <div className="flex justify-between items-center px-4 py-2 border-b border-white/5 bg-black/20 shrink-0">
             <div className="flex items-center gap-2">
-              <span className={`text-[11px] font-black uppercase tracking-widest ${isMyTurn ? "text-rose-400 animate-pulse" : "text-zinc-500"}`}>
+              <span className={`text-[11px] font-black uppercase tracking-widest ${isMyTurn ? "text-rose-400 animate-pulse" : "text-slate-500"}`}>
                 {gameState.turnPhase === "PLAY" ? (isMyTurn ? "Play a disc or Bid" : "Waiting for placement") : 
                  gameState.turnPhase === "BIDDING" ? (isMyTurn ? "Raise bid or Pass" : "Bidding in progress") : 
                  gameState.turnPhase === "REVEAL" ? (isMyTurn ? `Reveal ${gameState.cardsToReveal} discs` : "Revealing phase") : 
@@ -1035,18 +1035,18 @@ export default function CryptGame() {
           </div>
 
           {/* History Bar - Compact Row */}
-          <div className="flex justify-between items-center px-4 py-1.5 border-b border-white/5 bg-zinc-800/50 shrink-0">
+          <div className="flex justify-between items-center px-4 py-1.5 border-b border-white/5 bg-slate-800/50 shrink-0">
              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-zinc-400 font-bold uppercase">Placed:</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase">Placed:</span>
                 <div className="flex gap-1 h-6 sm:h-8 items-center">
-                    {(!me || me.played.length === 0) && <span className="text-zinc-600 text-[10px] italic">None</span>}
+                    {(!me || me.played.length === 0) && <span className="text-slate-600 text-[10px] italic">None</span>}
                     {me && me.played.map(c => <Disc key={c.id} type={c.type} pColor={myColor} size="sm" />)}
                 </div>
              </div>
              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-zinc-400 font-bold uppercase">Lost:</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase">Lost:</span>
                 <div className="flex gap-1 h-6 sm:h-8 items-center">
-                    {(!me || me.discarded.length === 0) && <span className="text-zinc-600 text-[10px] italic">None</span>}
+                    {(!me || me.discarded.length === 0) && <span className="text-slate-600 text-[10px] italic">None</span>}
                     {me && me.discarded.map((t, idx) => <Disc key={idx} type={t} pColor={myColor} size="sm" isGrayscale />)}
                 </div>
              </div>
@@ -1073,24 +1073,24 @@ export default function CryptGame() {
             {!me?.isEliminated && (
               <div className="w-full sm:w-56 shrink-0 flex flex-col justify-center gap-2 sm:border-l sm:border-white/10 sm:pl-4">
                 {gameState.turnPhase === "PLAY" && isMyTurn && (
-                  <button onClick={() => placeBid(totalCardsOnTable === 0 ? 1 : 1)} disabled={!hasEveryonePlayedOne} className="w-full bg-amber-600 hover:bg-amber-500 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed text-white font-black py-3 sm:py-4 rounded-xl uppercase tracking-widest shadow-lg transition-all">Start Bid</button>
+                  <button onClick={() => placeBid(totalCardsOnTable === 0 ? 1 : 1)} disabled={!hasEveryonePlayedOne} className="w-full bg-amber-600 hover:bg-amber-500 disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed text-white font-black py-3 sm:py-4 rounded-xl uppercase tracking-widest shadow-lg transition-all">Start Bid</button>
                 )}
                 {gameState.turnPhase === "BIDDING" && isMyTurn && (
                   <>
-                    <div className="flex items-center gap-2 bg-black/50 p-1 rounded-xl border border-zinc-700">
+                    <div className="flex items-center gap-2 bg-black/50 p-1 rounded-xl border border-slate-700">
                        <input type="range" min={gameState.currentBid + 1} max={totalCardsOnTable} value={bidAmount} onChange={(e) => setBidAmount(parseInt(e.target.value))} disabled={gameState.currentBid >= totalCardsOnTable} className="flex-1 accent-amber-500" />
                        <span className="font-black text-amber-500 w-6 text-center">{bidAmount}</span>
                     </div>
                     <div className="flex gap-2">
-                      <button onClick={() => placeBid(bidAmount)} disabled={gameState.currentBid >= totalCardsOnTable} className="flex-1 bg-amber-600 hover:bg-amber-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-bold py-2 rounded-lg text-sm uppercase transition-all">Raise</button>
-                      <button onClick={passBid} className="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-2 rounded-lg text-sm uppercase transition-all">Pass</button>
+                      <button onClick={() => placeBid(bidAmount)} disabled={gameState.currentBid >= totalCardsOnTable} className="flex-1 bg-amber-600 hover:bg-amber-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-bold py-2 rounded-lg text-sm uppercase transition-all">Raise</button>
+                      <button onClick={passBid} className="flex-1 bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded-lg text-sm uppercase transition-all">Pass</button>
                     </div>
                   </>
                 )}
                 {gameState.turnPhase === "ROUND_END" && gameState.hostId === user.uid && (
                   <button onClick={startNextRound} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-3 sm:py-4 rounded-xl uppercase tracking-widest shadow-lg transition-all animate-bounce">Next Round</button>
                 )}
-                {gameState.turnPhase === "ROUND_END" && gameState.hostId !== user.uid && <div className="text-center text-zinc-500 text-xs font-bold uppercase tracking-widest mt-2 sm:mt-4">Waiting for Host...</div>}
+                {gameState.turnPhase === "ROUND_END" && gameState.hostId !== user.uid && <div className="text-center text-slate-500 text-xs font-bold uppercase tracking-widest mt-2 sm:mt-4">Waiting for Host...</div>}
               </div>
             )}
           </div>
@@ -1099,7 +1099,7 @@ export default function CryptGame() {
         {/* END GAME MODAL */}
         {gameState.status === "finished" && (
           <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center backdrop-blur-md pt-20 pb-10 px-4">
-            <div className="bg-zinc-900 p-6 md:p-8 rounded-3xl border-2 border-rose-500 text-center shadow-[0_0_50px_rgba(225,29,72,0.4)] animate-in zoom-in max-w-lg w-full flex flex-col relative">
+            <div className="bg-slate-900 p-6 md:p-8 rounded-3xl border-2 border-rose-500 text-center shadow-[0_0_50px_rgba(225,29,72,0.4)] animate-in zoom-in max-w-lg w-full flex flex-col relative">
               <div className="shrink-0 mb-6">
                 <Crown size={80} className="text-yellow-500 mx-auto mb-4 animate-bounce" />
                 <h2 className="text-3xl md:text-5xl font-black text-white uppercase mb-2 leading-tight drop-shadow-lg">
@@ -1114,7 +1114,7 @@ export default function CryptGame() {
                 </div>
               ) : (
                 <div className="shrink-0 pt-2">
-                  <button disabled className="bg-zinc-800 px-6 py-4 rounded-xl font-black w-full text-zinc-600 uppercase tracking-widest">Waiting for Host...</button>
+                  <button disabled className="bg-slate-800 px-6 py-4 rounded-xl font-black w-full text-slate-600 uppercase tracking-widest">Waiting for Host...</button>
                 </div>
               )}
             </div>

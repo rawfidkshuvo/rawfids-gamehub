@@ -317,17 +317,17 @@ const RulesModal = ({ onClose }) => {
   const [viewingPack, setViewingPack] = useState(null);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-zinc-950/95 backdrop-blur-md flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[200] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4">
       <div className="bg-slate-900 border border-fuchsia-900/50 w-full max-w-4xl rounded-3xl shadow-2xl relative max-h-[90vh] flex flex-col overflow-hidden">
         
         <div className="flex border-b border-fuchsia-900/30 bg-slate-900 shrink-0">
-          <button onClick={() => { setTab("rules"); setViewingPack(null); }} className={`flex-1 py-4 text-sm sm:text-base font-black tracking-widest uppercase transition-all flex items-center justify-center gap-2 ${tab === "rules" ? "text-fuchsia-400 border-b-2 border-fuchsia-400 bg-fuchsia-900/10" : "text-zinc-500 hover:text-zinc-300"}`}>
+          <button onClick={() => { setTab("rules"); setViewingPack(null); }} className={`flex-1 py-4 text-sm sm:text-base font-black tracking-widest uppercase transition-all flex items-center justify-center gap-2 ${tab === "rules" ? "text-fuchsia-400 border-b-2 border-fuchsia-400 bg-fuchsia-900/10" : "text-slate-500 hover:text-slate-300"}`}>
             <BookOpen className="w-4 h-4 sm:w-5 sm:h-5"/> Rules
           </button>
-          <button onClick={() => setTab("gallery")} className={`flex-1 py-4 text-sm sm:text-base font-black tracking-widest uppercase transition-all flex items-center justify-center gap-2 ${tab === "gallery" ? "text-cyan-400 border-b-2 border-cyan-400 bg-cyan-900/10" : "text-zinc-500 hover:text-zinc-300"}`}>
+          <button onClick={() => setTab("gallery")} className={`flex-1 py-4 text-sm sm:text-base font-black tracking-widest uppercase transition-all flex items-center justify-center gap-2 ${tab === "gallery" ? "text-cyan-400 border-b-2 border-cyan-400 bg-cyan-900/10" : "text-slate-500 hover:text-slate-300"}`}>
             <ImageIcon className="w-4 h-4 sm:w-5 sm:h-5"/> Gallery
           </button>
-          <button onClick={onClose} className="p-4 text-zinc-500 hover:text-white transition-colors bg-slate-900 hover:bg-slate-800 border-l border-fuchsia-900/30"><X size={24} /></button>
+          <button onClick={onClose} className="p-4 text-slate-500 hover:text-white transition-colors bg-slate-900 hover:bg-slate-800 border-l border-fuchsia-900/30"><X size={24} /></button>
         </div>
 
         <div className="p-4 sm:p-6 overflow-y-auto custom-scrollbar flex-1">
@@ -370,7 +370,7 @@ const RulesModal = ({ onClose }) => {
           {tab === "gallery" && !viewingPack && (
             <div className="flex flex-col gap-4 animate-in fade-in zoom-in-95 duration-200">
                {Object.keys(AVAILABLE_PACKS).length === 0 && (
-                 <p className="text-zinc-500 text-center italic mt-10">No image packs found in the assets folder.</p>
+                 <p className="text-slate-500 text-center italic mt-10">No image packs found in the assets folder.</p>
                )}
                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {Object.keys(AVAILABLE_PACKS).map(packName => (
@@ -395,7 +395,7 @@ const RulesModal = ({ onClose }) => {
           {tab === "gallery" && viewingPack && (
             <div className="flex flex-col animate-in slide-in-from-right-8 duration-200">
               <div className="flex items-center gap-4 mb-6">
-                <button onClick={() => setViewingPack(null)} className="p-2 bg-slate-800 hover:bg-slate-700 rounded-full text-zinc-400 transition-colors"><ArrowLeft size={20} /></button>
+                <button onClick={() => setViewingPack(null)} className="p-2 bg-slate-800 hover:bg-slate-700 rounded-full text-slate-400 transition-colors"><ArrowLeft size={20} /></button>
                 <div>
                   <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-widest">{viewingPack}</h3>
                   <p className="text-cyan-400 text-sm font-bold">{AVAILABLE_PACKS[viewingPack].length} Images</p>
@@ -415,7 +415,7 @@ const RulesModal = ({ onClose }) => {
 };
 
 const ScoreboardModal = ({ gameState, onClose }) => (
-  <div className="fixed inset-0 z-[200] bg-zinc-950/95 backdrop-blur-md flex items-center justify-center pt-16 sm:pt-20 pb-10 px-4">
+  <div className="fixed inset-0 z-[200] bg-slate-950/95 backdrop-blur-md flex items-center justify-center pt-16 sm:pt-20 pb-10 px-4">
     <div className="bg-slate-900 border border-fuchsia-900/50 w-full max-w-lg rounded-3xl shadow-2xl p-4 sm:p-6 relative flex flex-col max-h-full">
       <button onClick={onClose} className="absolute top-3 sm:top-4 right-3 sm:right-4 p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors z-10"><X className="w-5 h-5 sm:w-6 sm:h-6 text-white" /></button>
       <div className="shrink-0 mb-4 sm:mb-6">
@@ -470,7 +470,7 @@ const SplashScreen = ({ onStart }) => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
       {/* --- NEW: LOADING INDICATOR --- */}
       {/* This shows only while the image is NOT loaded yet */}
       {!isLoaded && (
@@ -897,13 +897,13 @@ export default function ReverieGame() {
         <div className="bg-fuchsia-900/10 p-6 sm:p-8 rounded-2xl border border-fuchsia-900/30 max-w-sm w-full">
           <Hammer className="w-12 h-12 sm:w-16 sm:h-16 text-fuchsia-500 mx-auto mb-4 animate-bounce" />
           <h1 className="text-2xl sm:text-3xl font-bold mb-2">The Dream is Paused</h1>
-          <p className="text-sm sm:text-base text-zinc-400">Maintenance is currently underway. Return soon.</p>
+          <p className="text-sm sm:text-base text-slate-400">Maintenance is currently underway. Return soon.</p>
         </div>
         <div className="h-8"></div>
         <a href={import.meta.env.BASE_URL}>
           <div className="flex items-center justify-center gap-3 mb-2">
             <div className="text-center pb-12 animate-pulse">
-              <div className="inline-flex items-center gap-2 sm:gap-3 px-6 py-3 sm:px-8 sm:py-4 bg-zinc-900/50 rounded-full border border-fuchsia-900/20 text-fuchsia-300 font-bold tracking-widest text-xs sm:text-sm uppercase backdrop-blur-sm"><StepBack size={16} /> Return to Gamehub <StepBack size={16} /></div>
+              <div className="inline-flex items-center gap-2 sm:gap-3 px-6 py-3 sm:px-8 sm:py-4 bg-slate-900/50 rounded-full border border-fuchsia-900/20 text-fuchsia-300 font-bold tracking-widest text-xs sm:text-sm uppercase backdrop-blur-sm"><StepBack size={16} /> Return to Gamehub <StepBack size={16} /></div>
             </div>
           </div>
         </a>
@@ -924,11 +924,11 @@ export default function ReverieGame() {
       return (
         <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
           <DarkAtmosphere />
-          <div className="bg-zinc-900/80 backdrop-blur p-8 rounded-2xl border border-zinc-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
+          <div className="bg-slate-900/80 backdrop-blur p-8 rounded-2xl border border-slate-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
             <Loader size={48} className="text-fuchsia-500 animate-spin" />
             <div className="text-center">
               <h2 className="text-xl font-bold">Reconnecting...</h2>
-              <p className="text-zinc-400 text-sm">Resuming your session</p>
+              <p className="text-slate-400 text-sm">Resuming your session</p>
             </div>
           </div>
         </div>
@@ -951,7 +951,7 @@ export default function ReverieGame() {
           <h1 className="text-5xl md:text-7xl font-thin text-transparent bg-clip-text bg-gradient-to-b from-fuchsia-400 to-indigo-600 tracking-tighter drop-shadow-md">REVERIE</h1>
           <p className="text-fuchsia-200/40 tracking-[0.3em] sm:tracking-[0.5em] uppercase mt-2 text-[10px] sm:text-xs">Dream. Describe. Deceive.</p>
         </div>
-        <div className="bg-zinc-900/80 backdrop-blur-md border border-fuchsia-900/30 p-6 sm:p-8 rounded-2xl w-full max-w-md shadow-2xl z-10 relative">
+        <div className="bg-slate-900/80 backdrop-blur-md border border-fuchsia-900/30 p-6 sm:p-8 rounded-2xl w-full max-w-md shadow-2xl z-10 relative">
           {error && <div className="bg-red-900/20 border border-red-500/50 text-red-200 p-3 mb-4 rounded text-center text-xs sm:text-sm font-bold flex items-center justify-center gap-2"><AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" /> {error}</div>}
           <div className="space-y-4">
             <input className="w-full bg-black/50 border border-fuchsia-900 focus:border-fuchsia-500 p-3 sm:p-4 rounded-xl text-white outline-none transition-all text-base sm:text-lg font-bold text-center" placeholder="YOUR NAME" value={playerName} onChange={(e) => setPlayerName(e.target.value)} maxLength={12} />
@@ -959,7 +959,7 @@ export default function ReverieGame() {
               <button onClick={createRoom} disabled={loading} className="bg-gradient-to-br from-fuchsia-600 to-indigo-800 hover:from-fuchsia-500 hover:to-indigo-700 p-3 sm:p-4 rounded-xl font-bold flex flex-col items-center justify-center gap-1 transition-all active:scale-95 shadow-lg shadow-fuchsia-900/50"><Sparkles className="w-5 h-5 sm:w-6 sm:h-6" /> <span className="text-sm sm:text-base">Create</span></button>
               <div className="flex flex-col gap-2">
                 <input className="bg-black/50 border border-fuchsia-900 focus:border-fuchsia-500 p-2 rounded-xl text-white text-center uppercase font-mono font-bold tracking-widest outline-none h-10 sm:h-12 text-sm sm:text-base" placeholder="CODE" value={roomCode} onChange={(e) => setRoomCode(e.target.value)} maxLength={6} />
-                <button onClick={joinRoom} disabled={loading} className="bg-zinc-800 hover:bg-zinc-700 p-2 rounded-xl font-bold text-zinc-300 transition-all active:scale-95 h-full text-sm sm:text-base">Join</button>
+                <button onClick={joinRoom} disabled={loading} className="bg-slate-800 hover:bg-slate-700 p-2 rounded-xl font-bold text-slate-300 transition-all active:scale-95 h-full text-sm sm:text-base">Join</button>
               </div>
             </div>
             <button onClick={() => setShowGuide(true)} className="w-full mt-4 text-fuchsia-500 hover:text-fuchsia-400 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-colors py-2"><BookOpen className="w-4 h-4 sm:w-5 sm:h-5" /> How to Play & Gallery</button>
@@ -979,14 +979,14 @@ export default function ReverieGame() {
         <DarkAtmosphere />
         <GameLogoBig />
         {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
-        <div className="z-10 w-full max-w-lg bg-zinc-900/90 backdrop-blur p-6 sm:p-8 rounded-2xl border border-fuchsia-900/30 shadow-2xl animate-in slide-in-from-bottom-8 mt-6">
-          <div className="flex justify-between items-center mb-6 sm:mb-8 border-b border-zinc-800 pb-4">
+        <div className="z-10 w-full max-w-lg bg-slate-900/90 backdrop-blur p-6 sm:p-8 rounded-2xl border border-fuchsia-900/30 shadow-2xl animate-in slide-in-from-bottom-8 mt-6">
+          <div className="flex justify-between items-center mb-6 sm:mb-8 border-b border-slate-800 pb-4">
             <div>
               <h2 className="text-base sm:text-xl flex items-center gap-2 text-fuchsia-500 font-bold uppercase"><Sparkles className="w-5 h-5 sm:w-6 sm:h-6" /> Dream Code:</h2>
               <div className="flex items-center gap-2 sm:gap-3 mt-1">
                 <div className="text-2xl sm:text-4xl font-mono text-white font-black">{roomId}</div>
                 <div className="relative">
-                  <button onClick={copyToClipboard} className="p-2 hover:bg-white/10 rounded-full transition-colors text-zinc-400 hover:text-white">{isCopied ? <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" /> : <Copy className="w-4 h-4 sm:w-5 sm:h-5" />}</button>
+                  <button onClick={copyToClipboard} className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white">{isCopied ? <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" /> : <Copy className="w-4 h-4 sm:w-5 sm:h-5" />}</button>
                   {isCopied && <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-fuchsia-500 text-white text-[10px] sm:text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">Copied!</div>}
                 </div>
               </div>
@@ -997,9 +997,9 @@ export default function ReverieGame() {
           </div>
 
           <div className="space-y-2 sm:space-y-3 mb-6 sm:mb-8">
-            <h3 className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Dreamers ({gameState.players.length}/6)</h3>
+            <h3 className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Dreamers ({gameState.players.length}/6)</h3>
             {gameState.players.map((p) => (
-              <div key={p.id} className="flex justify-between items-center bg-zinc-800 p-3 sm:p-4 rounded-xl border border-zinc-700">
+              <div key={p.id} className="flex justify-between items-center bg-slate-800 p-3 sm:p-4 rounded-xl border border-slate-700">
                 <span className="font-bold flex items-center gap-2 sm:gap-3 text-sm sm:text-lg">
                   <div className={`w-3 h-3 sm:w-4 sm:h-4 rounded-full ${PLAYER_COLORS[p.colorIdx].bg} shadow-lg`} /> {p.name} {p.id === gameState.hostId && <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />}
                 </span>
@@ -1008,11 +1008,11 @@ export default function ReverieGame() {
                 )}
               </div>
             ))}
-            {Array.from({ length: 6 - gameState.players.length }).map((_, i) => <div key={i} className="border-2 border-dashed border-zinc-800 rounded-xl p-3 sm:p-4 flex items-center justify-center text-zinc-600 font-bold uppercase text-xs sm:text-sm">Empty Slot</div>)}
+            {Array.from({ length: 6 - gameState.players.length }).map((_, i) => <div key={i} className="border-2 border-dashed border-slate-800 rounded-xl p-3 sm:p-4 flex items-center justify-center text-slate-600 font-bold uppercase text-xs sm:text-sm">Empty Slot</div>)}
           </div>
 
           {isHost && Object.keys(AVAILABLE_PACKS).length > 0 && (
-            <div className="mb-6 bg-zinc-800/50 p-4 rounded-xl border border-zinc-700">
+            <div className="mb-6 bg-slate-800/50 p-4 rounded-xl border border-slate-700">
               <h4 className="text-[10px] sm:text-xs font-bold text-fuchsia-400 uppercase tracking-widest mb-3 flex items-center gap-2"><ImageIcon className="w-4 h-4"/> Select Image Packs (1-3)</h4>
               <div className="flex flex-wrap gap-2">
                 {Object.keys(AVAILABLE_PACKS).map(packName => {
@@ -1021,7 +1021,7 @@ export default function ReverieGame() {
                      <button 
                        key={packName}
                        onClick={() => togglePack(packName)}
-                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${isSelected ? 'bg-fuchsia-600 border-fuchsia-400 text-white shadow-md' : 'bg-zinc-800 border-zinc-600 text-zinc-400 hover:border-zinc-400'}`}
+                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${isSelected ? 'bg-fuchsia-600 border-fuchsia-400 text-white shadow-md' : 'bg-slate-800 border-slate-600 text-slate-400 hover:border-slate-400'}`}
                      >
                        {packName} <span className="opacity-70 text-[10px]">({AVAILABLE_PACKS[packName].length})</span>
                      </button>
@@ -1036,16 +1036,16 @@ export default function ReverieGame() {
               <button onClick={startGame} disabled={!canStart} className="w-full flex justify-center items-center gap-2 px-6 py-3 sm:px-8 sm:py-4 rounded-xl font-bold text-base sm:text-lg shadow-lg transition-all bg-gradient-to-br from-fuchsia-600 to-indigo-800 text-white hover:from-fuchsia-500 hover:to-indigo-700 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100"><Sparkles className="w-5 h-5 sm:w-6 sm:h-6" /> Enter the Dream</button>
               {!canStart && <div className="text-center text-[10px] sm:text-xs font-bold text-fuchsia-500 uppercase tracking-wider mt-1">Requires 3 to 6 players to start</div>}
             </div>
-          ) : <div className="text-center text-zinc-500 text-xs sm:text-sm font-bold uppercase tracking-widest animate-pulse">Waiting for host...</div>}
+          ) : <div className="text-center text-slate-500 text-xs sm:text-sm font-bold uppercase tracking-widest animate-pulse">Waiting for host...</div>}
         </div>
 
         {showLeaveConfirm && (
           <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-zinc-900 border border-zinc-800 p-6 rounded-xl max-w-xs w-full text-center shadow-2xl">
+            <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl max-w-xs w-full text-center shadow-2xl">
               <h3 className="text-lg sm:text-xl font-bold text-white mb-2 uppercase">Leave Dream?</h3>
-              <p className="text-zinc-400 mb-6 text-xs sm:text-sm">{gameState.hostId === user.uid ? "As Host, leaving awakes everyone." : "You will disconnect from this session."}</p>
+              <p className="text-slate-400 mb-6 text-xs sm:text-sm">{gameState.hostId === user.uid ? "As Host, leaving awakes everyone." : "You will disconnect from this session."}</p>
               <div className="flex gap-2">
-                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-zinc-800 hover:bg-zinc-700 py-2 rounded font-bold text-zinc-300 text-sm sm:text-base">Stay</button>
+                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-slate-800 hover:bg-slate-700 py-2 rounded font-bold text-slate-300 text-sm sm:text-base">Stay</button>
                 <button onClick={handleLeave} className="flex-1 bg-rose-700 hover:bg-rose-600 py-2 rounded font-bold text-white text-sm sm:text-base">Leave</button>
               </div>
             </div>
@@ -1080,14 +1080,14 @@ export default function ReverieGame() {
 
         {showLeaveConfirm && (
           <div className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-zinc-900 border border-zinc-700 p-6 rounded-xl max-w-xs w-full text-center shadow-2xl">
+            <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl max-w-xs w-full text-center shadow-2xl">
               <h3 className="text-lg sm:text-xl font-bold text-white mb-2 uppercase">Abandon Game?</h3>
-              <p className="text-zinc-400 mb-6 text-xs sm:text-sm">{gameState.hostId === user.uid ? "Leaving deletes the game for everyone." : "You will leave this ongoing game."}</p>
+              <p className="text-slate-400 mb-6 text-xs sm:text-sm">{gameState.hostId === user.uid ? "Leaving deletes the game for everyone." : "You will leave this ongoing game."}</p>
               <div className="flex gap-2">
-                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-zinc-800 hover:bg-zinc-700 py-2 rounded font-bold text-zinc-300 text-sm sm:text-base">Stay</button>
+                <button onClick={() => setShowLeaveConfirm(false)} className="flex-1 bg-slate-800 hover:bg-slate-700 py-2 rounded font-bold text-slate-300 text-sm sm:text-base">Stay</button>
                 <button onClick={handleLeave} className="flex-1 bg-rose-700 hover:bg-rose-600 py-2 rounded font-bold text-white text-sm sm:text-base">Leave</button>
               </div>
-              {gameState.hostId === user.uid && <button onClick={() => { returnToLobby(); setShowLeaveConfirm(false); }} className="w-full bg-zinc-800 hover:bg-zinc-700 py-2 rounded font-bold text-rose-500 mt-2 text-xs sm:text-sm border border-zinc-700 transition-colors">Return All to Lobby</button>}
+              {gameState.hostId === user.uid && <button onClick={() => { returnToLobby(); setShowLeaveConfirm(false); }} className="w-full bg-slate-800 hover:bg-slate-700 py-2 rounded font-bold text-rose-500 mt-2 text-xs sm:text-sm border border-slate-700 transition-colors">Return All to Lobby</button>}
             </div>
           </div>
         )}
@@ -1097,7 +1097,7 @@ export default function ReverieGame() {
         {showScoreboard && <ScoreboardModal gameState={gameState} onClose={() => setShowScoreboard(false)} />}
 
         {/* TOP BAR */}
-        <div className="h-14 sm:h-16 bg-zinc-900 border-b border-fuchsia-900/50 flex items-center justify-between px-2 z-[160] shrink-0 shadow-lg relative">
+        <div className="h-14 sm:h-16 bg-slate-900 border-b border-fuchsia-900/50 flex items-center justify-between px-2 z-[160] shrink-0 shadow-lg relative">
           <div className="absolute inset-0 bg-fuchsia-900/10 pointer-events-none" />
           <div className="flex items-center gap-3 sm:gap-4 relative z-10">
             <div className="w-8 h-8 sm:w-10 sm:h-10 bg-fuchsia-900/50 rounded-lg flex items-center justify-center border border-fuchsia-700 ml-1 sm:ml-2 shadow-[0_0_10px_rgba(217,70,239,0.3)]"><Sparkles className="text-fuchsia-400 w-4 h-4 sm:w-5 sm:h-5" /></div>
@@ -1105,25 +1105,25 @@ export default function ReverieGame() {
               <div className="font-bold text-xs sm:text-sm tracking-wider text-fuchsia-100">REVERIE</div>
               <div className="text-[8px] sm:text-[10px] font-mono uppercase">
                 {gameState.status === "finished" ? <span className="text-rose-400">GAME OVER</span> : 
-                 <><span className="text-zinc-400 hidden sm:inline">Storyteller:</span> <span className="text-fuchsia-400">{gameState.players.find(p=>p.id===gameState.storytellerId)?.name}</span></>}
+                 <><span className="text-slate-400 hidden sm:inline">Storyteller:</span> <span className="text-fuchsia-400">{gameState.players.find(p=>p.id===gameState.storytellerId)?.name}</span></>}
               </div>
             </div>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 relative z-10">
-            <button onClick={() => setShowScoreboard(true)} className="p-1.5 sm:p-2 hover:bg-zinc-800 rounded text-yellow-500 hover:text-white"><BarChart2 className="w-4 h-4 sm:w-5 sm:h-5" /></button>
-            <button onClick={() => setShowGuide(true)} className="p-1.5 sm:p-2 hover:bg-zinc-800 rounded text-zinc-400 hover:text-white"><BookOpen className="w-4 h-4 sm:w-5 sm:h-5" /></button>
-            <button onClick={() => setShowLogs(!showLogs)} className={`p-1.5 sm:p-2 rounded-full ${showLogs ? "bg-fuchsia-900 text-fuchsia-400" : "text-zinc-400 hover:bg-zinc-800"}`}><History className="w-4 h-4 sm:w-5 sm:h-5" /></button>
+            <button onClick={() => setShowScoreboard(true)} className="p-1.5 sm:p-2 hover:bg-slate-800 rounded text-yellow-500 hover:text-white"><BarChart2 className="w-4 h-4 sm:w-5 sm:h-5" /></button>
+            <button onClick={() => setShowGuide(true)} className="p-1.5 sm:p-2 hover:bg-slate-800 rounded text-slate-400 hover:text-white"><BookOpen className="w-4 h-4 sm:w-5 sm:h-5" /></button>
+            <button onClick={() => setShowLogs(!showLogs)} className={`p-1.5 sm:p-2 rounded-full ${showLogs ? "bg-fuchsia-900 text-fuchsia-400" : "text-slate-400 hover:bg-slate-800"}`}><History className="w-4 h-4 sm:w-5 sm:h-5" /></button>
             <button onClick={() => setShowLeaveConfirm(true)} className="p-1.5 sm:p-2 hover:bg-rose-900/30 rounded text-rose-500"><LogOut className="w-4 h-4 sm:w-5 sm:h-5" /></button>
           </div>
         </div>
 
         {/* LOGS OVERLAY */}
         {showLogs && (
-          <div className="fixed top-14 sm:top-16 right-2 sm:right-4 w-56 sm:w-64 max-h-56 sm:max-h-60 bg-zinc-900/95 border border-zinc-700 rounded-xl z-[155] overflow-y-auto p-2 shadow-2xl custom-scrollbar">
-            <h4 className="text-[10px] sm:text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 sticky top-0 bg-zinc-900/95 py-1 sm:py-2">World History</h4>
+          <div className="fixed top-14 sm:top-16 right-2 sm:right-4 w-56 sm:w-64 max-h-56 sm:max-h-60 bg-slate-900/95 border border-slate-700 rounded-xl z-[155] overflow-y-auto p-2 shadow-2xl custom-scrollbar">
+            <h4 className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 sticky top-0 bg-slate-900/95 py-1 sm:py-2">World History</h4>
             <div className="space-y-2">
               {gameState.logs.slice().reverse().map((log) => (
-                <div key={log.id} className={`text-[10px] sm:text-xs p-2 rounded border-l-2 ${log.type === "success" ? "border-emerald-500 bg-emerald-900/10 text-emerald-200" : log.type === "warning" ? "border-amber-500 bg-amber-900/10 text-amber-200" : log.type === "failure" ? "border-rose-500 bg-rose-900/10 text-rose-200" : "border-fuchsia-500 bg-zinc-800/30 text-zinc-300"}`}>
+                <div key={log.id} className={`text-[10px] sm:text-xs p-2 rounded border-l-2 ${log.type === "success" ? "border-emerald-500 bg-emerald-900/10 text-emerald-200" : log.type === "warning" ? "border-amber-500 bg-amber-900/10 text-amber-200" : log.type === "failure" ? "border-rose-500 bg-rose-900/10 text-rose-200" : "border-fuchsia-500 bg-slate-800/30 text-slate-300"}`}>
                   {log.text}
                 </div>
               ))}
@@ -1138,7 +1138,7 @@ export default function ReverieGame() {
           {gameState.turnPhase !== "ROUND_END" && (
               <div className="w-full flex justify-center mb-4 sm:mb-6 px-2 sm:px-4">
                  {gameState.turnPhase === "STORYTELLER_CLUE" ? (
-                    <div className="text-center animate-pulse text-zinc-400 uppercase tracking-widest font-bold border border-zinc-800 bg-zinc-900/50 py-2 px-4 sm:px-6 rounded-full shadow-lg text-[10px] sm:text-xs">
+                    <div className="text-center animate-pulse text-slate-400 uppercase tracking-widest font-bold border border-slate-800 bg-slate-900/50 py-2 px-4 sm:px-6 rounded-full shadow-lg text-[10px] sm:text-xs">
                        {isStoryteller ? "Select a card and enter a clue" : "Waiting for the Storyteller's Clue..."}
                     </div>
                  ) : (
@@ -1160,7 +1160,7 @@ export default function ReverieGame() {
                        <DreamCard key={idx} isFaceDown size="lg" />
                     ))}
                     {Array.from({length: gameState.players.length - gameState.table.length}).map((_, idx) => (
-                       <div key={`empty-${idx}`} className="w-24 h-36 sm:w-40 sm:h-60 rounded-xl border-2 sm:border-4 border-dashed border-zinc-800/50 flex flex-col items-center justify-center text-zinc-700 font-bold uppercase tracking-widest text-[10px] sm:text-xs">
+                       <div key={`empty-${idx}`} className="w-24 h-36 sm:w-40 sm:h-60 rounded-xl border-2 sm:border-4 border-dashed border-slate-800/50 flex flex-col items-center justify-center text-slate-700 font-bold uppercase tracking-widest text-[10px] sm:text-xs">
                           Waiting
                        </div>
                     ))}
@@ -1246,7 +1246,7 @@ export default function ReverieGame() {
 
                  {/* The Decoys */}
                  <div className="w-full flex flex-col items-center border-t border-white/10 pt-8">
-                     <span className="text-zinc-500 font-bold uppercase tracking-widest text-xs sm:text-sm mb-6">The Illusions</span>
+                     <span className="text-slate-500 font-bold uppercase tracking-widest text-xs sm:text-sm mb-6">The Illusions</span>
                      <div className="flex flex-wrap justify-center gap-6 sm:gap-10">
                          {gameState.table.filter(e => e.playerId !== gameState.storytellerId).map((entry, idx) => {
                              const ownerColor = PLAYER_COLORS[gameState.players.find(p=>p.id===entry.playerId).colorIdx];
@@ -1261,8 +1261,8 @@ export default function ReverieGame() {
                                       onPressEnd={handleLongPressEnd}
                                       onPressCancel={handleScrollCancel} 
                                    />
-                                   <div className="flex flex-col items-center bg-zinc-900/80 px-4 py-2 rounded-xl border border-zinc-700 min-w-[120px] text-center">
-                                       <span className="text-[10px] text-zinc-500 uppercase font-bold mb-0.5">Played By</span>
+                                   <div className="flex flex-col items-center bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-700 min-w-[120px] text-center">
+                                       <span className="text-[10px] text-slate-500 uppercase font-bold mb-0.5">Played By</span>
                                        <span className={`text-xs font-black uppercase tracking-widest truncate w-full ${ownerColor.text}`}>{gameState.players.find(p=>p.id===entry.playerId).name}</span>
                                    </div>
                                </div>
@@ -1282,7 +1282,7 @@ export default function ReverieGame() {
                         Start Next Round
                     </button>
                  ) : (
-                    <div className="text-center text-zinc-500 text-xs sm:text-sm font-bold uppercase tracking-widest py-4 border border-zinc-800 rounded-xl bg-black/50 w-full max-w-sm">
+                    <div className="text-center text-slate-500 text-xs sm:text-sm font-bold uppercase tracking-widest py-4 border border-slate-800 rounded-xl bg-black/50 w-full max-w-sm">
                         Waiting for Host...
                     </div>
                  )}
@@ -1292,11 +1292,11 @@ export default function ReverieGame() {
 
         {/* BOTTOM UI CONTROLS (My Hand & Actions) */}
         {gameState.turnPhase !== "ROUND_END" && (
-          <div className="absolute bottom-0 left-0 right-0 bg-zinc-900/95 border-t-2 border-fuchsia-900/50 backdrop-blur-xl flex flex-col z-[60] shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+          <div className="absolute bottom-0 left-0 right-0 bg-slate-900/95 border-t-2 border-fuchsia-900/50 backdrop-blur-xl flex flex-col z-[60] shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
             {/* Status Bar */}
             <div className="flex justify-between items-center px-2 sm:px-4 py-1.5 sm:py-2 border-b border-white/5 bg-black/20 shrink-0">
               <div className="flex items-center gap-2">
-                <span className={`text-[9px] sm:text-[11px] font-black uppercase tracking-widest ${gameState.turnPhase !== "ROUND_END" ? "text-fuchsia-400 animate-pulse" : "text-zinc-500"}`}>
+                <span className={`text-[9px] sm:text-[11px] font-black uppercase tracking-widest ${gameState.turnPhase !== "ROUND_END" ? "text-fuchsia-400 animate-pulse" : "text-slate-500"}`}>
                   {gameState.turnPhase === "STORYTELLER_CLUE" ? (isStoryteller ? "Select card & enter clue" : "Waiting for Storyteller") : 
                    gameState.turnPhase === "PLAY_CARDS" ? (me.hasPlayed ? "Waiting for others" : "Select card to match clue") : 
                    gameState.turnPhase === "VOTING" ? (isStoryteller ? "Waiting for votes" : (me.hasVoted ? "Waiting for others to vote" : "Vote for Storyteller's card")) : 
@@ -1355,7 +1355,7 @@ export default function ReverieGame() {
                           <button 
                               onClick={submitClue} 
                               disabled={selectedCardIdx === null || clueInput.trim() === ""}
-                              className="w-full bg-fuchsia-600 hover:bg-fuchsia-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-black py-2.5 sm:py-3 rounded-xl uppercase tracking-widest shadow-lg transition-all text-xs sm:text-sm"
+                              className="w-full bg-fuchsia-600 hover:bg-fuchsia-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-black py-2.5 sm:py-3 rounded-xl uppercase tracking-widest shadow-lg transition-all text-xs sm:text-sm"
                           >
                               Give Clue
                           </button>
@@ -1367,7 +1367,7 @@ export default function ReverieGame() {
                       <button 
                           onClick={playCard} 
                           disabled={selectedCardIdx === null}
-                          className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-black py-3 sm:py-4 rounded-xl uppercase tracking-widest shadow-lg transition-all animate-bounce text-xs sm:text-sm"
+                          className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-black py-3 sm:py-4 rounded-xl uppercase tracking-widest shadow-lg transition-all animate-bounce text-xs sm:text-sm"
                       >
                           Play Card
                       </button>
@@ -1378,7 +1378,7 @@ export default function ReverieGame() {
                       <button 
                           onClick={() => submitVote()} 
                           disabled={selectedTableIdx === null}
-                          className="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-zinc-800 disabled:text-zinc-600 text-white font-black py-3 sm:py-4 rounded-xl uppercase tracking-widest shadow-lg transition-all animate-bounce text-xs sm:text-sm"
+                          className="w-full bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-800 disabled:text-slate-600 text-white font-black py-3 sm:py-4 rounded-xl uppercase tracking-widest shadow-lg transition-all animate-bounce text-xs sm:text-sm"
                       >
                           Confirm Vote
                       </button>
@@ -1388,7 +1388,7 @@ export default function ReverieGame() {
                   {((gameState.turnPhase === "STORYTELLER_CLUE" && !isStoryteller) || 
                     (gameState.turnPhase === "PLAY_CARDS" && (isStoryteller || me.hasPlayed)) || 
                     (gameState.turnPhase === "VOTING" && (isStoryteller || me.hasVoted))) && (
-                      <div className="text-center text-zinc-500 text-[10px] sm:text-xs font-bold uppercase tracking-widest py-3 sm:py-4 border border-zinc-800 rounded-xl bg-black/20 w-full">
+                      <div className="text-center text-slate-500 text-[10px] sm:text-xs font-bold uppercase tracking-widest py-3 sm:py-4 border border-slate-800 rounded-xl bg-black/20 w-full">
                           View Gallery Above
                       </div>
                   )}
@@ -1401,7 +1401,7 @@ export default function ReverieGame() {
         {/* END GAME MODAL */}
         {gameState.status === "finished" && (
           <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center backdrop-blur-md pt-16 sm:pt-20 pb-10 px-4">
-            <div className="bg-zinc-900 p-6 md:p-8 rounded-3xl border-2 border-fuchsia-500 text-center shadow-[0_0_50px_rgba(217,70,239,0.4)] animate-in zoom-in max-w-lg w-full flex flex-col relative max-h-[90vh]">
+            <div className="bg-slate-900 p-6 md:p-8 rounded-3xl border-2 border-fuchsia-500 text-center shadow-[0_0_50px_rgba(217,70,239,0.4)] animate-in zoom-in max-w-lg w-full flex flex-col relative max-h-[90vh]">
               <div className="shrink-0 mb-4 sm:mb-6">
                 <Crown className="w-16 h-16 sm:w-20 sm:h-20 text-yellow-500 mx-auto mb-2 sm:mb-4 animate-bounce" />
                 <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white uppercase mb-1 sm:mb-2 leading-tight drop-shadow-lg truncate px-2">
@@ -1412,7 +1412,7 @@ export default function ReverieGame() {
               
               <div className="space-y-2 mb-4 sm:mb-6 overflow-y-auto custom-scrollbar flex-1">
                  {gameState.players.slice().sort((a,b)=>b.score - a.score).map((p, i) => (
-                    <div key={p.id} className={`flex justify-between items-center px-3 sm:px-4 py-2 rounded-lg border ${i===0 ? "bg-amber-500/20 border-amber-500/50" : "bg-zinc-800 border-zinc-700"}`}>
+                    <div key={p.id} className={`flex justify-between items-center px-3 sm:px-4 py-2 rounded-lg border ${i===0 ? "bg-amber-500/20 border-amber-500/50" : "bg-slate-800 border-slate-700"}`}>
                         <span className="font-bold text-white text-sm sm:text-base truncate mr-2">{i+1}. {p.name}</span>
                         <span className="font-black text-yellow-400 text-sm sm:text-base shrink-0">{p.score} pt</span>
                     </div>
@@ -1425,7 +1425,7 @@ export default function ReverieGame() {
                 </div>
               ) : (
                 <div className="shrink-0 pt-2">
-                  <button disabled className="bg-zinc-800 px-4 sm:px-6 py-3 sm:py-4 rounded-xl font-black w-full text-zinc-600 uppercase tracking-widest text-xs sm:text-sm">Waiting for Host...</button>
+                  <button disabled className="bg-slate-800 px-4 sm:px-6 py-3 sm:py-4 rounded-xl font-black w-full text-slate-600 uppercase tracking-widest text-xs sm:text-sm">Waiting for Host...</button>
                 </div>
               )}
             </div>

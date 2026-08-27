@@ -131,6 +131,52 @@ const PLAYER_THEMES = [
 
 // --- Sub-Components (Strict DNA adherence) ---
 
+const DarkAtmosphere = React.memo(() => (
+  <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    {/* Clean, deep gradient background (No hazy overlays) */}
+    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
+    
+    {/* Crisp Particles */}
+    {[...Array(25)].map((_, i) => {
+      // Calculate individual random drifts using CSS variables
+      const driftX = `${Math.random() * 40 - 20}px`;
+      
+      return (
+        <div
+          key={i}
+          className="absolute rounded-full animate-float"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            width: `${Math.random() * 4 + 1}px`,
+            height: `${Math.random() * 4 + 1}px`,
+            backgroundColor: Math.random() > 0.5 ? "#2c4dae" : "#3431bd",
+            animationDuration: `${10 + Math.random() * 20}s`,
+            animationDelay: `${Math.random() * -20}s`,
+            boxShadow: "0 0 12px 2px rgba(89, 62, 224, 0.8)", // Brighter glow
+            "--driftX": driftX, // Passes individual random drift to CSS
+          }}
+        />
+      );
+    })}
+    <style>{`
+      @keyframes float { 
+        0%, 100% { 
+          transform: translate(0, 0) scale(1); 
+          opacity: 0.2; 
+        } 
+        50% { 
+          transform: translate(var(--driftX), -60px) scale(1.5); 
+          opacity: 1; /* Shines at full brightness */
+        } 
+      } 
+      .animate-float { 
+        animation: float infinite ease-in-out; 
+      }
+    `}</style>
+  </div>
+));
+
 const FloatingBackground = React.memo(() => {
   // useMemo ensures these random positions are calculated ONLY ONCE
   // This keeps the performance high and stops icons from resetting.
@@ -207,9 +253,9 @@ const LeaveConfirmModal = ({
   inGame,
 }) => (
   <div className="fixed inset-0 bg-black/90 z-200 flex items-center justify-center p-4 animate-in fade-in">
-    <div className="bg-zinc-900 rounded-xl border border-zinc-700 p-6 max-w-sm w-full text-center shadow-2xl">
+    <div className="bg-slate-900 rounded-xl border border-slate-700 p-6 max-w-sm w-full text-center shadow-2xl">
       <h3 className="text-xl font-bold text-white mb-2">Abandon the Haunt?</h3>
-      <p className="text-zinc-400 mb-6 text-sm">
+      <p className="text-slate-400 mb-6 text-sm">
         {inGame
           ? "Leaving now will forfeit your soul (and the game)."
           : "Leaving the lobby will disconnect you."}
@@ -217,7 +263,7 @@ const LeaveConfirmModal = ({
       <div className="flex flex-col gap-3">
         <button
           onClick={onCancel}
-          className="bg-zinc-700 hover:bg-zinc-600 text-white py-3 rounded font-bold transition-colors"
+          className="bg-slate-700 hover:bg-slate-600 text-white py-3 rounded font-bold transition-colors"
         >
           Stay
         </button>
@@ -242,16 +288,16 @@ const LeaveConfirmModal = ({
 
 const LogViewer = ({ logs, onClose }) => (
   <div className="fixed top-16 right-4 w-64 max-h-60 bg-gray-900/95 border border-gray-700 rounded-xl z-155 overflow-y-auto p-2 shadow-2xl">
-    <div className="bg-zinc-900 w-full md:max-w-md h-full md:h-[70vh] rounded-none md:rounded-xl flex flex-col border-none md:border border-zinc-700 shadow-2xl">
-      <div className="p-4 border-b border-zinc-800 flex justify-between items-center bg-zinc-950">
+    <div className="bg-slate-900 w-full md:max-w-md h-full md:h-[70vh] rounded-none md:rounded-xl flex flex-col border-none md:border border-slate-700 shadow-2xl">
+      <div className="p-4 border-b border-slate-800 flex justify-between items-center bg-slate-950">
         <h3 className="text-white font-bold text-lg flex items-center gap-2">
           <History size={18} className="text-indigo-400" /> Séance Logs
         </h3>
         <button
           onClick={onClose}
-          className="p-2 bg-zinc-800 rounded-full hover:bg-zinc-700"
+          className="p-2 bg-slate-800 rounded-full hover:bg-slate-700"
         >
-          <X className="text-zinc-400" />
+          <X className="text-slate-400" />
         </button>
       </div>
       <div className="flex-1 overflow-y-auto p-4 space-y-2">
@@ -265,7 +311,7 @@ const LogViewer = ({ logs, onClose }) => (
                   ? "bg-green-900/10 border-green-500 text-green-300"
                   : log.type === "warning"
                     ? "bg-indigo-900/10 border-indigo-500 text-indigo-300"
-                    : "bg-zinc-800/50 border-zinc-600 text-zinc-400"
+                    : "bg-slate-800/50 border-slate-600 text-slate-400"
             }`}
           >
             <span className="opacity-50 mr-2 font-mono">
@@ -286,22 +332,22 @@ const LogViewer = ({ logs, onClose }) => (
 );
 
 const RulesModal = ({ onClose }) => (
-  <div className="fixed inset-0 bg-black/95 z-100 flex items-center justify-center p-0 md:p-4 animate-in fade-in">
-    <div className="bg-zinc-900 md:rounded-2xl w-full max-w-4xl h-full md:h-auto md:max-h-[90vh] overflow-hidden border-none md:border border-indigo-500/30 flex flex-col">
-      <div className="p-6 border-b border-zinc-800 flex justify-between items-center bg-zinc-950">
+  <div className="fixed inset-0 py-12 bg-black/95 z-100 flex items-center justify-center p-0 md:p-4 animate-in fade-in">
+    <div className="bg-slate-900 md:rounded-2xl w-full max-w-4xl h-full md:h-auto md:max-h-[90vh] overflow-hidden border-none md:border border-indigo-500/30 flex flex-col">
+      <div className="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-950">
         <h2 className="text-2xl font-bold text-white flex items-center gap-2 tracking-wider">
           <BookOpen className="text-indigo-400" /> The Grimoire
         </h2>
         <button
           onClick={onClose}
-          className="p-2 hover:bg-zinc-800 rounded-full text-zinc-400"
+          className="p-2 hover:bg-slate-800 rounded-full text-slate-400"
         >
           <X />
         </button>
       </div>
-      <div className="p-6 overflow-y-auto text-zinc-300 space-y-6">
+      <div className="p-6 overflow-y-auto text-slate-300 space-y-6">
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700">
+          <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
             <h3 className="text-xl font-bold text-indigo-400 mb-2">
               The Basics
             </h3>
@@ -319,7 +365,7 @@ const RulesModal = ({ onClose }) => (
               </li>
             </ul>
           </div>
-          <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700">
+          <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
             <h3 className="text-xl font-bold text-white mb-2">
               Bidding & Challenging
             </h3>
@@ -355,9 +401,9 @@ const FeedbackOverlay = ({ data, currentUserId, onClose }) => {
   const isWinner = currentUserId === data.winnerId;
 
   // Determine styling based on result relative to the viewer
-  let bgClass = "bg-zinc-800/95 border-zinc-500 text-white"; // Spectator
+  let bgClass = "bg-slate-800/95 border-slate-500 text-white"; // Spectator
   let animClass = "animate-in fade-in zoom-in slide-in-from-bottom-10";
-  let btnClass = "bg-zinc-700 hover:bg-zinc-600 text-white border-zinc-500"; // Default button
+  let btnClass = "bg-slate-700 hover:bg-slate-600 text-white border-slate-500"; // Default button
 
   if (isWinner) {
     bgClass =
@@ -481,7 +527,7 @@ const GameOverScreen = ({ winnerName, onReturnToLobby, isHost }) => (
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-2xl text-zinc-400 font-serif tracking-widest uppercase">
+        <h2 className="text-2xl text-slate-400 font-serif tracking-widest uppercase">
           The Deadliest Ghost
         </h2>
         <h1 className="text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-linear-to-b from-yellow-300 to-yellow-600 drop-shadow-2xl">
@@ -493,7 +539,7 @@ const GameOverScreen = ({ winnerName, onReturnToLobby, isHost }) => (
         {isHost ? (
           <button
             onClick={onReturnToLobby}
-            className="group relative px-8 py-4 bg-zinc-100 text-black font-black text-xl rounded-full hover:bg-white hover:scale-105 transition-all shadow-[0_0_30px_rgba(255,255,255,0.3)]"
+            className="group relative px-8 py-4 bg-slate-100 text-black font-black text-xl rounded-full hover:bg-white hover:scale-105 transition-all shadow-[0_0_30px_rgba(255,255,255,0.3)]"
           >
             <span className="flex items-center gap-3">
               <RotateCcw className="group-hover:-rotate-180 transition-transform duration-500" />
@@ -501,7 +547,7 @@ const GameOverScreen = ({ winnerName, onReturnToLobby, isHost }) => (
             </span>
           </button>
         ) : (
-          <div className="text-zinc-500 animate-pulse font-mono">
+          <div className="text-slate-500 animate-pulse font-mono">
             Waiting for Host to reset...
           </div>
         )}
@@ -540,7 +586,7 @@ const SplashScreen = ({ onStart }) => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
       {/* --- NEW: LOADING INDICATOR --- */}
       {/* This shows only while the image is NOT loaded yet */}
       {!isLoaded && (
@@ -1194,7 +1240,7 @@ export default function GhostDiceGame() {
 
   if (isMaintenance) {
     return (
-      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center text-white p-4 text-center">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4 text-center">
         <GhostLogoBig />
         <div className="bg-orange-500/10 p-8 rounded-2xl border border-orange-500/30">
           <Hammer
@@ -1226,7 +1272,7 @@ export default function GhostDiceGame() {
 
   if (!user)
     return (
-      <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-indigo-500 animate-pulse">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-indigo-500 animate-pulse">
         Summoning souls...
       </div>
     );
@@ -1234,13 +1280,13 @@ export default function GhostDiceGame() {
   // RECONNECTING STATE
   if (roomId && !gameState && !error) {
     return (
-      <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center text-white p-4">
-        <FloatingBackground />
-        <div className="bg-zinc-900/80 backdrop-blur p-8 rounded-2xl border border-zinc-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
+        <DarkAtmosphere />
+        <div className="bg-slate-900/80 backdrop-blur p-8 rounded-2xl border border-slate-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
           <Loader size={48} className="text-indigo-500 animate-spin" />
           <div className="text-center">
             <h2 className="text-xl font-bold">Reconnecting...</h2>
-            <p className="text-zinc-400 text-sm">Resuming your session</p>
+            <p className="text-slate-400 text-sm">Resuming your session</p>
           </div>
         </div>
       </div>
@@ -1254,8 +1300,8 @@ export default function GhostDiceGame() {
 
   if (view === "menu") {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
-        <FloatingBackground />
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
+        <DarkAtmosphere />
         {/* --- START OF BACK BUTTON --- */}
         <nav className="absolute top-0 left-0 w-full p-4 z-50">
           <a
@@ -1275,7 +1321,7 @@ export default function GhostDiceGame() {
             size={64}
             className="text-indigo-400 mx-auto mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(129,140,248,0.5)]"
           />
-          <h1 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-linear-to-b from-indigo-300 to-zinc-500 font-serif tracking-widest drop-shadow-md">
+          <h1 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-linear-to-b from-indigo-300 to-slate-500 font-serif tracking-widest drop-shadow-md">
             GHOST DICE
           </h1>
           <p className="text-white-400/60 tracking-[0.3em] uppercase mt-2">
@@ -1283,7 +1329,7 @@ export default function GhostDiceGame() {
           </p>
         </div>
 
-        <div className="bg-zinc-900/80 backdrop-blur border border-indigo-500/30 p-8 rounded-2xl w-full max-w-md shadow-2xl z-10 animate-in slide-in-from-bottom-10 duration-700 delay-100">
+        <div className="bg-slate-900/80 backdrop-blur border border-indigo-500/30 p-8 rounded-2xl w-full max-w-md shadow-2xl z-10 animate-in slide-in-from-bottom-10 duration-700 delay-100">
           {error && (
             <div className="bg-red-900/50 text-red-200 p-2 mb-4 rounded text-center text-sm border border-red-800">
               {error}
@@ -1291,7 +1337,7 @@ export default function GhostDiceGame() {
           )}
 
           <input
-            className="w-full bg-black/50 border border-zinc-600 p-3 rounded mb-4 text-white placeholder-zinc-500 focus:border-indigo-500 outline-none transition-colors"
+            className="w-full bg-black/50 border border-slate-600 p-3 rounded mb-4 text-white placeholder-slate-500 focus:border-indigo-500 outline-none transition-colors"
             placeholder="Soul Name"
             value={playerName}
             onChange={(e) => setPlayerName(e.target.value)}
@@ -1300,14 +1346,14 @@ export default function GhostDiceGame() {
           <button
             onClick={createRoom}
             disabled={loading}
-            className="w-full bg-linear-to-r from-indigo-700 to-zinc-600 hover:from-indigo-600 hover:to-zinc-500 p-4 rounded font-bold mb-4 flex items-center justify-center gap-2 border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.2)] transition-all"
+            className="w-full bg-linear-to-r from-indigo-700 to-slate-600 hover:from-indigo-600 hover:to-slate-500 p-4 rounded font-bold mb-4 flex items-center justify-center gap-2 border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.2)] transition-all"
           >
             <Crown size={20} /> Host Séance
           </button>
 
           <div className="flex flex-col sm:flex-row gap-2 mb-4">
             <input
-              className="w-full sm:flex-1 bg-black/50 border border-zinc-600 p-3 rounded text-white placeholder-zinc-500 uppercase font-mono tracking-wider focus:border-indigo-500 outline-none"
+              className="w-full sm:flex-1 bg-black/50 border border-slate-600 p-3 rounded text-white placeholder-slate-500 uppercase font-mono tracking-wider focus:border-indigo-500 outline-none"
               placeholder="CODE"
               value={roomCodeInput}
               onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
@@ -1315,7 +1361,7 @@ export default function GhostDiceGame() {
             <button
               onClick={joinRoom}
               disabled={loading}
-              className="w-full sm:w-auto bg-zinc-800 hover:bg-zinc-700 border border-zinc-600 px-6 py-3 rounded font-bold transition-colors"
+              className="w-full sm:w-auto bg-slate-800 hover:bg-slate-700 border border-slate-600 px-6 py-3 rounded font-bold transition-colors"
             >
               Join
             </button>
@@ -1323,7 +1369,7 @@ export default function GhostDiceGame() {
 
           <button
             onClick={() => setShowRules(true)}
-            className="w-full text-sm text-zinc-400 hover:text-white flex items-center justify-center gap-2 py-2"
+            className="w-full text-sm text-slate-400 hover:text-white flex items-center justify-center gap-2 py-2"
           >
             <BookOpen size={16} /> The Grimoire
           </button>
@@ -1335,8 +1381,8 @@ export default function GhostDiceGame() {
   if (view === "lobby" && gameState) {
     const isHost = gameState.hostId === user.uid;
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex flex-col items-center justify-center p-6 relative">
-        <FloatingBackground />
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative">
+        <DarkAtmosphere />
         <GhostLogoBig />
         {showLeaveConfirm && (
           <LeaveConfirmModal
@@ -1347,8 +1393,8 @@ export default function GhostDiceGame() {
           />
         )}
 
-        <div className="z-10 w-full max-w-lg bg-zinc-900/90 backdrop-blur p-8 rounded-2xl border border-indigo-900/50 shadow-2xl mb-4">
-          <div className="flex justify-between items-center mb-8 border-b border-zinc-700 pb-4">
+        <div className="z-10 w-full max-w-lg bg-slate-900/90 backdrop-blur p-8 rounded-2xl border border-indigo-900/50 shadow-2xl mb-4">
+          <div className="flex justify-between items-center mb-8 border-b border-slate-700 pb-4">
             {/* Grouping Title and Copy Button together on the left */}
             <div>
               <h2 className="text-lg md:text-xl text-indigo-400 font-bold uppercase">
@@ -1392,8 +1438,8 @@ export default function GhostDiceGame() {
             </button>
           </div>
 
-          <div className="bg-black/20 rounded-xl p-4 mb-8 border border-zinc-800">
-            <h3 className="text-zinc-500 text-xs uppercase tracking-wider mb-4 flex justify-between">
+          <div className="bg-black/20 rounded-xl p-4 mb-8 border border-slate-800">
+            <h3 className="text-slate-500 text-xs uppercase tracking-wider mb-4 flex justify-between">
               <span>Souls ({gameState.players.length})</span>
             </h3>
             <div className="space-y-2">
@@ -1420,7 +1466,7 @@ export default function GhostDiceGame() {
                       {isHost && p.id !== user.uid && (
                         <button
                           onClick={() => kickPlayer(p.id)}
-                          className="p-1.5 text-zinc-500 hover:text-red-400 hover:bg-red-900/20 rounded-full transition-colors"
+                          className="p-1.5 text-slate-500 hover:text-red-400 hover:bg-red-900/20 rounded-full transition-colors"
                           title="Kick Soul"
                         >
                           <Trash2 size={14} />
@@ -1431,7 +1477,7 @@ export default function GhostDiceGame() {
                 );
               })}
               {gameState.players.length < 2 && (
-                <div className="text-center text-zinc-500 italic text-sm py-2">
+                <div className="text-center text-slate-500 italic text-sm py-2">
                   Waiting for more souls...
                 </div>
               )}
@@ -1445,7 +1491,7 @@ export default function GhostDiceGame() {
               className={`w-full py-4 rounded-xl font-bold text-lg shadow-lg transition-all flex items-center justify-center gap-2 ${
                 gameState.players.length >= 2
                   ? "bg-indigo-700 hover:bg-indigo-600 text-white shadow-indigo-900/20"
-                  : "bg-zinc-800 cursor-not-allowed text-zinc-500"
+                  : "bg-slate-800 cursor-not-allowed text-slate-500"
               }`}
             >
               {gameState.players.length < 2
@@ -1468,9 +1514,9 @@ export default function GhostDiceGame() {
     const myTheme = PLAYER_THEMES[myIndex % PLAYER_THEMES.length];
 
     return (
-      <div className="min-h-screen bg-zinc-950 text-white flex flex-col relative overflow-hidden font-sans">
+      <div className="min-h-screen bg-slate-950 text-white flex flex-col relative overflow-hidden font-sans">
         {styles} {/* <--- 1. INJECT STYLES HERE */}
-        <FloatingBackground />
+        <DarkAtmosphere />
         {/* 1. IMMEDIATE GAME OVER SCREEN */}
         {gameState.status === "finished" && (
           <GameOverScreen
@@ -1505,19 +1551,19 @@ export default function GhostDiceGame() {
           />
         )}
         {/* Top Bar */}
-        <div className="h-14 bg-zinc-900/80 border-b border-zinc-800 flex items-center justify-between px-4 z-160 backdrop-blur-md sticky top-0">
+        <div className="h-14 bg-slate-900/80 border-b border-slate-800 flex items-center justify-between px-4 z-160 backdrop-blur-md sticky top-0">
           <div className="flex items-center gap-2">
             <span className="font-serif text-indigo-500 font-bold tracking-wider hidden md:block">
               GHOST DICE
             </span>
-            <span className="text-xs text-zinc-500 bg-black/50 px-2 py-1 rounded">
+            <span className="text-xs text-slate-500 bg-black/50 px-2 py-1 rounded">
               Graveyard
             </span>
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => setShowRules(true)}
-              className="p-2 hover:bg-zinc-800 rounded text-zinc-400"
+              className="p-2 hover:bg-slate-800 rounded text-slate-400"
             >
               <BookOpen size={18} />
             </button>
@@ -1556,13 +1602,13 @@ export default function GhostDiceGame() {
                   <span className="text-6xl font-black text-white drop-shadow-lg">
                     {gameState.currentBid.quantity}
                   </span>
-                  <span className="text-4xl text-zinc-500">x</span>
+                  <span className="text-4xl text-slate-500">x</span>
                   {React.createElement(DICE_ICONS[gameState.currentBid.face], {
                     size: 64,
                     className: `${myTheme.color} drop-shadow-[0_0_10px_rgba(129,140,248,0.5)]`,
                   })}
                 </div>
-                <div className="mt-2 text-zinc-400 text-sm">
+                <div className="mt-2 text-slate-400 text-sm">
                   by{" "}
                   <span className="text-white font-bold">
                     {gameState.currentBid.playerName}
@@ -1570,7 +1616,7 @@ export default function GhostDiceGame() {
                 </div>
               </div>
             ) : (
-              <div className="text-zinc-600 italic">No bids placed...</div>
+              <div className="text-slate-600 italic">No bids placed...</div>
             )}
           </div>
 
@@ -1585,11 +1631,11 @@ export default function GhostDiceGame() {
                 <div
                   key={p.id}
                   className={`
-                                relative bg-zinc-900/90 p-4 rounded-xl border-2 w-32 md:w-40 transition-all flex flex-col items-center
+                                relative bg-slate-900/90 p-4 rounded-xl border-2 w-32 md:w-40 transition-all flex flex-col items-center
                                 ${
                                   isTurn
                                     ? `${theme.border} ${theme.shadow} scale-105`
-                                    : "border-zinc-700"
+                                    : "border-slate-700"
                                 }
                                 ${p.eliminated ? "opacity-40 grayscale" : ""}
                             `}
@@ -1608,7 +1654,7 @@ export default function GhostDiceGame() {
                       <div
                         key={idx}
                         className={`w-1.5 h-1.5 rounded-full ${
-                          isTurn ? "bg-white" : "bg-zinc-600"
+                          isTurn ? "bg-white" : "bg-slate-600"
                         }`}
                       />
                     ))}
@@ -1622,14 +1668,14 @@ export default function GhostDiceGame() {
                       className={`${
                         isTurn
                           ? theme.color + " animate-bounce"
-                          : "text-zinc-600"
+                          : "text-slate-600"
                       }`}
                     />
                   )}
 
                   <span
                     className={`font-bold text-sm truncate w-full text-center ${
-                      isTurn ? theme.color : "text-zinc-400"
+                      isTurn ? theme.color : "text-slate-400"
                     }`}
                   >
                     {p.name}
@@ -1644,7 +1690,7 @@ export default function GhostDiceGame() {
                           className:
                             d === gameState.currentBid?.face || d === 1
                               ? "text-white"
-                              : "text-zinc-700",
+                              : "text-slate-700",
                         }),
                       )}
                     </div>
@@ -1656,7 +1702,7 @@ export default function GhostDiceGame() {
 
           {/* Player Area */}
           <div
-            className={`w-full max-w-2xl bg-zinc-900/95 p-4 rounded-t-3xl border-t-4 ${
+            className={`w-full max-w-2xl bg-slate-900/95 p-4 rounded-t-3xl border-t-4 ${
               myTheme.border
             } backdrop-blur-md mt-auto shadow-2xl z-20 transition-all ${
               me.eliminated && gameState.status !== "finished"
@@ -1694,7 +1740,7 @@ export default function GhostDiceGame() {
                       <Dices size={24} /> Roll Dice
                     </button>
                   ) : (
-                    <div className="bg-zinc-900 px-6 py-2 rounded-full border border-green-500 text-green-500 font-bold flex items-center gap-2">
+                    <div className="bg-slate-900 px-6 py-2 rounded-full border border-green-500 text-green-500 font-bold flex items-center gap-2">
                       <CheckCircle size={18} /> Ready
                     </div>
                   )}
@@ -1755,7 +1801,7 @@ export default function GhostDiceGame() {
                         className={`px-3 py-1 rounded-full text-[10px] uppercase font-bold border ${
                           p.ready
                             ? "bg-green-900/30 border-green-500 text-green-400"
-                            : "bg-zinc-800 border-zinc-600 text-zinc-500"
+                            : "bg-slate-800 border-slate-600 text-slate-500"
                         }`}
                       >
                         {p.name} {p.ready && "✓"}
@@ -1777,13 +1823,13 @@ export default function GhostDiceGame() {
                         <button
                           onClick={returnToLobby}
                           disabled={!gameState.players.every((p) => p.ready)}
-                          className="bg-zinc-700 hover:bg-zinc-600 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-3 rounded-xl font-bold text-white flex gap-2 items-center"
+                          className="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed px-6 py-3 rounded-xl font-bold text-white flex gap-2 items-center"
                         >
                           <Home size={18} /> Lobby
                         </button>
                       </div>
                       {!gameState.players.every((p) => p.ready) && (
-                        <div className="text-zinc-500 text-xs animate-pulse mt-2">
+                        <div className="text-slate-500 text-xs animate-pulse mt-2">
                           Waiting for all souls to be ready...
                         </div>
                       )}
@@ -1808,7 +1854,7 @@ export default function GhostDiceGame() {
                       >
                         {me.ready ? "READY" : "MARK READY"}
                       </button>
-                      <div className="text-zinc-500 text-xs italic">
+                      <div className="text-slate-500 text-xs italic">
                         Waiting for Host...
                       </div>
                     </div>
@@ -1818,12 +1864,12 @@ export default function GhostDiceGame() {
                 <div className="flex flex-col gap-4">
                   <div className="flex gap-4 items-center justify-center">
                     {/* Quantity Select */}
-                    <div className="flex items-center bg-zinc-800 rounded-lg border border-zinc-700">
+                    <div className="flex items-center bg-slate-800 rounded-lg border border-slate-700">
                       <button
                         onClick={() =>
                           setBidQuantity(Math.max(1, bidQuantity - 1))
                         }
-                        className="p-3 hover:bg-zinc-700 text-zinc-400"
+                        className="p-3 hover:bg-slate-700 text-slate-400"
                       >
                         -
                       </button>
@@ -1832,14 +1878,14 @@ export default function GhostDiceGame() {
                       </span>
                       <button
                         onClick={() => setBidQuantity(bidQuantity + 1)}
-                        className="p-3 hover:bg-zinc-700 text-white"
+                        className="p-3 hover:bg-slate-700 text-white"
                       >
                         +
                       </button>
                     </div>
-                    <span className="text-zinc-500">x</span>
+                    <span className="text-slate-500">x</span>
                     {/* Face Select */}
-                    <div className="flex gap-1 bg-zinc-800 p-1 rounded-lg border border-zinc-700 overflow-x-auto">
+                    <div className="flex gap-1 bg-slate-800 p-1 rounded-lg border border-slate-700 overflow-x-auto">
                       {[1, 2, 3, 4, 5, 6].map((face) => (
                         <button
                           key={face}
@@ -1847,7 +1893,7 @@ export default function GhostDiceGame() {
                           className={`p-2 rounded-md transition-all ${
                             bidFace === face
                               ? `${myTheme.bg} ${myTheme.color} shadow-lg`
-                              : "hover:bg-zinc-700 text-zinc-500"
+                              : "hover:bg-slate-700 text-slate-500"
                           }`}
                         >
                           {React.createElement(DICE_ICONS[face], { size: 24 })}
@@ -1859,7 +1905,7 @@ export default function GhostDiceGame() {
                     <button
                       onClick={challenge}
                       disabled={!gameState.currentBid}
-                      className="bg-red-900/80 hover:bg-red-800 disabled:opacity-50 disabled:bg-zinc-800 text-red-200 py-4 rounded-xl font-bold text-lg shadow-lg border border-red-700 flex items-center justify-center gap-2"
+                      className="bg-red-900/80 hover:bg-red-800 disabled:opacity-50 disabled:bg-slate-800 text-red-200 py-4 rounded-xl font-bold text-lg shadow-lg border border-red-700 flex items-center justify-center gap-2"
                     >
                       <Gavel size={20} /> LIAR!
                     </button>
@@ -1871,14 +1917,14 @@ export default function GhostDiceGame() {
                           (bidQuantity === gameState.currentBid.quantity &&
                             bidFace <= gameState.currentBid.face))
                       }
-                      className={`col-span-2 ${myTheme.bg} border ${myTheme.border} ${myTheme.text} hover:opacity-80 disabled:opacity-50 disabled:bg-zinc-800 disabled:border-zinc-700 disabled:text-zinc-500 py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2`}
+                      className={`col-span-2 ${myTheme.bg} border ${myTheme.border} ${myTheme.text} hover:opacity-80 disabled:opacity-50 disabled:bg-slate-800 disabled:border-slate-700 disabled:text-slate-500 py-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-2`}
                     >
                       <Megaphone size={20} /> Place Bid
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="text-center text-zinc-500 animate-pulse py-8">
+                <div className="text-center text-slate-500 animate-pulse py-8">
                   {gameState.turnState === "REVEAL"
                     ? "Waiting for all players to roll the dice..."
                     : `Waiting for ${

@@ -244,10 +244,10 @@ const GENERATE_DECK = () => {
 const getCardVisuals = (card) => {
   if (!card)
     return {
-      bg: "bg-zinc-800",
-      border: "border-zinc-600",
+      bg: "bg-slate-800",
+      border: "border-slate-600",
       icon: Sparkles,
-      text: "text-zinc-500",
+      text: "text-slate-500",
       label: "",
     };
 
@@ -426,7 +426,7 @@ const FeedbackOverlay = ({ type, message, subtext, icon: Icon }) => (
 
 // --- FULLY REDESIGNED HOW TO PLAY MODAL ---
 const RulesModal = ({ onClose }) => (
-  <div className="fixed inset-0 z-[200] bg-zinc-950/95 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
+  <div className="fixed inset-0 z-[200] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-2 sm:p-4">
     <div className="bg-slate-900 border border-emerald-900/50 w-full max-w-4xl rounded-2xl sm:rounded-3xl shadow-2xl relative max-h-[90vh] flex flex-col overflow-hidden">
       {/* Header */}
       <div className="shrink-0 p-4 sm:p-6 border-b border-white/10 flex items-center justify-between bg-black/20">
@@ -667,7 +667,7 @@ const SplashScreen = ({ onStart }) => {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+    <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
       {/* --- NEW: LOADING INDICATOR --- */}
       {/* This shows only while the image is NOT loaded yet */}
       {!isLoaded && (
@@ -1534,7 +1534,7 @@ export default function ImmuneGame() {
         <div className="bg-emerald-900/10 p-6 sm:p-8 rounded-2xl border border-emerald-900/30 max-w-sm w-full">
           <Hammer className="w-12 h-12 sm:w-16 sm:h-16 text-emerald-500 mx-auto mb-4 animate-bounce" />
           <h1 className="text-2xl sm:text-3xl font-bold mb-2">Lab is Closed</h1>
-          <p className="text-sm sm:text-base text-zinc-400">
+          <p className="text-sm sm:text-base text-slate-400">
             Maintenance is currently underway. Return soon.
           </p>
         </div>
@@ -1542,7 +1542,7 @@ export default function ImmuneGame() {
         <a href={import.meta.env.BASE_URL}>
           <div className="flex items-center justify-center gap-3 mb-2">
             <div className="text-center pb-12 animate-pulse">
-              <div className="inline-flex items-center gap-2 sm:gap-3 px-6 py-3 sm:px-8 sm:py-4 bg-zinc-900/50 rounded-full border border-emerald-900/20 text-emerald-300 font-bold tracking-widest text-sm sm:text-base uppercase backdrop-blur-sm">
+              <div className="inline-flex items-center gap-2 sm:gap-3 px-6 py-3 sm:px-8 sm:py-4 bg-slate-900/50 rounded-full border border-emerald-900/20 text-emerald-300 font-bold tracking-widest text-sm sm:text-base uppercase backdrop-blur-sm">
                 <StepBack size={16} /> Return to Gamehub <StepBack size={16} />
               </div>
             </div>
@@ -1565,11 +1565,11 @@ export default function ImmuneGame() {
       return (
         <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
           <DarkAtmosphere />
-          <div className="bg-zinc-900/80 backdrop-blur p-8 rounded-2xl border border-zinc-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
+          <div className="bg-slate-900/80 backdrop-blur p-8 rounded-2xl border border-slate-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
             <Loader size={48} className="text-emerald-500 animate-spin" />
             <div className="text-center">
               <h2 className="text-xl font-bold">Reconnecting...</h2>
-              <p className="text-zinc-400 text-sm">Resuming your session</p>
+              <p className="text-slate-400 text-sm">Resuming your session</p>
             </div>
           </div>
         </div>
@@ -1636,7 +1636,7 @@ export default function ImmuneGame() {
                 <button
                   onClick={joinRoom}
                   disabled={loading}
-                  className="bg-zinc-800 hover:bg-zinc-700 p-2 rounded-xl font-bold text-zinc-300 transition-all active:scale-95 h-full text-sm sm:text-base border border-white/5"
+                  className="bg-slate-800 hover:bg-slate-700 p-2 rounded-xl font-bold text-slate-300 transition-all active:scale-95 h-full text-sm sm:text-base border border-white/5"
                 >
                   Join
                 </button>
@@ -1678,7 +1678,7 @@ export default function ImmuneGame() {
                 <div className="relative">
                   <button
                     onClick={copyToClipboard}
-                    className="p-2 bg-white/5 hover:bg-white/20 rounded-full transition-colors text-zinc-300 hover:text-white border border-white/10"
+                    className="p-2 bg-white/5 hover:bg-white/20 rounded-full transition-colors text-slate-300 hover:text-white border border-white/10"
                   >
                     {isCopied ? (
                       <CheckCircle className="w-5 h-5 text-emerald-400" />
@@ -1705,7 +1705,7 @@ export default function ImmuneGame() {
           </div>
 
           <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-8">
-            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1 sm:mb-2 flex items-center gap-1 sm:gap-2">
+            <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1 sm:mb-2 flex items-center gap-1 sm:gap-2">
               <User size={16} /> Researchers ({gameState.players.length}/6)
             </h3>
             {gameState.players.map((p) => (
@@ -1737,7 +1737,7 @@ export default function ImmuneGame() {
               (_, i) => (
                 <div
                   key={i}
-                  className="border-2 border-dashed border-white/5 rounded-xl p-3 sm:p-4 flex items-center justify-center text-zinc-600 font-bold uppercase text-xs sm:text-sm bg-black/10"
+                  className="border-2 border-dashed border-white/5 rounded-xl p-3 sm:p-4 flex items-center justify-center text-slate-600 font-bold uppercase text-xs sm:text-sm bg-black/10"
                 >
                   Empty Slot
                 </div>
@@ -1761,7 +1761,7 @@ export default function ImmuneGame() {
               )}
             </div>
           ) : (
-            <div className="text-center text-zinc-400 text-sm font-bold uppercase tracking-widest animate-pulse border border-white/5 bg-black/30 py-3 sm:py-4 rounded-xl">
+            <div className="text-center text-slate-400 text-sm font-bold uppercase tracking-widest animate-pulse border border-white/5 bg-black/30 py-3 sm:py-4 rounded-xl">
               Waiting for host...
             </div>
           )}
@@ -1773,7 +1773,7 @@ export default function ImmuneGame() {
               <h3 className="text-lg sm:text-xl font-bold text-white mb-2 uppercase">
                 Leave Lab?
               </h3>
-              <p className="text-zinc-400 mb-4 sm:mb-6 text-xs sm:text-sm">
+              <p className="text-slate-400 mb-4 sm:mb-6 text-xs sm:text-sm">
                 {gameState.hostId === user.uid
                   ? "As Host, leaving ends the game for everyone."
                   : "You will disconnect from this session."}
@@ -1781,7 +1781,7 @@ export default function ImmuneGame() {
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowLeaveConfirm(false)}
-                  className="flex-1 bg-zinc-800 hover:bg-zinc-700 py-3 rounded-xl font-bold text-zinc-300 text-sm sm:text-base transition-colors"
+                  className="flex-1 bg-slate-800 hover:bg-slate-700 py-3 rounded-xl font-bold text-slate-300 text-sm sm:text-base transition-colors"
                 >
                   Stay
                 </button>
@@ -1809,13 +1809,13 @@ export default function ImmuneGame() {
     const renderActionBar = () => {
       if (!isMyTurn)
         return (
-          <div className="w-full text-center text-zinc-500 text-xs sm:text-sm font-bold uppercase tracking-widest py-3 bg-black/20 rounded-xl">
+          <div className="w-full text-center text-slate-500 text-xs sm:text-sm font-bold uppercase tracking-widest py-3 bg-black/20 rounded-xl">
             Waiting for {activePlayer?.name}
           </div>
         );
       if (selectedCards.length === 0)
         return (
-          <div className="w-full text-center text-zinc-400 text-xs sm:text-sm font-bold uppercase tracking-widest py-3 bg-white/5 border border-white/10 rounded-xl shadow-inner">
+          <div className="w-full text-center text-slate-400 text-xs sm:text-sm font-bold uppercase tracking-widest py-3 bg-white/5 border border-white/10 rounded-xl shadow-inner">
             Select cards in your hand
           </div>
         );
@@ -1841,7 +1841,7 @@ export default function ImmuneGame() {
           <div className="flex gap-2 w-full">
             <button
               onClick={submitDiscard}
-              className="flex-1 bg-zinc-700 hover:bg-zinc-600 py-3 sm:py-4 rounded-xl font-bold text-white uppercase text-xs"
+              className="flex-1 bg-slate-700 hover:bg-slate-600 py-3 sm:py-4 rounded-xl font-bold text-white uppercase text-xs"
             >
               Discard
             </button>
@@ -1854,7 +1854,7 @@ export default function ImmuneGame() {
               </button>
             ) : (
               <div
-                className={`${btnClasses} bg-zinc-800 text-zinc-500 cursor-not-allowed`}
+                className={`${btnClasses} bg-slate-800 text-slate-500 cursor-not-allowed`}
               >
                 Duplicate
               </div>
@@ -1867,7 +1867,7 @@ export default function ImmuneGame() {
           <div className="flex gap-2 w-full">
             <button
               onClick={submitDiscard}
-              className="flex-1 bg-zinc-700 hover:bg-zinc-600 py-3 sm:py-4 rounded-xl font-bold text-white uppercase text-xs"
+              className="flex-1 bg-slate-700 hover:bg-slate-600 py-3 sm:py-4 rounded-xl font-bold text-white uppercase text-xs"
             >
               Discard
             </button>
@@ -1885,7 +1885,7 @@ export default function ImmuneGame() {
           <div className="flex gap-2 w-full">
             <button
               onClick={submitDiscard}
-              className="flex-1 bg-zinc-700 hover:bg-zinc-600 py-3 sm:py-4 rounded-xl font-bold text-white uppercase text-xs"
+              className="flex-1 bg-slate-700 hover:bg-slate-600 py-3 sm:py-4 rounded-xl font-bold text-white uppercase text-xs"
             >
               Discard
             </button>
@@ -1909,7 +1909,7 @@ export default function ImmuneGame() {
         <div className="flex gap-2 w-full">
           <button
             onClick={submitDiscard}
-            className="flex-1 bg-zinc-700 hover:bg-zinc-600 py-3 sm:py-4 rounded-xl font-bold text-white uppercase text-xs"
+            className="flex-1 bg-slate-700 hover:bg-slate-600 py-3 sm:py-4 rounded-xl font-bold text-white uppercase text-xs"
           >
             Discard
           </button>
@@ -1933,7 +1933,7 @@ export default function ImmuneGame() {
               <h3 className="text-lg sm:text-xl font-bold text-white mb-2 uppercase">
                 Abandon Game?
               </h3>
-              <p className="text-zinc-400 mb-4 sm:mb-6 text-xs sm:text-sm">
+              <p className="text-slate-400 mb-4 sm:mb-6 text-xs sm:text-sm">
                 {gameState.hostId === user.uid
                   ? "Leaving deletes the game for everyone."
                   : "You will leave this ongoing game."}
@@ -1941,7 +1941,7 @@ export default function ImmuneGame() {
               <div className="flex gap-2">
                 <button
                   onClick={() => setShowLeaveConfirm(false)}
-                  className="flex-1 bg-zinc-800 hover:bg-zinc-700 py-3 rounded-xl font-bold text-zinc-300 text-sm sm:text-base transition-colors"
+                  className="flex-1 bg-slate-800 hover:bg-slate-700 py-3 rounded-xl font-bold text-slate-300 text-sm sm:text-base transition-colors"
                 >
                   Stay
                 </button>
@@ -1958,7 +1958,7 @@ export default function ImmuneGame() {
                     returnToLobby();
                     setShowLeaveConfirm(false);
                   }}
-                  className="w-full bg-zinc-800 hover:bg-zinc-700 py-3 rounded-xl font-bold text-rose-400 mt-2 text-xs sm:text-sm border border-white/5 transition-colors"
+                  className="w-full bg-slate-800 hover:bg-slate-700 py-3 rounded-xl font-bold text-rose-400 mt-2 text-xs sm:text-sm border border-white/5 transition-colors"
                 >
                   Return All to Lobby
                 </button>
@@ -1988,7 +1988,7 @@ export default function ImmuneGame() {
                 IMMUNE
               </div>
               <div className="text-[10px] sm:text-[10px] font-bold uppercase tracking-wider">
-                <span className="text-zinc-400">Turn:</span>{" "}
+                <span className="text-slate-400">Turn:</span>{" "}
                 <span className="text-emerald-400">{activePlayer?.name}</span>
               </div>
             </div>
@@ -1996,13 +1996,13 @@ export default function ImmuneGame() {
           <div className="flex items-center gap-1 relative z-10">
             <button
               onClick={() => setShowGuide(true)}
-              className="p-2 hover:bg-white/10 rounded-full text-zinc-300 hover:text-white transition-colors"
+              className="p-2 hover:bg-white/10 rounded-full text-slate-300 hover:text-white transition-colors"
             >
               <BookOpen className="w-5 h-5" />
             </button>
             <button
               onClick={() => setShowLogs(!showLogs)}
-              className={`p-2 rounded-full transition-colors ${showLogs ? "bg-emerald-500/20 text-emerald-400" : "text-zinc-300 hover:bg-white/10"}`}
+              className={`p-2 rounded-full transition-colors ${showLogs ? "bg-emerald-500/20 text-emerald-400" : "text-slate-300 hover:bg-white/10"}`}
             >
               <History className="w-5 h-5" />
             </button>
@@ -2028,7 +2028,7 @@ export default function ImmuneGame() {
                 .map((log) => (
                   <div
                     key={log.id}
-                    className={`text-[10px] sm:text-xs p-2.5 rounded-xl border-l-4 font-bold ${log.type === "success" ? "border-emerald-400 bg-emerald-900/20 text-emerald-100" : log.type === "warning" ? "border-amber-400 bg-amber-900/20 text-amber-100" : log.type === "failure" ? "border-rose-400 bg-rose-900/20 text-rose-100" : "border-zinc-500 bg-black/30 text-zinc-300"}`}
+                    className={`text-[10px] sm:text-xs p-2.5 rounded-xl border-l-4 font-bold ${log.type === "success" ? "border-emerald-400 bg-emerald-900/20 text-emerald-100" : log.type === "warning" ? "border-amber-400 bg-amber-900/20 text-amber-100" : log.type === "failure" ? "border-rose-400 bg-rose-900/20 text-rose-100" : "border-slate-500 bg-black/30 text-slate-300"}`}
                   >
                     {log.text}
                   </div>
@@ -2084,7 +2084,7 @@ export default function ImmuneGame() {
                       />
                     ))}
                     {p.body.length === 0 && (
-                      <div className="col-span-full text-[10px] sm:text-xs text-zinc-500 font-bold uppercase tracking-widest italic w-full text-center py-4">
+                      <div className="col-span-full text-[10px] sm:text-xs text-slate-500 font-bold uppercase tracking-widest italic w-full text-center py-4">
                         No Organs
                       </div>
                     )}
@@ -2098,7 +2098,7 @@ export default function ImmuneGame() {
         <div className="flex-1 relative bg-transparent overflow-y-auto custom-scrollbar flex flex-col pt-4 pb-36 sm:pb-48">
           <div className="w-full flex justify-center mb-6">
             <div
-              className={`px-6 py-2 rounded-full border border-white/10 shadow-lg text-xs sm:text-sm font-black uppercase tracking-widest ${isMyTurn ? "bg-emerald-900/80 text-emerald-300 animate-pulse shadow-[0_0_20px_rgba(16,185,129,0.4)] border-emerald-500" : "bg-black/50 text-zinc-500"}`}
+              className={`px-6 py-2 rounded-full border border-white/10 shadow-lg text-xs sm:text-sm font-black uppercase tracking-widest ${isMyTurn ? "bg-emerald-900/80 text-emerald-300 animate-pulse shadow-[0_0_20px_rgba(16,185,129,0.4)] border-emerald-500" : "bg-black/50 text-slate-500"}`}
             >
               {isMyTurn ? "Your Turn" : "Waiting..."}
             </div>
@@ -2119,7 +2119,7 @@ export default function ImmuneGame() {
               </div>
             ))}
             {me?.body.length === 0 && (
-              <div className="text-zinc-600 font-bold uppercase tracking-widest text-sm sm:text-base border-2 border-dashed border-zinc-700 px-12 py-8 rounded-2xl shrink-0">
+              <div className="text-slate-600 font-bold uppercase tracking-widest text-sm sm:text-base border-2 border-dashed border-slate-700 px-12 py-8 rounded-2xl shrink-0">
                 Your Body is Empty
               </div>
             )}
@@ -2134,7 +2134,7 @@ export default function ImmuneGame() {
                 {me?.wins || 0} Wins
               </span>
             </div>
-            <div className="text-[10px] sm:text-xs font-black text-zinc-300 bg-white/5 border border-white/10 px-3 py-0.5 rounded-full uppercase tracking-widest">
+            <div className="text-[10px] sm:text-xs font-black text-slate-300 bg-white/5 border border-white/10 px-3 py-0.5 rounded-full uppercase tracking-widest">
               Deck: {gameState.deck.length} | Discard:{" "}
               {gameState.discardPile.length}
             </div>
@@ -2156,7 +2156,7 @@ export default function ImmuneGame() {
                 />
               ))}
               {me?.hand.length === 0 && (
-                <div className="text-zinc-500 text-xs py-8 italic font-bold">
+                <div className="text-slate-500 text-xs py-8 italic font-bold">
                   Hand is empty...
                 </div>
               )}
@@ -2173,7 +2173,7 @@ export default function ImmuneGame() {
             <div className="bg-slate-900 p-6 md:p-8 rounded-3xl border border-emerald-500/50 text-center shadow-[0_0_80px_rgba(16,185,129,0.3)] animate-in zoom-in max-w-lg w-full flex flex-col relative max-h-[90vh]">
               <div className="shrink-0 mb-4 sm:mb-6">
                 <Heart className="w-20 h-20 sm:w-24 sm:h-24 text-emerald-400 mx-auto mb-2 sm:mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(16,185,129,0.6)]" />
-                <h2 className="text-4xl sm:text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-zinc-400 uppercase mb-1 sm:mb-2 leading-tight drop-shadow-xl truncate px-2">
+                <h2 className="text-4xl sm:text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 uppercase mb-1 sm:mb-2 leading-tight drop-shadow-xl truncate px-2">
                   {
                     gameState.players.slice().sort((a, b) => b.wins - a.wins)[0]
                       ?.name
@@ -2218,7 +2218,7 @@ export default function ImmuneGame() {
                 <div className="shrink-0 pt-2">
                   <button
                     disabled
-                    className="bg-zinc-800 border border-white/5 px-6 py-4 rounded-2xl font-black w-full text-zinc-500 uppercase tracking-widest text-sm sm:text-base shadow-inner"
+                    className="bg-slate-800 border border-white/5 px-6 py-4 rounded-2xl font-black w-full text-slate-500 uppercase tracking-widest text-sm sm:text-base shadow-inner"
                   >
                     Waiting for Host...
                   </button>
