@@ -257,7 +257,7 @@ const FloatingBackground = React.memo(() => {
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
       {/* Dark Gradient Layer */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-yellow-900/20 via-gray-950 to-black" />
-      
+
       {/* Floating Icons Layer */}
       <div className="absolute top-0 left-0 w-full h-full opacity-10">
         {backgroundIcons}
@@ -278,12 +278,12 @@ const DarkAtmosphere = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
     {/* Clean, deep gradient background (No hazy overlays) */}
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
-    
+
     {/* Crisp Particles */}
     {[...Array(25)].map((_, i) => {
       // Calculate individual random drifts using CSS variables
       const driftX = `${Math.random() * 40 - 20}px`;
-      
+
       return (
         <div
           key={i}
@@ -1122,6 +1122,7 @@ export default function PiratesGame() {
           playedCards: [],
           eliminated: false,
           immune: false,
+          isThief: false, // <-- Add this
           readyForNext: false,
         },
       ],
@@ -1132,7 +1133,7 @@ export default function PiratesGame() {
       turnIndex: 0,
       roundCount: 1,
       burntCard: null,
-      thiefActive: null,
+
       pendingAction: null,
       lastAction: null,
       lastRoundResult: null,
@@ -1195,6 +1196,7 @@ export default function PiratesGame() {
           playedCards: [],
           eliminated: false,
           immune: false,
+          isThief: false,
           readyForNext: false,
         },
       ];
@@ -1367,6 +1369,7 @@ export default function PiratesGame() {
       playedCards: [],
       eliminated: false,
       immune: false,
+      isThief: false, // <-- Add this
       readyForNext: false,
     }));
 
@@ -1401,7 +1404,7 @@ export default function PiratesGame() {
         discardPile: [],
         turnIndex: startIdx,
         roundStarterIdx: startIdx, // Save for next time
-        thiefActive: null,
+
         lastAction: null,
         lastRoundResult: null,
         logs: arrayUnion({
@@ -1435,6 +1438,7 @@ export default function PiratesGame() {
       coins: 0,
       eliminated: false,
       immune: false,
+      isThief: false, // <-- Add this
       readyForNext: false,
     }));
 
@@ -1466,6 +1470,7 @@ export default function PiratesGame() {
       coins: 0,
       eliminated: false,
       immune: false,
+      isThief: false, // <-- Add this
       readyForNext: false,
     }));
 
@@ -1528,7 +1533,6 @@ export default function PiratesGame() {
     let players = [...currentState.players];
     let deck = [...currentState.deck];
     let turnIndex = currentState.turnIndex;
-    let thiefActive = currentState.thiefActive;
 
     const activePlayers = players.filter((p) => !p.eliminated);
     const uniqueLogs = logs.map((log) => ({
@@ -1557,6 +1561,16 @@ export default function PiratesGame() {
         text: `🏁 Round Over! ${winner.name} survives alone (+1 Coin).`,
         type: "success",
       });
+
+      // NEW: THIEF CHECK
+      if (winner.isThief) {
+        winner.coins += 1;
+        uniqueLogs.push({
+          id: Date.now() + Math.random().toString(),
+          text: `👣 ${winner.name} also survived as the only Thief! (+1 Coin)`,
+          type: "success",
+        });
+      }
 
       // Prepare Round Result
       const roundResult = {
@@ -1631,6 +1645,25 @@ export default function PiratesGame() {
         type: "success",
       });
 
+      // NEW: THIEF CHECK
+      const survivingThieves = activePlayers.filter((p) => p.isThief);
+      if (survivingThieves.length === 1) {
+        const thief = survivingThieves[0];
+        const idx = players.findIndex((p) => p.id === thief.id);
+        players[idx].coins += 1;
+        uniqueLogs.push({
+          id: Date.now() + Math.random().toString(),
+          text: `👣 ${thief.name} survived as the only Thief! (+1 Coin)`,
+          type: "success",
+        });
+      } else if (survivingThieves.length > 1) {
+        uniqueLogs.push({
+          id: Date.now() + Math.random().toString(),
+          text: `👣 Multiple Thieves survived! They stole from each other (No extra coins).`,
+          type: "warning",
+        });
+      }
+
       const roundResult = {
         id: Date.now(),
         winnerName: winnerNames,
@@ -1678,41 +1711,6 @@ export default function PiratesGame() {
       nextIdx = (nextIdx + 1) % players.length;
     }
 
-    // --- CASE 3: THIEF SURVIVAL ---
-    if (thiefActive && thiefActive.playerId === players[nextIdx].id) {
-      if (players[nextIdx].id === user.uid) {
-        triggerFeedback("success", "+1 COIN", "Survived as Thief", Coins);
-      }
-
-      players[nextIdx].coins += 1;
-      uniqueLogs.push({
-        id: Date.now() + Math.random().toString(),
-        text: `👣 ${players[nextIdx].name} survived the round as Thief (+1 Coin)!`,
-        type: "success",
-      });
-      thiefActive = null;
-
-      // --- CHECK WIN CONDITION ---
-      if (players[nextIdx].coins >= winningGoal) {
-        uniqueLogs.push({
-          id: Date.now() + Math.random().toString(),
-          text: `🏆 ${players[nextIdx].name} collected ${winningGoal} coins via Thief and WINS THE GAME!`,
-          type: "success",
-        });
-
-        await updateDoc(
-          doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
-          {
-            players,
-            status: "finished",
-            winnerId: players[nextIdx].id,
-            logs: arrayUnion(...uniqueLogs),
-          },
-        );
-        return;
-      }
-    }
-
     players[nextIdx].immune = false;
 
     if (deck.length > 0) {
@@ -1723,7 +1721,7 @@ export default function PiratesGame() {
       ...updateData,
       deck,
       turnIndex: nextIdx,
-      thiefActive,
+
       players,
       logs: arrayUnion(...uniqueLogs),
     };
@@ -1855,6 +1853,25 @@ export default function PiratesGame() {
         round: gameState.roundCount,
       };
 
+      // NEW: THIEF CHECK
+      const survivingThieves = activePlayers.filter((p) => p.isThief);
+      if (survivingThieves.length === 1) {
+        const thief = survivingThieves[0];
+        const idx = players.findIndex((p) => p.id === thief.id);
+        players[idx].coins += 1;
+        logs.push({
+          id: Date.now() + Math.random().toString(),
+          text: `👣 ${thief.name} survived as the only Thief! (+1 Coin)`,
+          type: "success",
+        });
+      } else if (survivingThieves.length > 1) {
+        logs.push({
+          id: Date.now() + Math.random().toString(),
+          text: `👣 Multiple Thieves survived! They stole from each other (No extra coins).`,
+          type: "warning",
+        });
+      }
+
       // Check dynamic goal
       if (players.some((p) => p.coins >= winningGoal)) {
         await updateDoc(
@@ -1895,17 +1912,11 @@ export default function PiratesGame() {
     };
 
     if (cardType === "THIEF") {
+      players[myIdx].isThief = true; // Mark player as a Thief for the round
       logs.push({
-        text: `👣 ${me.name} plays Thief. (Gain coin if survived until next turn)`,
+        text: `👣 ${me.name} plays Thief. (Gain coin if surviving the round)`,
         type: "neutral",
       });
-      if (thiefActive) {
-        logs.push({
-          text: `🚫 Previous Thief thwarted by ${me.name}!`,
-          type: "neutral",
-        });
-      }
-      thiefActive = { playerId: user.uid, turnSet: gameState.turnIndex };
     } else if (cardType === "GUARD") {
       const target = players.find((p) => p.id === explicitTargetId);
       logs.push({
@@ -2233,7 +2244,7 @@ export default function PiratesGame() {
         {
           players,
           deck,
-          thiefActive: thiefActive || null,
+
           logs: arrayUnion(...uniqueLogs),
           discardPile: arrayUnion(cardType),
           merchantState: { pool, originalDeckCount: deck.length },
@@ -2299,7 +2310,7 @@ export default function PiratesGame() {
         players,
         deck,
         turnIndex: gameState.turnIndex,
-        thiefActive: thiefActive || null,
+
         burntCard: gameState.burntCard,
         deckConfig: gameState.deckConfig,
         roundCount: gameState.roundCount,
@@ -2332,7 +2343,7 @@ export default function PiratesGame() {
         players,
         deck: newDeck,
         turnIndex: gameState.turnIndex,
-        thiefActive: gameState.thiefActive,
+
         burntCard: gameState.burntCard,
         deckConfig: gameState.deckConfig,
         roundCount: gameState.roundCount,
@@ -2766,7 +2777,7 @@ export default function PiratesGame() {
               const isActive = gameState.turnIndex === i;
               const isSelectable = isMyTurn && selectedCard && !p.eliminated;
               const isCookProtected = p.immune;
-              const isThiefActive = gameState.thiefActive?.playerId === p.id;
+              const isThiefActive = p.isThief;
 
               return (
                 <div key={p.id} className="flex flex-col items-center">
@@ -2842,16 +2853,19 @@ export default function PiratesGame() {
                         TARGET
                       </div>
                     )}
-                    {isCookProtected && (
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-green-500 text-black text-[8px] md:text-[10px] font-bold px-1.5 md:px-2 rounded-full whitespace-nowrap z-20 shadow-lg">
-                        IMMUNE
-                      </div>
-                    )}
-                    {isThiefActive && (
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[8px] md:text-[10px] font-bold px-1.5 md:px-2 rounded-full whitespace-nowrap z-20 shadow-lg">
-                        THIEF
-                      </div>
-                    )}
+                    {/* COMBINED STATUS BADGES */}
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-20 shadow-lg">
+                      {isCookProtected && (
+                        <div className="bg-green-500 text-black text-[8px] md:text-[10px] font-bold px-1.5 md:px-2 rounded-full whitespace-nowrap">
+                          IMMUNE
+                        </div>
+                      )}
+                      {isThiefActive && (
+                        <div className="bg-red-600 text-white text-[8px] md:text-[10px] font-bold px-1.5 md:px-2 rounded-full whitespace-nowrap">
+                          THIEF
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="mt-1 md:mt-2 flex gap-0.5 justify-center flex-wrap max-w-20 md:max-w-32">
                     {p.playedCards &&
@@ -2890,11 +2904,7 @@ export default function PiratesGame() {
                         ? "ring-2 ring-green-500 shadow-lg shadow-green-500/20"
                         : ""
                     }
-                    ${
-                      gameState.thiefActive?.playerId === me.id
-                        ? "ring-2 ring-red-500 shadow-lg shadow-red-500/20"
-                        : ""
-                    }
+                    ${me.isThief ? "ring-2 ring-red-500 shadow-lg shadow-red-500/20" : ""}
                    `}
                 >
                   <User className="text-gray-400 w-4 h-4 md:w-5 md:h-5" />
@@ -2904,7 +2914,7 @@ export default function PiratesGame() {
                   {me.immune && (
                     <Shield className="text-green-400 ml-1 md:ml-2 w-3 h-3 md:w-5 md:h-5" />
                   )}
-                  {gameState.thiefActive?.playerId === me.id && (
+                  {me.isThief && (
                     <Footprints className="text-red-400 ml-1 md:ml-2 w-3 h-3 md:w-5 md:h-5" />
                   )}
                 </div>
