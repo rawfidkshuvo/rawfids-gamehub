@@ -84,7 +84,7 @@ const CARDS = {
     icon: Footprints,
     color: "text-gray-400",
     bg: "bg-gray-800",
-    desc: "Gain 1 coin if you survive a round.",
+    desc: "Gain 1 coin if you survive a round as only thief.",
   },
   GUARD: {
     name: "Guard",
