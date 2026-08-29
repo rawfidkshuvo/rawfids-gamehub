@@ -3566,8 +3566,20 @@ export default function OutbreakGame() {
                 {Object.keys(gameState.cures).map((c) => (
                   <div
                     key={c}
-                    className={`w-2.5 h-2.5 md:w-3.5 md:h-3.5 rounded-sm border ${gameState.cures[c] ? COLORS[c].bg : "bg-transparent opacity-30"} ${COLORS[c].border}`}
-                  ></div>
+                    className={`relative flex items-center justify-center w-2.5 h-2.5 md:w-3.5 md:h-3.5 rounded-sm border ${
+                      gameState.cures[c]
+                        ? COLORS[c].bg
+                        : "bg-transparent opacity-30"
+                    } ${COLORS[c].border}`}
+                  >
+                    {/* NEW: Cross sign overlay if the disease is completely eradicated */}
+                    {gameState.eradicated[c] && (
+                      <X
+                        className="absolute w-2.5 h-2.5 md:w-3 md:h-3 text-white drop-shadow-[0_0_2px_rgba(0,0,0,0.8)]"
+                        strokeWidth={4}
+                      />
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
@@ -4066,7 +4078,6 @@ export default function OutbreakGame() {
                     >
                       Shuttle
                     </button>
-                    
 
                     {/* NEW OPS EXPERT ABILITY */}
                     {me.role === "OPS_EXPERT" && (
