@@ -33,7 +33,7 @@ import {
   Search,
   X,
   LogOut,
-  RefreshCcw,
+  RotateCcw,
   User,
   Loader,
   Info,
@@ -604,17 +604,19 @@ const CyanAtmosphere = React.memo(() => (
   </div>
 ));
 
-const GameLogo = ({ big = false }) => (
-  <div
-    className={`flex flex-col items-center justify-center gap-1 opacity-70 z-10 ${big ? "mb-6" : "mt-auto pb-2 pt-2"}`}
-  >
-    <Globe2
-      size={big ? 64 : 24}
-      className="text-cyan-500 animate-pulse drop-shadow-[0_0_15px_rgba(34,211,238,0.5)]"
-    />
-    <span
-      className={`${big ? "text-4xl md:text-6xl" : "text-lg"} font-black tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-emerald-400 uppercase font-serif drop-shadow-md`}
-    >
+const GameLogo = () => (
+  <div className="flex items-center justify-center gap-2 opacity-40 mt-auto pb-4 pt-2 relative z-10 pointer-events-none select-none">
+    <Globe2 size={14} className="text-cyan-500" />
+    <span className="text-[10px] font-black tracking-[0.2em] text-cyan-500 uppercase">
+      OUTBREAK
+    </span>
+  </div>
+);
+
+const GameLogoBig = () => (
+  <div className="flex items-center justify-center gap-2 opacity-40 mt-auto pb-4 pt-2 relative z-10 pointer-events-none select-none">
+    <Globe2 size={22} className="text-cyan-500" />
+    <span className="text-[20px] font-black tracking-[0.2em] text-cyan-500 uppercase">
       OUTBREAK
     </span>
   </div>
@@ -3190,7 +3192,7 @@ export default function OutbreakGame() {
   if (isMaintenance) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
-        <GameLogo big />
+        <GameLogoBig />
         <div className="bg-amber-500/10 p-8 rounded-2xl border border-amber-500/30 text-center">
           <AlertTriangle
             size={64}
@@ -3209,6 +3211,7 @@ export default function OutbreakGame() {
         >
           <StepBack /> Back to Gamehub
         </a>
+        <GameLogo />
       </div>
     );
   }
@@ -3229,7 +3232,7 @@ export default function OutbreakGame() {
         </nav>
 
         <div className="z-10 mb-8">
-          <GameLogo big />
+          
         </div>
 
         <div className="bg-slate-900/80 backdrop-blur border border-cyan-500/30 p-8 rounded-2xl w-full max-w-md shadow-2xl z-10 animate-in slide-in-from-bottom-10">
@@ -3276,6 +3279,7 @@ export default function OutbreakGame() {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative">
         <CyanAtmosphere />
+        <GameLogoBig />
         {showLeaveConfirm && (
           <LeaveConfirmModal
             onCancel={() => setShowLeaveConfirm(false)}
@@ -3371,6 +3375,7 @@ export default function OutbreakGame() {
 
     return (
       <div className="h-screen w-full bg-slate-950 text-slate-200 flex flex-col overflow-hidden font-sans select-none relative">
+        <CyanAtmosphere />
         {feedbackOverlay && <FeedbackOverlay {...feedbackOverlay} />}
         {forecastCards && pendingEvent === "EVENT_FORECAST" && (
           <ForecastModal
@@ -3583,7 +3588,7 @@ export default function OutbreakGame() {
         </div>
 
         {/* Full Bleed Map Area */}
-        <div className="flex-1 relative w-full flex flex-col p-0 overflow-hidden bg-slate-950">
+        <div className="flex-1 relative w-full flex flex-col p-0 overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900 to-slate-950 pointer-events-none"></div>
 
           {isMyTurn && selectedAction && (
@@ -4177,6 +4182,7 @@ export default function OutbreakGame() {
             </div>
           </div>
         )}
+        <GameLogo />
       </div>
     );
   }
