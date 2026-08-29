@@ -1360,9 +1360,9 @@ const TeamPanelModal = ({
                           (p) => p.location === cityId,
                         );
                         const colStyle = COLORS[city.color];
-                        const totalCubes = Object.values(
-                          cityState.cubes,
-                        ).reduce((a, b) => a + b, 0);
+                        const isAtRisk = Object.values(cityState.cubes).some(
+                          (count) => count >= 3,
+                        );
 
                         return (
                           <div
@@ -1371,7 +1371,7 @@ const TeamPanelModal = ({
                             style={{ left: `${city.x}%`, top: `${city.y}%` }}
                           >
                             <div className="p-1.5 md:p-2 flex flex-col items-center justify-center relative">
-                              {totalCubes >= 3 && (
+                              {isAtRisk && (
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full animate-ping opacity-30 w-12 h-12 md:w-16 md:h-16 pointer-events-none"></div>
                               )}
                               {/* FIX: Same update for the Map Tab */}
@@ -3748,9 +3748,10 @@ export default function OutbreakGame() {
                           (p) => p.location === cityId,
                         );
                         const colStyle = COLORS[city.color];
-                        const totalCubes = Object.values(
-                          cityState.cubes,
-                        ).reduce((a, b) => a + b, 0);
+                        // Checks if ANY single color has 3 cubes
+                        const isAtRisk = Object.values(cityState.cubes).some(
+                          (count) => count >= 3,
+                        );
                         const isSelected =
                           selectedAction && selectedAction !== null;
 
@@ -3764,7 +3765,7 @@ export default function OutbreakGame() {
                               className="p-1.5 md:p-2 cursor-pointer group flex flex-col items-center justify-center relative"
                               onClick={() => handleNodeClick(cityId)}
                             >
-                              {totalCubes >= 3 && (
+                              {isAtRisk && (
                                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full animate-ping opacity-30 w-12 h-12 md:w-16 md:h-16 pointer-events-none"></div>
                               )}
 
