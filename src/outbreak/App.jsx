@@ -3231,10 +3231,19 @@ export default function OutbreakGame() {
           </a>
         </nav>
 
-        <div className="z-10 mb-8">
-          
+        <div className="z-10 mb-8"></div>
+        <div className="z-10 text-center mb-10">
+          <Globe2
+            size={64}
+            className="text-cyan-400 mx-auto mb-4 animate-bounce"
+          />
+          <h1 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-linear-to-b from-cyan-400 to-emerald-600 tracking-widest drop-shadow-md">
+            OUTBREAK
+          </h1>
+          <p className="text-white-400/60 tracking-[0.3em] uppercase mt-2">
+            RESCUE THE WORLD
+          </p>
         </div>
-
         <div className="bg-slate-900/80 backdrop-blur border border-cyan-500/30 p-8 rounded-2xl w-full max-w-md shadow-2xl z-10 animate-in slide-in-from-bottom-10">
           {error && (
             <div className="bg-red-900/50 text-red-200 p-2 mb-4 rounded text-center text-sm border border-red-800">
