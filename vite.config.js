@@ -28,6 +28,7 @@ export default defineConfig({
         luckySeven: resolve(__dirname, 'lucky-seven/index.html'),
         masqueradeProtocol: resolve(__dirname, 'masquerade-protocol/index.html'),
         neonDraft: resolve(__dirname, 'neon-draft/index.html'),
+        outbreak: resolve(__dirname, 'outbreak/index.html'),
         paperOceans: resolve(__dirname, 'paper-oceans/index.html'),
         policeHunt: resolve(__dirname, 'police-hunt/index.html'),
         pirates: resolve(__dirname, 'pirates/index.html'),

@@ -65,6 +65,7 @@ import {
   HeartPulse,
   BugPlay,
   Moon,
+  Earth,
 } from "lucide-react";
 import CoverImage from "./assets/gamehub_cover.png";
 
@@ -622,6 +623,23 @@ const INITIAL_GAMES = [
     complexity: "Medium",
     duration: "20-40m",
     link: "./dark/",
+  },
+  {
+    id: 27,
+    title: "Outbreak",
+    description:
+      "A strategic game of containment and survival. Work together to stop the spread of a deadly virus before it overwhelms the world.",
+    icon: <Earth className="w-12 h-12 text-white" />,
+    color: "from-cyan-600 to-emerald-950",
+    shadow: "shadow-cyan-500/50",
+    categories: ["Strategy"],
+    minPlayers: 2,
+    maxPlayers: 4,
+    hasBots: false,
+    betaTesting: true,
+    complexity: "Hard",
+    duration: "40-60m",
+    link: "./outbreak/",
   },
   
 
