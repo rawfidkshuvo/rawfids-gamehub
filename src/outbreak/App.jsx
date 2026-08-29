@@ -79,11 +79,11 @@ const COLORS = {
     border: "border-yellow-500",
     hex: "#eab308",
   },
-  black: {
-    bg: "bg-gray-700",
-    text: "text-gray-300",
-    border: "border-gray-500",
-    hex: "#4b5563",
+  green: {
+    bg: "bg-green-500",
+    text: "text-green-400",
+    border: "border-green-500",
+    hex: "#10b981",
   },
   red: {
     bg: "bg-red-500",
@@ -274,14 +274,14 @@ const CITIES = {
   },
   algiers: {
     name: "Algiers",
-    color: "black",
+    color: "green",
     x: 48,
     y: 45,
     neighbors: ["madrid", "paris", "istanbul", "cairo"],
   },
   istanbul: {
     name: "Istanbul",
-    color: "black",
+    color: "green",
     x: 57,
     y: 35,
     neighbors: [
@@ -295,70 +295,70 @@ const CITIES = {
   },
   moscow: {
     name: "Moscow",
-    color: "black",
+    color: "green",
     x: 63,
     y: 25,
     neighbors: ["st_petersburg", "istanbul", "tehran"],
   },
   cairo: {
     name: "Cairo",
-    color: "black",
+    color: "green",
     x: 55,
     y: 47,
     neighbors: ["algiers", "istanbul", "baghdad", "riyadh", "khartoum"],
   },
   baghdad: {
     name: "Baghdad",
-    color: "black",
+    color: "green",
     x: 62,
     y: 40,
     neighbors: ["istanbul", "cairo", "tehran", "riyadh", "karachi"],
   },
   tehran: {
     name: "Tehran",
-    color: "black",
+    color: "green",
     x: 70,
     y: 32,
     neighbors: ["moscow", "baghdad", "karachi", "delhi"],
   },
   riyadh: {
     name: "Riyadh",
-    color: "black",
+    color: "green",
     x: 62,
     y: 52,
     neighbors: ["cairo", "baghdad", "karachi"],
   },
   karachi: {
     name: "Karachi",
-    color: "black",
+    color: "green",
     x: 70,
     y: 45,
     neighbors: ["tehran", "baghdad", "riyadh", "mumbai", "delhi"],
   },
   mumbai: {
     name: "Mumbai",
-    color: "black",
+    color: "green",
     x: 70,
     y: 56,
     neighbors: ["karachi", "delhi", "chennai"],
   },
   delhi: {
     name: "Delhi",
-    color: "black",
+    color: "green",
     x: 76,
     y: 40,
     neighbors: ["tehran", "karachi", "mumbai", "chennai", "kolkata"],
   },
   chennai: {
     name: "Chennai",
-    color: "black",
+    color: "green",
     x: 76,
     y: 62,
     neighbors: ["mumbai", "delhi", "kolkata", "bangkok", "jakarta"],
   },
   kolkata: {
     name: "Kolkata",
-    color: "black",
+    color: "green",
     x: 81,
     y: 45,
     neighbors: ["delhi", "chennai", "bangkok", "hong_kong"],
@@ -849,7 +849,7 @@ const TeamPanelModal = ({
 }) => {
   const [activeTab, setActiveTab] = React.useState("team"); // 'team', 'status', 'logs', 'map'
 
-  const cubeCounts = { blue: 0, yellow: 0, black: 0, red: 0 };
+  const cubeCounts = { blue: 0, yellow: 0, green: 0, red: 0 };
   Object.values(gameState.cities).forEach((city) => {
     Object.keys(city.cubes).forEach((color) => {
       cubeCounts[color] += city.cubes[color];
@@ -1971,7 +1971,7 @@ const HowToPlayModal = ({ ROLES, onClose }) => (
         </h3>
         <p className="text-sm leading-relaxed">
           Your elite team must discover cures for all{" "}
-          <strong>4 deadly diseases</strong> (Blue, Yellow, Black, Red) before
+          <strong>4 deadly diseases</strong> (Blue, Yellow, Green, Red) before
           they wipe out humanity. You win the game immediately once all four
           cures are discovered.
         </p>
@@ -2403,7 +2403,7 @@ export default function OutbreakGame() {
     Object.keys(CITIES).forEach(
       (c) =>
         (citiesState[c] = {
-          cubes: { blue: 0, yellow: 0, black: 0, red: 0 },
+          cubes: { blue: 0, yellow: 0, green: 0, red: 0 },
           hasStation: c === "atlanta",
         }),
     );
@@ -2433,8 +2433,8 @@ export default function OutbreakGame() {
         infectionRateIdx: 0,
         outbreaks: 0,
         quietNight: false,
-        cures: { blue: false, yellow: false, black: false, red: false },
-        eradicated: { blue: false, yellow: false, black: false, red: false },
+        cures: { blue: false, yellow: false, green: false, red: false },
+        eradicated: { blue: false, yellow: false, green: false, red: false },
         logs: [{ type: "info", text: "Operation Launched. Good luck, team." }],
       },
     );
@@ -4066,12 +4066,7 @@ export default function OutbreakGame() {
                     >
                       Shuttle
                     </button>
-                    <button
-                      onClick={() => setSelectedAction("SHUTTLE")}
-                      className="flex-1 md:flex-none px-3 py-3.5 bg-cyan-900 rounded-xl font-bold text-[10px] md:text-xs uppercase text-cyan-100 active:scale-95 transition-transform border border-cyan-700"
-                    >
-                      Shuttle
-                    </button>
+                    
 
                     {/* NEW OPS EXPERT ABILITY */}
                     {me.role === "OPS_EXPERT" && (
