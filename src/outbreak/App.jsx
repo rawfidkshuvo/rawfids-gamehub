@@ -1918,7 +1918,6 @@ const ResilientPopModal = ({
             <button
               key={cityId}
               onClick={() => onSelect(cityId)}
-
               className={`p-3 rounded border-2 bg-slate-800 hover:scale-105 transition-transform text-left shadow flex flex-col gap-2 ${col.border} hover:border-white`}
             >
               <div className={`w-3 h-3 rounded-sm ${col.bg}`}></div>
@@ -2905,9 +2904,9 @@ export default function OutbreakGame() {
     // 3. Save to database
     await updateDoc(
       doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
-      state
+      state,
     );
-    
+
     // 4. Clear UI states
     setSelectedAction(null);
     setPendingEvent(null);
@@ -3039,6 +3038,26 @@ export default function OutbreakGame() {
                 type: "success",
                 text: `⚕️ ${targetPlayer.name}'s Medic passive instantly cleared ${color} in ${CITIES[payload.to].name}.`,
               });
+              
+              // New: Check for eradication after passive clear
+              const cubesLeft = Object.values(state.cities).reduce(
+                (sum, c) => sum + c.cubes[color],
+                0,
+              );
+              
+              if (cubesLeft === 0 && !state.eradicated[color]) {
+                state.eradicated[color] = true;
+                logs.push({
+                  type: "success",
+                  text: `🌟 The ${color} disease is ERADICATED!`,
+                });
+                triggerFeedback(
+                  "success",
+                  "ERADICATED",
+                  `${color.toUpperCase()} removed globally`,
+                  Globe2,
+                );
+              }
             }
           });
         }
