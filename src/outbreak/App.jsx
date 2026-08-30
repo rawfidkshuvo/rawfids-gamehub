@@ -1061,7 +1061,7 @@ const TeamPanelModal = ({
                     </div>
                     <div className="flex items-center gap-4 text-xs font-bold uppercase">
                       <span className="text-slate-500">
-                        {cubeCounts[color]} Cubes
+                        {cubeCounts[color]} / 24 cubes
                       </span>
                       {gameState.eradicated[color] ? (
                         <span className="text-emerald-400 flex items-center gap-1">
@@ -1108,29 +1108,29 @@ const TeamPanelModal = ({
                   </span>
                 </div>
                 <div>
-                  <div className="text-[10px] font-bold text-slate-500 mb-1.5 uppercase">
-                    Discard Pile ({gameState.playerDiscard.length})
-                  </div>
+                  <div className="text-[10px] font-bold text-slate-500 mb-1.5 uppercase">Discard Pile ({gameState.playerDiscard.length})</div>
                   <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto custom-scrollbar p-1.5 bg-black/20 rounded border border-slate-800">
-                    {gameState.playerDiscard.length === 0 && (
-                      <span className="text-xs text-slate-600 italic">
-                        Empty
-                      </span>
-                    )}
+                    {gameState.playerDiscard.length === 0 && <span className="text-xs text-slate-600 italic">Empty</span>}
                     {gameState.playerDiscard.map((c, i) => {
                       const isEvent = c.startsWith("EVENT_");
-                      const name = isEvent
-                        ? EVENT_CARDS[c]?.name
-                        : CITIES[c]?.name;
-                      const colClass = isEvent
-                        ? "bg-purple-900/30 text-purple-300 border-purple-500/30"
-                        : "bg-slate-800 text-slate-300 border-slate-600";
+                      
+                      if (isEvent) {
+                        return (
+                          <div key={i} className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border bg-purple-900/30 text-purple-300 border-purple-500/30 flex items-center gap-1">
+                            <Zap size={8} />
+                            {EVENT_CARDS[c]?.name}
+                          </div>
+                        );
+                      }
+                      
+                      const city = CITIES[c];
+                      if (!city) return null;
+                      const col = COLORS[city.color];
+                      
                       return (
-                        <div
-                          key={i}
-                          className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border ${colClass}`}
-                        >
-                          {name}
+                        <div key={i} className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border flex items-center gap-1 bg-slate-800 ${col.border}`}>
+                          <div className={`w-1.5 h-1.5 rounded-full ${col.bg}`}></div>
+                          <span className="text-slate-200">{city.name}</span>
                         </div>
                       );
                     })}
@@ -2359,6 +2359,25 @@ export default function OutbreakGame() {
     setGameState(null);
   };
 
+  const kickPlayer = async (targetId) => {
+    if (!roomId || !gameState || gameState.hostId !== user.uid) return;
+    setLoading(true);
+    try {
+      const targetPlayer = gameState.players.find(p => p.id === targetId);
+      const updatedPlayers = gameState.players.filter(p => p.id !== targetId);
+      
+      await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
+        players: updatedPlayers,
+        logs: [...gameState.logs, { type: "warning", text: `👢 ${targetPlayer?.name} was removed from the squad by the Host.` }].slice(-60)
+      });
+    } catch (err) {
+      console.error("Failed to kick player:", err);
+      setError("Failed to remove player.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const startGame = async () => {
     if (gameState.hostId !== user.uid) return;
     setLoading(true);
@@ -3289,15 +3308,7 @@ export default function OutbreakGame() {
       <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative">
         <CyanAtmosphere />
         <GameLogoBig />
-        {showLeaveConfirm && (
-          <LeaveConfirmModal
-            onCancel={() => setShowLeaveConfirm(false)}
-            onConfirmLeave={leaveRoom}
-            onConfirmLobby={returnToLobby}
-            isHost={isHost}
-            inGame={true}
-          />
-        )}
+        {showLeaveConfirm && <LeaveConfirmModal onCancel={() => setShowLeaveConfirm(false)} onConfirmLeave={leaveRoom} onConfirmLobby={returnToLobby} isHost={isHost} inGame={false} />}
 
         <div className="z-10 w-full max-w-lg bg-slate-900/90 backdrop-blur p-8 rounded-2xl border border-cyan-900/50 shadow-2xl mb-4">
           <div className="flex justify-between items-center mb-8 border-b border-slate-700 pb-4">
@@ -3332,20 +3343,22 @@ export default function OutbreakGame() {
             </h3>
             <div className="space-y-2">
               {gameState.players.map((p) => (
-                <div
-                  key={p.id}
-                  className="flex items-center justify-between bg-slate-800/50 p-3 rounded border border-slate-700/50"
-                >
-                  <span
-                    className={`font-bold flex items-center gap-2 ${p.id === user.uid ? "text-cyan-400" : "text-slate-300"}`}
-                  >
-                    <User size={14} /> {p.name}{" "}
-                    {p.id === gameState.hostId && (
-                      <span className="text-xs bg-slate-700 px-2 py-0.5 rounded text-white ml-2">
-                        Host
-                      </span>
-                    )}
+                <div key={p.id} className="flex items-center justify-between bg-slate-800/50 p-3 rounded border border-slate-700/50 group">
+                  <span className={`font-bold flex items-center gap-2 ${p.id === user.uid ? "text-cyan-400" : "text-slate-300"}`}>
+                    <User size={14} /> {p.name} {p.id === gameState.hostId && <span className="text-xs bg-slate-700 px-2 py-0.5 rounded text-white ml-2">Host</span>}
                   </span>
+                  
+                  {/* NEW: Host Kick Button (Always Visible) */}
+                  {isHost && p.id !== user.uid && (
+                    <button 
+                      onClick={() => kickPlayer(p.id)}
+                      disabled={loading}
+                      title={`Remove ${p.name}`}
+                      className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-900/30 rounded transition-colors bg-black/20 border border-slate-700/50"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
