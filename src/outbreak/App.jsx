@@ -676,7 +676,7 @@ const SplashScreen = ({ onStart }) => {
 
   useEffect(() => {
     // 1. Check Session immediately
-    const saved = localStorage.getItem("paperoceans_roomId");
+    const saved = localStorage.getItem("outbreak_room_id");
     setHasSession(!!saved);
 
     // 2. Preload the image
@@ -1108,28 +1108,42 @@ const TeamPanelModal = ({
                   </span>
                 </div>
                 <div>
-                  <div className="text-[10px] font-bold text-slate-500 mb-1.5 uppercase">Discard Pile ({gameState.playerDiscard.length})</div>
+                  <div className="text-[10px] font-bold text-slate-500 mb-1.5 uppercase">
+                    Discard Pile ({gameState.playerDiscard.length})
+                  </div>
                   <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto custom-scrollbar p-1.5 bg-black/20 rounded border border-slate-800">
-                    {gameState.playerDiscard.length === 0 && <span className="text-xs text-slate-600 italic">Empty</span>}
+                    {gameState.playerDiscard.length === 0 && (
+                      <span className="text-xs text-slate-600 italic">
+                        Empty
+                      </span>
+                    )}
                     {gameState.playerDiscard.map((c, i) => {
                       const isEvent = c.startsWith("EVENT_");
-                      
+
                       if (isEvent) {
                         return (
-                          <div key={i} className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border bg-purple-900/30 text-purple-300 border-purple-500/30 flex items-center gap-1">
+                          <div
+                            key={i}
+                            className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border bg-purple-900/30 text-purple-300 border-purple-500/30 flex items-center gap-1"
+                          >
                             <Zap size={8} />
                             {EVENT_CARDS[c]?.name}
                           </div>
                         );
                       }
-                      
+
                       const city = CITIES[c];
                       if (!city) return null;
                       const col = COLORS[city.color];
-                      
+
                       return (
-                        <div key={i} className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border flex items-center gap-1 bg-slate-800 ${col.border}`}>
-                          <div className={`w-1.5 h-1.5 rounded-full ${col.bg}`}></div>
+                        <div
+                          key={i}
+                          className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded border flex items-center gap-1 bg-slate-800 ${col.border}`}
+                        >
+                          <div
+                            className={`w-1.5 h-1.5 rounded-full ${col.bg}`}
+                          ></div>
                           <span className="text-slate-200">{city.name}</span>
                         </div>
                       );
@@ -1904,7 +1918,8 @@ const ResilientPopModal = ({
             <button
               key={cityId}
               onClick={() => onSelect(cityId)}
-              className={`p-3 rounded border border-slate-700 bg-slate-800 hover:scale-105 transition-transform text-left shadow flex flex-col gap-2 ${col.border} hover:border-white`}
+
+              className={`p-3 rounded border-2 bg-slate-800 hover:scale-105 transition-transform text-left shadow flex flex-col gap-2 ${col.border} hover:border-white`}
             >
               <div className={`w-3 h-3 rounded-sm ${col.bg}`}></div>
               <span className="text-white text-[10px] font-bold uppercase tracking-wider leading-tight">
@@ -2363,13 +2378,22 @@ export default function OutbreakGame() {
     if (!roomId || !gameState || gameState.hostId !== user.uid) return;
     setLoading(true);
     try {
-      const targetPlayer = gameState.players.find(p => p.id === targetId);
-      const updatedPlayers = gameState.players.filter(p => p.id !== targetId);
-      
-      await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
-        players: updatedPlayers,
-        logs: [...gameState.logs, { type: "warning", text: `👢 ${targetPlayer?.name} was removed from the squad by the Host.` }].slice(-60)
-      });
+      const targetPlayer = gameState.players.find((p) => p.id === targetId);
+      const updatedPlayers = gameState.players.filter((p) => p.id !== targetId);
+
+      await updateDoc(
+        doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+        {
+          players: updatedPlayers,
+          logs: [
+            ...gameState.logs,
+            {
+              type: "warning",
+              text: `👢 ${targetPlayer?.name} was removed from the squad by the Host.`,
+            },
+          ].slice(-60),
+        },
+      );
     } catch (err) {
       console.error("Failed to kick player:", err);
       setError("Failed to remove player.");
@@ -2799,11 +2823,13 @@ export default function OutbreakGame() {
 
       player.hand = player.hand.filter((c) => c !== eventId);
 
-      if (player.role === "CONTINGENCY_PLAN") {
+      // FIX: Only exile if THIS specific card was retrieved via "Plan"
+      if (player.contingencyCard === eventId) {
         state.logs.push({
           type: "warning",
           text: `⚡ ${EVENT_CARDS[eventId].name} was EXILED from the game.`,
         });
+        player.contingencyCard = null; // Clear the slot
       } else {
         state.playerDiscard.push(eventId);
       }
@@ -2846,17 +2872,21 @@ export default function OutbreakGame() {
     let state = JSON.parse(JSON.stringify(gameState));
     let player = state.players.find((p) => p.id === user.uid);
 
+    // 1. Remove from hand
     player.hand = player.hand.filter((c) => c !== pendingEvent);
 
-    if (player.role === "CONTINGENCY_PLAN") {
+    // FIX: Swapped "eventId" to "pendingEvent" here so it doesn't crash!
+    if (player.contingencyCard === pendingEvent) {
       state.logs.push({
         type: "warning",
         text: `⚡ ${EVENT_CARDS[pendingEvent].name} was EXILED from the game.`,
       });
+      player.contingencyCard = null; // Clear the slot
     } else {
       state.playerDiscard.push(pendingEvent);
     }
 
+    // 2. Execute the Event
     if (action === "GOV_GRANT") {
       state.cities[cityId].hasStation = true;
       state.logs.push({
@@ -2872,10 +2902,13 @@ export default function OutbreakGame() {
       });
     }
 
+    // 3. Save to database
     await updateDoc(
       doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
-      state,
+      state
     );
+    
+    // 4. Clear UI states
     setSelectedAction(null);
     setPendingEvent(null);
     setAirliftTarget(null);
@@ -2887,11 +2920,13 @@ export default function OutbreakGame() {
 
     player.hand = player.hand.filter((c) => c !== pendingEvent);
 
-    if (player.role === "CONTINGENCY_PLAN") {
+    // FIX: Only exile if THIS specific card was retrieved via "Plan"
+    if (player.contingencyCard === pendingEvent) {
       state.logs.push({
         type: "warning",
         text: `⚡ ${EVENT_CARDS[pendingEvent].name} was EXILED from the game.`,
       });
+      player.contingencyCard = null; // Clear the slot
     } else {
       state.playerDiscard.push(pendingEvent);
     }
@@ -2920,11 +2955,13 @@ export default function OutbreakGame() {
 
     player.hand = player.hand.filter((c) => c !== pendingEvent);
 
-    if (player.role === "CONTINGENCY_PLAN") {
+    // FIX: Only exile if THIS specific card was retrieved via "Plan"
+    if (player.contingencyCard === pendingEvent) {
       state.logs.push({
         type: "warning",
         text: `⚡ ${EVENT_CARDS[pendingEvent].name} was EXILED from the game.`,
       });
+      player.contingencyCard = null; // Clear the slot
     } else {
       state.playerDiscard.push(pendingEvent);
     }
@@ -3075,6 +3112,7 @@ export default function OutbreakGame() {
           (c) => c !== payload.cardId,
         );
         player.hand.push(payload.cardId);
+        player.contingencyCard = payload.cardId; // NEW: Track the specific retrieved card
         logs.push({
           type: "success",
           text: `📋 ${player.name} retrieved ${EVENT_CARDS[payload.cardId].name} from the discard pile.`,
@@ -3158,12 +3196,14 @@ export default function OutbreakGame() {
 
       player.hand = player.hand.filter((c) => c !== cardId);
 
+      // FIX: Only exile if THIS specific card was retrieved via "Plan"
       const isEvent = cardId.startsWith("EVENT_");
-      if (isEvent && player.role === "CONTINGENCY_PLAN") {
+      if (isEvent && player.contingencyCard === cardId) {
         state.logs.push({
           type: "warning",
           text: `⚡ ${EVENT_CARDS[cardId].name} was EXILED from the game.`,
         });
+        player.contingencyCard = null; // Clear the slot
       } else {
         state.playerDiscard.push(cardId);
       }
@@ -3308,7 +3348,15 @@ export default function OutbreakGame() {
       <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 relative">
         <CyanAtmosphere />
         <GameLogoBig />
-        {showLeaveConfirm && <LeaveConfirmModal onCancel={() => setShowLeaveConfirm(false)} onConfirmLeave={leaveRoom} onConfirmLobby={returnToLobby} isHost={isHost} inGame={false} />}
+        {showLeaveConfirm && (
+          <LeaveConfirmModal
+            onCancel={() => setShowLeaveConfirm(false)}
+            onConfirmLeave={leaveRoom}
+            onConfirmLobby={returnToLobby}
+            isHost={isHost}
+            inGame={false}
+          />
+        )}
 
         <div className="z-10 w-full max-w-lg bg-slate-900/90 backdrop-blur p-8 rounded-2xl border border-cyan-900/50 shadow-2xl mb-4">
           <div className="flex justify-between items-center mb-8 border-b border-slate-700 pb-4">
@@ -3343,14 +3391,24 @@ export default function OutbreakGame() {
             </h3>
             <div className="space-y-2">
               {gameState.players.map((p) => (
-                <div key={p.id} className="flex items-center justify-between bg-slate-800/50 p-3 rounded border border-slate-700/50 group">
-                  <span className={`font-bold flex items-center gap-2 ${p.id === user.uid ? "text-cyan-400" : "text-slate-300"}`}>
-                    <User size={14} /> {p.name} {p.id === gameState.hostId && <span className="text-xs bg-slate-700 px-2 py-0.5 rounded text-white ml-2">Host</span>}
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between bg-slate-800/50 p-3 rounded border border-slate-700/50 group"
+                >
+                  <span
+                    className={`font-bold flex items-center gap-2 ${p.id === user.uid ? "text-cyan-400" : "text-slate-300"}`}
+                  >
+                    <User size={14} /> {p.name}{" "}
+                    {p.id === gameState.hostId && (
+                      <span className="text-xs bg-slate-700 px-2 py-0.5 rounded text-white ml-2">
+                        Host
+                      </span>
+                    )}
                   </span>
-                  
+
                   {/* NEW: Host Kick Button (Always Visible) */}
                   {isHost && p.id !== user.uid && (
-                    <button 
+                    <button
                       onClick={() => kickPlayer(p.id)}
                       disabled={loading}
                       title={`Remove ${p.name}`}
@@ -4027,7 +4085,8 @@ export default function OutbreakGame() {
                           isOverLimit ||
                           gameState.playerDiscard.filter((c) =>
                             c.startsWith("EVENT_"),
-                          ).length === 0
+                          ).length === 0 ||
+                          !!me.contingencyCard
                         }
                         onClick={() => setShowContingencyModal(true)}
                         className="flex-1 md:flex-none px-4 py-3.5 bg-cyan-800 disabled:opacity-50 disabled:active:scale-100 disabled:bg-slate-800 rounded-xl font-bold text-xs md:text-sm uppercase text-cyan-100 shadow-lg active:scale-95 transition-transform border border-cyan-600"
