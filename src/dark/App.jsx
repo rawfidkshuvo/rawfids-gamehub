@@ -386,7 +386,7 @@ const createDeck = () => {
     const j = Math.floor(Math.random() * (i + 1));
     [deck[i], deck[j]] = [deck[j], deck[i]]; // Swap the cards
   }
-  
+
   return deck;
 };
 
@@ -421,12 +421,12 @@ const DarkAtmosphere = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
     {/* Clean, deep gradient background (No hazy overlays) */}
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
-    
+
     {/* Crisp Particles */}
     {[...Array(25)].map((_, i) => {
       // Calculate individual random drifts using CSS variables
       const driftX = `${Math.random() * 40 - 20}px`;
-      
+
       return (
         <div
           key={i}
@@ -1235,7 +1235,13 @@ export default function DarkFolkloreGame() {
     };
   };
 
-const processQueueAndSave = async (players, deck, discardPile, pending, remainingActions) => {
+  const processQueueAndSave = async (
+    players,
+    deck,
+    discardPile,
+    pending,
+    remainingActions,
+  ) => {
     let isPausedForAmulet = false;
 
     while (pending.queue.length > 0) {
@@ -1258,23 +1264,29 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
 
         const hasAmulet = target.hand.some((c) => c.cardId === "AMULET");
         // NEW: Check if this player already pressed "Take Hit" during this queue
-        const hasRejected = pending.rejectedAmulets && pending.rejectedAmulets.includes(target.id);
+        const hasRejected =
+          pending.rejectedAmulets &&
+          pending.rejectedAmulets.includes(target.id);
 
         if (hasAmulet && !hasRejected && !pending.amuletPromptActive) {
           // STOP THE QUEUE: Ask for defense!
           pending.amuletPromptActive = true;
           pending.targetId = currentTargetId; // Tell UI who is defending
           isPausedForAmulet = true;
-          break; 
+          break;
         } else {
           // Steal succeeds automatically (no amulet, OR they opted out earlier)
           const source = players.find((p) => p.id === pending.sourceId);
-          const stolen = target.hand.splice(Math.floor(Math.random() * target.hand.length), 1)[0];
+          const stolen = target.hand.splice(
+            Math.floor(Math.random() * target.hand.length),
+            1,
+          )[0];
           source.hand.push(stolen);
-          
+
           pending.stolenCount = pending.stolenCount || {};
-          pending.stolenCount[target.name] = (pending.stolenCount[target.name] || 0) + 1;
-          
+          pending.stolenCount[target.name] =
+            (pending.stolenCount[target.name] || 0) + 1;
+
           pending.amuletPromptActive = false;
           pending.queue.shift();
         }
@@ -1283,12 +1295,16 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
 
     if (isPausedForAmulet) {
       const updates = {
-        players, deck, discardPile, turnState: "AMULET_PROMPT", pendingAction: pending,
+        players,
+        deck,
+        discardPile,
+        turnState: "AMULET_PROMPT",
+        pendingAction: pending,
       };
       const target = players.find((p) => p.id === pending.targetId);
       const source = players.find((p) => p.id === pending.sourceId);
       const attackName = ALL_CARDS[pending.defId].name;
-      
+
       await executeAction(
         updates,
         `${source.name}'s ${attackName} targets ${target.name}. Waiting for defense...`,
@@ -1300,17 +1316,18 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
       const def = ALL_CARDS[pending.defId];
       let finalLog = "";
       let details = [];
-      
+
       if (pending.deckPulls > 0) details.push(`${pending.deckPulls} from deck`);
       if (pending.stolenCount) {
         details.push(
           Object.entries(pending.stolenCount)
             .map(([n, c]) => `${c} from ${n}`)
-            .join(" and ")
+            .join(" and "),
         );
       }
-      
-      if (details.length > 0) finalLog = `${source.name}'s ${def.name} claimed ${details.join(" and ")}.`;
+
+      if (details.length > 0)
+        finalLog = `${source.name}'s ${def.name} claimed ${details.join(" and ")}.`;
       else finalLog = `${source.name}'s ${def.name} found nothing.`;
 
       if (pending.blockedBy && pending.blockedBy.length > 0) {
@@ -2021,7 +2038,13 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
       ctx.pendingData.remainingActions = gameState.actionsLeft - actionsCost;
       setModalState(null);
       setSelectedHandCards([]);
-      return processQueueAndSave(ctx.players, ctx.deck, ctx.discardPile, ctx.pendingData, ctx.pendingData.remainingActions);
+      return processQueueAndSave(
+        ctx.players,
+        ctx.deck,
+        ctx.discardPile,
+        ctx.pendingData,
+        ctx.pendingData.remainingActions,
+      );
     }
 
     // NEW FIX: Intercept the Free Play state so finalizeAction doesn't instantly end the turn
@@ -2131,7 +2154,13 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
       ctx.pendingData.remainingActions = gameState.actionsLeft - actionsCost;
       setModalState(null);
       setSelectedHandCards([]);
-      return processQueueAndSave(ctx.players, ctx.deck, ctx.discardPile, ctx.pendingData, ctx.pendingData.remainingActions);
+      return processQueueAndSave(
+        ctx.players,
+        ctx.deck,
+        ctx.discardPile,
+        ctx.pendingData,
+        ctx.pendingData.remainingActions,
+      );
     }
 
     // NEW FIX: Intercept the Free Play state so finalizeAction doesn't instantly end the turn
@@ -2238,7 +2267,10 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
         pending.rejectedAmulets = pending.rejectedAmulets || [];
         pending.rejectedAmulets.push(me.id);
 
-        const stolen = me.hand.splice(Math.floor(Math.random() * me.hand.length), 1)[0];
+        const stolen = me.hand.splice(
+          Math.floor(Math.random() * me.hand.length),
+          1,
+        )[0];
         source.hand.push(stolen);
         pending.stolenCount = pending.stolenCount || {};
         pending.stolenCount[me.name] = (pending.stolenCount[me.name] || 0) + 1;
@@ -2247,9 +2279,15 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
       pending.queue.shift(); // Consume this attempt
       pending.amuletPromptActive = false; // Reset for next loop
       setSelectedHandCards([]);
-      
+
       // Pass it back to the queue processor to handle the next target!
-      return processQueueAndSave(players, deck, discardPile, pending, pending.remainingActions);
+      return processQueueAndSave(
+        players,
+        deck,
+        discardPile,
+        pending,
+        pending.remainingActions,
+      );
     }
 
     // --- EXISTING SINGLE ATTACK LOGIC ---
@@ -2257,18 +2295,26 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
     if (useAmulet) {
       const aIdx = me.hand.findIndex((c) => c.cardId === "AMULET");
       discardPile.push(me.hand.splice(aIdx, 1)[0]);
-      const attackName = pending.type === "STEAL" ? "A steal" : ALL_CARDS[pending.type]?.name || "An attack";
+      const attackName =
+        pending.type === "STEAL"
+          ? "A steal"
+          : ALL_CARDS[pending.type]?.name || "An attack";
       logText = `${me.name} burned an Amulet! ${attackName} from ${source.name} was nullified.`;
     } else {
       resolveOffensiveAction(pending, players, discardPile, gameState.deck);
       logText = getAttackSuccessLog(pending.type, source.name, me.name);
     }
 
-    const updates = finalizeAction(players, gameState.deck, "ACTION", gameState.actionsLeft - 1);
+    const updates = finalizeAction(
+      players,
+      gameState.deck,
+      "ACTION",
+      gameState.actionsLeft - 1,
+    );
     updates.discardPile = discardPile;
     updates.pendingAction = null;
     await executeAction(updates, logText, useAmulet ? "neutral" : "failure");
-    setSelectedHandCards([]); 
+    setSelectedHandCards([]);
   };
 
   const handleForceDiscard = async (cardUids) => {
@@ -2367,6 +2413,7 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
             <span className="text-xs">Back to Gamehub</span>
           </a>
         </nav>
+        {showGuide && <HowToPlayModal onClose={() => setShowGuide(false)} />}
         <div className="z-10 text-center mb-12">
           <Moon
             size={64}
@@ -2413,6 +2460,12 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
               Join
             </button>
           </div>
+          <button
+            onClick={() => setShowGuide(true)}
+            className="w-full mt-4 text-fuchsia-500 hover:text-fuchsia-400 text-sm font-bold flex items-center justify-center gap-2 transition-colors py-2"
+          >
+            <BookOpen size={16} /> How to Play
+          </button>
         </div>
       </div>
     );
@@ -2624,17 +2677,25 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
               onClick={() => setShowDiscard(true)}
               className="bg-slate-900/80 hover:bg-slate-800 transition-colors px-3 sm:px-4 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold tracking-widest uppercase border border-slate-700 shadow-inner flex items-center gap-3 sm:gap-4 cursor-pointer active:scale-95"
             >
-              <div className="flex items-center gap-1.5 text-fuchsia-300" title="Cards in Deck">
-                <Layers size={14} className="sm:w-4 sm:h-4" /> 
-                <span className="hidden sm:inline">Deck:</span> {gameState.deck.length}
+              <div
+                className="flex items-center gap-1.5 text-fuchsia-300"
+                title="Cards in Deck"
+              >
+                <Layers size={14} className="sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Deck:</span>{" "}
+                {gameState.deck.length}
               </div>
-              
+
               {/* Subtle Divider */}
               <div className="w-[1px] h-4 bg-slate-700" />
-              
-              <div className="flex items-center gap-1.5 text-red-400" title="Cards in Void">
-                <Flame size={14} className="sm:w-4 sm:h-4" /> 
-                <span className="hidden sm:inline">Void:</span> {gameState.discardPile.length}
+
+              <div
+                className="flex items-center gap-1.5 text-red-400"
+                title="Cards in Void"
+              >
+                <Flame size={14} className="sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Void:</span>{" "}
+                {gameState.discardPile.length}
               </div>
             </button>
             <button
@@ -3163,7 +3224,6 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
         {amITarget && (
           <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4">
             <div className="bg-slate-950 border border-red-900/80 rounded-3xl p-6 sm:p-8 max-w-sm w-full flex flex-col items-center text-center shadow-[0_0_50px_rgba(220,38,38,0.2)] animate-in zoom-in-95 duration-200">
-              
               <div className="relative mb-4">
                 <div className="absolute inset-0 bg-red-500 blur-[30px] opacity-30 rounded-full animate-pulse"></div>
                 <Shield
@@ -3171,15 +3231,15 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
                   className="text-red-500 animate-bounce relative z-10 drop-shadow-lg"
                 />
               </div>
-              
+
               <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-widest mb-2 drop-shadow-md">
                 Incoming Attack!
               </h2>
-              
+
               <p className="text-red-300 mb-8 uppercase tracking-wider text-xs font-bold bg-red-950/40 px-4 py-2.5 rounded-xl border border-red-900/50 w-full">
                 An entity strikes. Burn your Amulet?
               </p>
-              
+
               <div className="flex w-full gap-3">
                 <button
                   onClick={() => handleAmuletResponse(true)}
@@ -3194,7 +3254,6 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
                   Take Hit
                 </button>
               </div>
-
             </div>
           </div>
         )}
@@ -3203,7 +3262,6 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
         {showDiscard && (
           <div className="fixed inset-0 z-[250] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in fade-in">
             <div className="bg-slate-950 border border-slate-700/50 rounded-3xl w-full max-w-4xl flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden max-h-[85vh]">
-              
               {/* Modal Header */}
               <div className="flex justify-between items-center p-4 md:p-6 border-b border-slate-800 bg-slate-900/50 shrink-0">
                 <h3 className="text-xl md:text-2xl font-black text-slate-200 uppercase tracking-widest flex items-center gap-3 drop-shadow-md">
@@ -3219,11 +3277,10 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
 
               {/* Scrollable Content */}
               <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar flex flex-col gap-8">
-                
                 {/* Your Hand Section */}
                 <div>
                   <h4 className="text-sm font-black text-fuchsia-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
-                    <Hand size={16} /> Your Hand 
+                    <Hand size={16} /> Your Hand
                     <span className="text-xs bg-slate-900 px-2 py-0.5 rounded-full text-slate-400 border border-slate-800">
                       {me.hand.length}/7
                     </span>
@@ -3236,7 +3293,10 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
                       </div>
                     ) : (
                       me.hand.map((c, i) => (
-                        <div key={`${c.uid}-${i}`} className="hover:-translate-y-2 transition-transform">
+                        <div
+                          key={`${c.uid}-${i}`}
+                          className="hover:-translate-y-2 transition-transform"
+                        >
                           <CardDisplay cardId={c.cardId} />
                         </div>
                       ))
@@ -3247,7 +3307,7 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
                 {/* The Void Section */}
                 <div>
                   <h4 className="text-sm font-black text-red-500 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
-                    <Flame size={16} /> The Void 
+                    <Flame size={16} /> The Void
                     <span className="text-xs bg-slate-900 px-2 py-0.5 rounded-full text-slate-400 border border-slate-800">
                       {gameState.discardPile.length}
                     </span>
@@ -3273,7 +3333,6 @@ const processQueueAndSave = async (players, deck, discardPile, pending, remainin
                     )}
                   </div>
                 </div>
-
               </div>
             </div>
           </div>

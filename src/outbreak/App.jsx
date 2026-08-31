@@ -3038,13 +3038,13 @@ export default function OutbreakGame() {
                 type: "success",
                 text: `⚕️ ${targetPlayer.name}'s Medic passive instantly cleared ${color} in ${CITIES[payload.to].name}.`,
               });
-              
+
               // New: Check for eradication after passive clear
               const cubesLeft = Object.values(state.cities).reduce(
                 (sum, c) => sum + c.cubes[color],
                 0,
               );
-              
+
               if (cubesLeft === 0 && !state.eradicated[color]) {
                 state.eradicated[color] = true;
                 logs.push({
@@ -3294,6 +3294,28 @@ export default function OutbreakGame() {
     );
   }
 
+  if (!user)
+    return (
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center text-cyan-500 animate-pulse">
+        Eradicating viruses...
+      </div>
+    );
+
+  // RECONNECTING STATE
+  if (roomId && !gameState && !error) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
+        <div className="bg-slate-900/80 backdrop-blur p-8 rounded-2xl border border-slate-700 shadow-2xl flex flex-col items-center gap-4 animate-in fade-in zoom-in duration-300">
+          <Loader size={48} className="text-cyan-500 animate-spin" />
+          <div className="text-center">
+            <h2 className="text-xl font-bold">Reconnecting...</h2>
+            <p className="text-slate-400 text-sm">Resuming your session</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (view === "splash") return <SplashScreen onStart={handleSplashStart} />;
 
   if (view === "menu") {
@@ -3308,7 +3330,12 @@ export default function OutbreakGame() {
             <StepBack /> Back to Gamehub
           </a>
         </nav>
-
+        {showHowToPlay && (
+          <HowToPlayModal
+            ROLES={ROLES}
+            onClose={() => setShowHowToPlay(false)}
+          />
+        )}
         <div className="z-10 mb-8"></div>
         <div className="z-10 text-center mb-10">
           <Globe2
@@ -3356,6 +3383,12 @@ export default function OutbreakGame() {
               Join
             </button>
           </div>
+          <button
+            onClick={() => setShowHowToPlay(true)}
+            className="w-full mt-4 text-cyan-500 hover:text-cyan-400 text-sm font-bold flex items-center justify-center gap-2 transition-colors py-2"
+          >
+            <BookOpen size={16} /> How to Play
+          </button>
         </div>
       </div>
     );
