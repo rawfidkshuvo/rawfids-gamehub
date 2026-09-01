@@ -22,7 +22,6 @@ import {
   Ghost,
   Eye,
   Flame,
-  LayersPlus,
   Shield,
   Sparkles,
   Map,
