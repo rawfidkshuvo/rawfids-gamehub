@@ -1454,16 +1454,38 @@ export default function DarkFolkloreGame() {
 
     // Pass the placementSetId into the target modals so it isn't lost
     if (def.target === "SET_SWAP") {
-      const validOwnSets = p.tableau.filter((s) => !s.isLocked);
-      if (validOwnSets.length === 0)
+      // Deep copy so we can visually inject the pending card
+      let previewOwnSets = JSON.parse(
+        JSON.stringify(p.tableau.filter((s) => !s.isLocked))
+      );
+
+      // Default to "NEW" if they bypassed the placement modal
+      const actualPlacement = placementSetId || "NEW";
+
+      if (actualPlacement === "NEW") {
+        previewOwnSets.push({
+          id: "NEW_PLACEMENT_SET", // A temporary mock ID
+          type: "SUP",
+          cards: [{ cardId: card.cardId, uid: card.uid }],
+          isLocked: false,
+        });
+      } else {
+        const tgtSet = previewOwnSets.find((s) => s.id === actualPlacement);
+        if (tgtSet) {
+          tgtSet.cards.push({ cardId: card.cardId, uid: card.uid });
+        }
+      }
+
+      if (previewOwnSets.length === 0)
         return setError("Requires an unlocked set to swap.");
+
       return setModalState({
         type: "SET_SWAP",
-        ownSetId: validOwnSets.length === 1 ? validOwnSets[0].id : null,
-        validOwnSets,
+        ownSetId: previewOwnSets.length === 1 ? previewOwnSets[0].id : null,
+        validOwnSets: previewOwnSets,
         cardUid,
         def,
-        placementSetId,
+        placementSetId: actualPlacement, // Pass the placement through!
       });
     }
     if (def.target === "SET_HEXWITCH") {
@@ -1544,9 +1566,11 @@ export default function DarkFolkloreGame() {
 
     switch (def.id) {
       case "SUP_GUARDIAN":
-        let tSet = me.tableau
-          .map((s) => s.type === "SUP" && !s.isLocked)
-          .lastIndexOf(true);
+        // Finds the specific set that holds an unlocked Guardian
+        let tSet = me.tableau.findIndex(
+          (s) =>
+            !s.isLocked && s.cards.some((c) => c.cardId === "SUP_GUARDIAN"),
+        );
         if (tSet > -1) me.tableau[tSet].isLocked = true;
         ctx.logsText += " Set locked defensively.";
         break;
@@ -1637,9 +1661,16 @@ export default function DarkFolkloreGame() {
         }
         break;
       case "SUP_SHAPECHANGER":
-        const mySetIdx = me.tableau.findIndex(
+        let mySetIdx = me.tableau.findIndex(
           (s) => s.id === targetData.ownSetId,
         );
+
+        // Catch the mock ID for a newly created placement set
+        if (targetData.ownSetId === "NEW_PLACEMENT_SET") {
+          // The new set was just pushed to the very end of the tableau
+          mySetIdx = me.tableau.length - 1;
+        }
+
         const opp = players.find((p) => p.id === targetData.targetPlayerId);
         const oppSetIdx = opp.tableau.findIndex(
           (s) => s.id === targetData.targetSetId,
@@ -2098,6 +2129,29 @@ export default function DarkFolkloreGame() {
     const def = SUPERNATURALS[gameState.pendingAction.defId];
 
     applySupernaturalEffect(def, targetData, ctx);
+
+    // --- ADD THIS MISSING BLOCK FOR CONTINUOUS CHAINING ---
+    if (ctx.triggerChain) {
+      const updates = {
+        players: ctx.players,
+        deck: ctx.deck,
+        discardPile: ctx.discardPile,
+        turnState: "CHAIN_MODAL",
+        pendingAction: {
+          type: "CHAIN",
+          defId: ctx.chainDefId,
+          logPrefix: ctx.logsText,
+        },
+      };
+      setModalState(null);
+      setSelectedHandCards([]);
+      return executeAction(
+        updates,
+        `${ctx.logsText} Gathering power...`,
+        "neutral",
+      );
+    }
+    // ------------------------------------------------------
 
     if (ctx.awaitAmulet) {
       const target = ctx.players.find((p) => p.id === ctx.pendingData.targetId);
@@ -2661,7 +2715,7 @@ export default function DarkFolkloreGame() {
         {showGuide && <HowToPlayModal onClose={() => setShowGuide(false)} />}
 
         {/* Top Bar */}
-        <div className="h-16 bg-slate-950/90 border-b border-fuchsia-900/30 flex items-center justify-between px-6 z-160 shrink-0 backdrop-blur-md shadow-lg">
+        <div className="h-16 bg-slate-950/90 border-b border-fuchsia-900/30 flex items-center justify-between px-6 z-[260] shrink-0 backdrop-blur-md shadow-lg">
           <div className="flex items-center gap-4">
             <Moon
               className="text-fuchsia-600 drop-shadow-[0_0_8px_rgba(192,38,211,0.8)]"
@@ -2744,7 +2798,7 @@ export default function DarkFolkloreGame() {
         {/* Leave Modal in Game */}
         {/* Leave Modal in Game */}
         {showLeaveConfirm && (
-          <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/90 z-[220] flex items-center justify-center p-4">
             <div className="bg-slate-900 border border-slate-700 p-6 rounded-xl max-w-sm w-full text-center shadow-2xl">
               <h3 className="text-xl font-black text-white mb-2 uppercase tracking-wider">
                 Abandon Ritual?
@@ -3352,21 +3406,17 @@ export default function DarkFolkloreGame() {
 
             if (def.target === "SET_SWAP") {
               const validOwnSets = me.tableau.filter((s) => !s.isLocked);
-              if (validOwnSets.length > 0) {
-                fallbackModal.validOwnSets = validOwnSets;
-                fallbackModal.ownSetId =
-                  validOwnSets.length === 1 ? validOwnSets[0].id : null;
-              }
+              fallbackModal.validOwnSets = validOwnSets;
+              fallbackModal.ownSetId =
+                validOwnSets.length === 1 ? validOwnSets[0].id : null;
             }
             if (def.target === "SET_HEXWITCH") {
               const validOwnSets = me.tableau.filter(
                 (s) => s.type === "BIRD" && !s.isLocked && s.cards.length === 3,
               );
-              if (validOwnSets.length > 0) {
-                fallbackModal.validOwnSets = validOwnSets;
-                fallbackModal.ownSetId =
-                  validOwnSets.length === 1 ? validOwnSets[0].id : null;
-              }
+              fallbackModal.validOwnSets = validOwnSets;
+              fallbackModal.ownSetId =
+                validOwnSets.length === 1 ? validOwnSets[0].id : null;
             }
           }
           const activeModal = modalState || fallbackModal;
@@ -3382,10 +3432,11 @@ export default function DarkFolkloreGame() {
             else resolveSupernatural(activeModal.cardUid, payload);
           };
 
-          // Special fail-safe if chained prerequisites are missing
+          // FIXED FAIL-SAFE CONDITION:
           if (
             activeModal.isChain &&
-            !activeModal.ownSetId &&
+            (!activeModal.validOwnSets ||
+              activeModal.validOwnSets.length === 0) &&
             ["SET_SWAP", "SET_HEXWITCH"].includes(activeModal.type)
           ) {
             return (

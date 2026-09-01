@@ -4275,7 +4275,7 @@ export default function OutbreakGame() {
 
         {/* Game Over Screen */}
         {(gameState.status === "won" || gameState.status === "lost") && (
-          <div className="fixed inset-0 bg-black/95 z-[200] flex flex-col items-center justify-center p-4 text-center animate-in fade-in zoom-in">
+          <div className="fixed inset-0 bg-black/95 z-[100] flex flex-col items-center justify-center p-4 text-center animate-in fade-in zoom-in">
             {gameState.status === "won" ? (
               <Globe2
                 size={80}
