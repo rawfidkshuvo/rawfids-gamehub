@@ -3315,7 +3315,7 @@ export default function DarkFolkloreGame() {
 
         {/* Game State Overview Modal (Hand & Void) */}
         {showDiscard && (
-          <div className="fixed inset-0 z-[250] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in fade-in">
+          <div className="fixed inset-0 z-[270] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in fade-in">
             <div className="bg-slate-950 border border-slate-700/50 rounded-3xl w-full max-w-4xl flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden max-h-[85vh]">
               {/* Modal Header */}
               <div className="flex justify-between items-center p-4 md:p-6 border-b border-slate-800 bg-slate-900/50 shrink-0">
