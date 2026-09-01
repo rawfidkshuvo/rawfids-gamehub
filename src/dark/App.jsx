@@ -2414,7 +2414,7 @@ export default function DarkFolkloreGame() {
           </p>
         </div>
         <div className="h-8"></div>
-        <a href={getBaseUrl()} className="z-10">
+        <a href={import.meta.env.BASE_URL} className="z-10">
           <div className="flex items-center justify-center gap-3 mb-2">
             <div className="inline-flex items-center gap-3 px-8 py-4 bg-slate-900/80 rounded-full border border-fuchsia-500/20 text-fuchsia-300 font-bold tracking-widest text-sm uppercase backdrop-blur-sm transition-colors hover:bg-slate-800 hover:border-fuchsia-400">
               <StepBack size={16} /> Retreat to Gamehub
@@ -2457,7 +2457,7 @@ export default function DarkFolkloreGame() {
         <DarkAtmosphere />
         <nav className="absolute top-0 left-0 w-full p-6 z-50">
           <a
-            href={getBaseUrl()}
+            href={import.meta.env.BASE_URL}
             className="flex items-center gap-2 text-fuchsia-500 hover:text-fuchsia-400 font-bold tracking-widest uppercase transition-colors w-fit group"
           >
             <StepBack

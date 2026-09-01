@@ -3284,7 +3284,7 @@ export default function OutbreakGame() {
           </p>
         </div>
         <a
-          href="/"
+          href={import.meta.env.BASE_URL}
           className="mt-8 flex items-center gap-2 text-cyan-400 hover:text-cyan-300 transition-colors"
         >
           <StepBack /> Back to Gamehub
@@ -3324,7 +3324,7 @@ export default function OutbreakGame() {
         <CyanAtmosphere />
         <nav className="absolute top-0 left-0 w-full p-4 z-50">
           <a
-            href="/"
+            href={import.meta.env.BASE_URL}
             className="flex items-center gap-2 text-cyan-700 hover:text-cyan-400 font-bold transition-colors w-fit"
           >
             <StepBack /> Back to Gamehub
