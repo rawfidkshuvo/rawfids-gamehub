@@ -22,6 +22,7 @@ import {
   Ghost,
   Eye,
   Flame,
+  LayersPlus,
   Shield,
   Sparkles,
   Map,
@@ -49,6 +50,7 @@ import {
   Hammer,
   Loader,
   RotateCcw,
+  LayersPlus,
 } from "lucide-react";
 import CoverImage from "./assets/dark.png";
 
@@ -2747,7 +2749,7 @@ export default function DarkFolkloreGame() {
                 className="flex items-center gap-1.5 text-red-400"
                 title="Cards in Discard Pile"
               >
-                <Flame size={14} className="sm:w-4 sm:h-4" />
+                <LayersPlus size={14} className="sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">Discard:</span>{" "}
                 {gameState.discardPile.length}
               </div>
@@ -3361,7 +3363,7 @@ export default function DarkFolkloreGame() {
                 {/* The Void Section */}
                 <div>
                   <h4 className="text-sm font-black text-red-500 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
-                    <Flame size={16} /> Discard Pile
+                    <LayersPlus size={16} /> Discard Pile
                     <span className="text-xs bg-slate-900 px-2 py-0.5 rounded-full text-slate-400 border border-slate-800">
                       {gameState.discardPile.length}
                     </span>
