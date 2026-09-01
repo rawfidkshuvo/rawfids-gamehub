@@ -1354,7 +1354,7 @@ export default function DarkFolkloreGame() {
     );
     await executeAction(
       updates,
-      `${players[gameState.turnIndex].name} drew a card from the void.`,
+      `${players[gameState.turnIndex].name} drew a card from the deck.`,
       "neutral",
     );
     setSelectedHandCards([]); // <--- ADD THIS HERE
@@ -1577,7 +1577,7 @@ export default function DarkFolkloreGame() {
       case "SUP_OCCULTIST":
         if (ctx.deck.length > 0) me.hand.push(ctx.deck.pop());
         if (ctx.deck.length > 0) me.hand.push(ctx.deck.pop());
-        ctx.logsText += " They drew 2 cards from the void.";
+        ctx.logsText += " They drew 2 cards from the deck.";
         break;
       case "SUP_HEADLESS":
         // NEW: Moved to Queue System so it steals 1-by-1!
@@ -1608,7 +1608,7 @@ export default function DarkFolkloreGame() {
         // NEW: Draw immediately before asking for the amulet!
         if (ctx.deck.length > 0) {
           me.hand.push(ctx.deck.pop());
-          ctx.logsText += " They drew 1 from the void.";
+          ctx.logsText += " They drew 1 from the deck.";
         }
         ctx.logsText += " The shadows reach out to strike.";
         ctx.awaitAmulet = true;
@@ -1707,7 +1707,7 @@ export default function DarkFolkloreGame() {
             const drawn = ctx.discardPile.splice(rIdx, 1)[0];
             me.hand.push(drawn);
             ctx.freePlayUids = [drawn.uid];
-            ctx.logsText += ` They claimed '${ALL_CARDS[drawn.cardId].name}' from the void.`;
+            ctx.logsText += ` They claimed '${ALL_CARDS[drawn.cardId].name}' from the discard pile.`;
           }
         }
         break;
@@ -1777,7 +1777,7 @@ export default function DarkFolkloreGame() {
           const drawn = ctx.discardPile.pop();
           me.hand.push(drawn);
           ctx.freePlayUids = [drawn.uid];
-          ctx.logsText += ` They redeemed '${ALL_CARDS[drawn.cardId].name}' from the void.`;
+          ctx.logsText += ` They redeemed '${ALL_CARDS[drawn.cardId].name}' from the discard pile.`;
         }
         break;
       case "SUP_TWINS":
@@ -1795,7 +1795,7 @@ export default function DarkFolkloreGame() {
           });
         }
         if (twinsPulled.length > 0) {
-          ctx.logsText += ` They resurrected ${twinsPulled.join(" and ")} from the void.`;
+          ctx.logsText += ` They resurrected ${twinsPulled.join(" and ")} from the discard pile.`;
         }
         break;
       case "SUP_SUMMONER":
@@ -2745,10 +2745,10 @@ export default function DarkFolkloreGame() {
 
               <div
                 className="flex items-center gap-1.5 text-red-400"
-                title="Cards in Void"
+                title="Cards in Discard Pile"
               >
                 <Flame size={14} className="sm:w-4 sm:h-4" />
-                <span className="hidden sm:inline">Void:</span>{" "}
+                <span className="hidden sm:inline">Discard:</span>{" "}
                 {gameState.discardPile.length}
               </div>
             </button>
@@ -3361,7 +3361,7 @@ export default function DarkFolkloreGame() {
                 {/* The Void Section */}
                 <div>
                   <h4 className="text-sm font-black text-red-500 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
-                    <Flame size={16} /> The Void
+                    <Flame size={16} /> Discard Pile
                     <span className="text-xs bg-slate-900 px-2 py-0.5 rounded-full text-slate-400 border border-slate-800">
                       {gameState.discardPile.length}
                     </span>
@@ -3370,7 +3370,7 @@ export default function DarkFolkloreGame() {
                     {gameState.discardPile.length === 0 ? (
                       <div className="text-slate-600 uppercase tracking-widest font-black py-6 flex flex-col items-center gap-3 w-full bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
                         <Ghost size={32} className="opacity-20" />
-                        The void is currently empty.
+                        The discard pile is currently empty.
                       </div>
                     ) : (
                       /* Reversing so the most recently discarded cards show up first */
@@ -3712,7 +3712,7 @@ export default function DarkFolkloreGame() {
                       <div className="flex flex-wrap gap-4 justify-center">
                         {gameState.discardPile.length === 0 && (
                           <div className="text-slate-500 uppercase tracking-widest py-10 font-bold">
-                            Void is empty
+                            Discard Pile is empty
                           </div>
                         )}
                         {gameState.discardPile.map((c, i) => {
@@ -4429,7 +4429,7 @@ export default function DarkFolkloreGame() {
                   {activeModal.type === "ORACLE" && (
                     <div className="flex flex-col gap-8 items-center">
                       <p className="text-slate-300 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-3 rounded-full border border-slate-700">
-                        One from the void, one from the future. Keep 1.
+                        One from the deck, one from the discard pile. Keep 1.
                       </p>
                       <div className="flex gap-8">
                         {activeModal.tempCards &&
@@ -4441,7 +4441,7 @@ export default function DarkFolkloreGame() {
                                 className="flex flex-col items-center gap-4"
                               >
                                 <span className="text-xs font-bold text-slate-500 uppercase">
-                                  {i === 0 ? "From Deck" : "From Void"}
+                                  {i === 0 ? "From Deck" : "From Discard Pile"}
                                 </span>
                                 <CardDisplay
                                   cardId={c.cardId}
@@ -4545,7 +4545,7 @@ export default function DarkFolkloreGame() {
                               ))}
                           {activeModal.tempCards.length === 0 && (
                             <span className="text-slate-500 uppercase tracking-widest font-bold">
-                              The void was empty.
+                              The discard pile was empty.
                             </span>
                           )}
                         </div>
