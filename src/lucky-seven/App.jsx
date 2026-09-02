@@ -391,7 +391,7 @@ const SplashScreen = ({ onStart }) => {
 
   useEffect(() => {
     // 1. Check Session immediately
-    const saved = localStorage.getItem("lucky7_roomId");
+    const saved = localStorage.getItem("luckyseven_roomId");
     setHasSession(!!saved);
 
     // 2. Preload the image
@@ -536,20 +536,20 @@ export default function Lucky7Game() {
       if (snap.exists()) {
         const data = snap.data();
         if (!data.players.some((p) => p.id === user.uid)) {
-          setRoomId(""); localStorage.removeItem("lucky7_roomId"); setView("menu"); setError("You have been disconnected."); return;
+          setRoomId(""); localStorage.removeItem("luckyseven_roomId"); setView("menu"); setError("You have been disconnected."); return;
         }
         setGameState(data);
         if (data.status === "playing" || data.status === "finished") setView("game");
         else if (data.status === "lobby") setView("lobby");
       } else {
-        setView("menu"); setRoomId(""); localStorage.removeItem("lucky7_roomId"); setError("The game was closed.");
+        setView("menu"); setRoomId(""); localStorage.removeItem("luckyseven_roomId"); setError("The game was closed.");
       }
     }, (err) => { console.error(err); setError("Connection lost."); });
     return () => unsub();
   }, [roomId, user]);
 
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("lucky7_roomId");
+    const savedRoomId = localStorage.getItem("luckyseven_roomId");
     if (savedRoomId) { setLoading(true); setRoomId(savedRoomId); setView("menu"); }
     else { setView("menu"); }
   };
@@ -588,7 +588,7 @@ export default function Lucky7Game() {
     };
     try {
       await setDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", newId), initialData);
-      setRoomId(newId); localStorage.setItem("lucky7_roomId", newId);
+      setRoomId(newId); localStorage.setItem("luckyseven_roomId", newId);
     } catch (e) { setError("Failed to create game."); }
     setLoading(false);
   };
@@ -607,7 +607,7 @@ export default function Lucky7Game() {
           const newPlayers = [...data.players, { id: user.uid, name: playerName, colorIdx: data.players.length, score: 0, activeCards: [], status: "PLAYING", forcedFlips: 0 }];
           await updateDoc(ref, { players: newPlayers });
         }
-        setRoomId(code); localStorage.setItem("lucky7_roomId", code);
+        setRoomId(code); localStorage.setItem("luckyseven_roomId", code);
       } else setError("Room not found or game in progress.");
     } catch (e) { setError(e.message); }
     setLoading(false);
@@ -644,7 +644,7 @@ export default function Lucky7Game() {
       if (gameState.hostId === user.uid) await deleteDoc(ref);
       else { const newPlayers = gameState.players.filter((p) => p.id !== user.uid); await updateDoc(ref, { players: newPlayers }); }
     } catch (e) { console.log("Room gone"); }
-    localStorage.removeItem("lucky7_roomId"); setRoomId(""); setView("menu"); setShowLeaveConfirm(false); setGameState(null);
+    localStorage.removeItem("luckyseven_roomId"); setRoomId(""); setView("menu"); setShowLeaveConfirm(false); setGameState(null);
   };
 
   const kickPlayer = async (targetId) => {

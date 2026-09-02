@@ -676,7 +676,7 @@ const SplashScreen = ({ onStart }) => {
 
   useEffect(() => {
     // 1. Check Session immediately
-    const saved = localStorage.getItem("outbreak_room_id");
+    const saved = localStorage.getItem("outbreak_roomId");
     setHasSession(!!saved);
 
     // 2. Preload the image
@@ -2221,7 +2221,7 @@ export default function OutbreakGame() {
     setRoomId("");
     setGameState(null);
     setLoading(false);
-    localStorage.removeItem("outbreak_room_id");
+    localStorage.removeItem("outbreak_roomId");
   };
 
   useEffect(() => {
@@ -2278,7 +2278,7 @@ export default function OutbreakGame() {
   }, []);
 
   const handleSplashStart = () => {
-    const savedId = localStorage.getItem("outbreak_room_id");
+    const savedId = localStorage.getItem("outbreak_roomId");
     if (savedId) {
       setLoading(true);
       setRoomId(savedId);
@@ -2314,7 +2314,7 @@ export default function OutbreakGame() {
         logs: [{ type: "info", text: "HQ established." }],
       },
     );
-    localStorage.setItem("outbreak_room_id", newId);
+    localStorage.setItem("outbreak_roomId", newId);
     setRoomId(newId);
     setRoomInput(newId);
   };
@@ -2356,7 +2356,7 @@ export default function OutbreakGame() {
         ],
       });
     }
-    localStorage.setItem("outbreak_room_id", roomInput.toUpperCase());
+    localStorage.setItem("outbreak_roomId", roomInput.toUpperCase());
     setRoomId(roomInput.toUpperCase());
   };
 

@@ -512,7 +512,7 @@ const SplashScreen = ({ onStart }) => {
 
   useEffect(() => {
     // 1. Check Session immediately
-    const saved = localStorage.getItem("conspiracy_room_id");
+    const saved = localStorage.getItem("conspiracy_roomId");
     setHasSession(!!saved);
 
     // 2. Preload the image
@@ -645,7 +645,7 @@ export default function ConspiracyGame() {
 
   // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("conspiracy_room_id");
+    const savedRoomId = localStorage.getItem("conspiracy_roomId");
 
     if (savedRoomId) {
       setLoading(true);
@@ -663,7 +663,7 @@ export default function ConspiracyGame() {
   // --- RESTORE SESSION ---
   // useEffect(() => {
   //   if (user && view === "menu") {
-  //     const savedRoomId = localStorage.getItem("conspiracy_room_id");
+  //     const savedRoomId = localStorage.getItem("conspiracy_roomId");
   //     const savedPlayerName = localStorage.getItem("conspiracy_player_name");
 
   //     if (savedRoomId && savedPlayerName) {
@@ -697,7 +697,7 @@ export default function ConspiracyGame() {
             setRoomId(null);
             setView("menu");
             setError("You have been removed from the room.");
-            localStorage.removeItem("conspiracy_room_id");
+            localStorage.removeItem("conspiracy_roomId");
             localStorage.removeItem("conspiracy_player_name");
             setLoading(false);
             return;
@@ -708,7 +708,7 @@ export default function ConspiracyGame() {
             setRoomId(null);
             setView("menu");
             setError("The Host has closed the room.");
-            localStorage.removeItem("conspiracy_room_id");
+            localStorage.removeItem("conspiracy_roomId");
             localStorage.removeItem("conspiracy_player_name");
             setLoading(false);
             return;
@@ -725,7 +725,7 @@ export default function ConspiracyGame() {
           setView("menu");
           setError("Room closed or does not exist.");
           setLoading(false);
-          localStorage.removeItem("conspiracy_room_id");
+          localStorage.removeItem("conspiracy_roomId");
           localStorage.removeItem("conspiracy_player_name");
         }
       },
@@ -814,7 +814,7 @@ export default function ConspiracyGame() {
         doc(db, "artifacts", appId, "public", "data", "rooms", newRoomId),
         roomData,
       );
-      localStorage.setItem("conspiracy_room_id", newRoomId);
+      localStorage.setItem("conspiracy_roomId", newRoomId);
       localStorage.setItem("conspiracy_player_name", playerName);
 
       setRoomId(newRoomId);
@@ -881,7 +881,7 @@ export default function ConspiracyGame() {
         });
       }
 
-      localStorage.setItem("conspiracy_room_id", roomCode);
+      localStorage.setItem("conspiracy_roomId", roomCode);
       localStorage.setItem("conspiracy_player_name", playerName);
 
       setRoomId(roomCode);
@@ -969,7 +969,7 @@ export default function ConspiracyGame() {
     }
 
     // Local Cleanup
-    localStorage.removeItem("conspiracy_room_id");
+    localStorage.removeItem("conspiracy_roomId");
     localStorage.removeItem("conspiracy_player_name");
 
     setRoomId(null);

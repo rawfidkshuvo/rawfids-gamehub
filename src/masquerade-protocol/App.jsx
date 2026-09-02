@@ -949,7 +949,7 @@ const SplashScreen = ({ onStart }) => {
 
   useEffect(() => {
     // 1. Check Session immediately
-    const saved = localStorage.getItem("masquerade_room_id");
+    const saved = localStorage.getItem("masqueradeprotocol_roomId");
     setHasSession(!!saved);
 
     // 2. Preload the image
@@ -1102,7 +1102,7 @@ export default function MasqueradeProtocol() {
 
   // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("masquerade_room_id");
+    const savedRoomId = localStorage.getItem("masqueradeprotocol_roomId");
 
     if (savedRoomId) {
       setLoading(true);
@@ -1135,7 +1135,7 @@ export default function MasqueradeProtocol() {
           const amIInRoom = data.players.find((p) => p.id === user?.uid);
           if (user && !amIInRoom) {
             setRoomId("");
-            localStorage.removeItem("masquerade_room_id");
+            localStorage.removeItem("masqueradeprotocol_roomId");
             setView("menu");
             setError("Disconnected from server.");
             return;
@@ -1241,7 +1241,7 @@ export default function MasqueradeProtocol() {
           // Room deleted by host
           setView("menu");
           setRoomId("");
-          localStorage.removeItem("masquerade_room_id");
+          localStorage.removeItem("masqueradeprotocol_roomId");
           setError("Connection Terminated (Room Closed).");
         }
       },
@@ -1334,7 +1334,7 @@ export default function MasqueradeProtocol() {
       initialData,
     );
     setRoomId(newId);
-    localStorage.setItem("masquerade_room_id", newId); // Persist
+    localStorage.setItem("masqueradeprotocol_roomId", newId); // Persist
     setLoading(false);
   };
 
@@ -1392,7 +1392,7 @@ export default function MasqueradeProtocol() {
     }
 
     setRoomId(roomCode);
-    localStorage.setItem("masquerade_room_id", roomCode); // Persist
+    localStorage.setItem("masqueradeprotocol_roomId", roomCode); // Persist
     setLoading(false);
   };
 
@@ -1544,7 +1544,7 @@ export default function MasqueradeProtocol() {
     }
 
     setRoomId("");
-    localStorage.removeItem("masquerade_room_id");
+    localStorage.removeItem("masqueradeprotocol_roomId");
     setView("menu");
     setShowLeaveConfirm(false);
   };

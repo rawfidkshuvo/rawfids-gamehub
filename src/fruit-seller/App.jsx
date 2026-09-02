@@ -643,7 +643,7 @@ const SplashScreen = ({ onStart }) => {
 
   useEffect(() => {
     // 1. Check Session immediately
-    const saved = localStorage.getItem("fs_roomId");
+    const saved = localStorage.getItem("fruitseller_roomId");
     setHasSession(!!saved);
 
     // 2. Preload the image
@@ -776,7 +776,7 @@ export default function FruitSellerGame() {
 
   // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("fs_roomId");
+    const savedRoomId = localStorage.getItem("fruitseller_roomId");
 
     if (savedRoomId) {
       // Resume: Set the room ID, which triggers the existing logic to connect
@@ -793,8 +793,8 @@ export default function FruitSellerGame() {
   // --- Persistence Logic ---
   // Save roomId and playerName to localStorage whenever they change
   // useEffect(() => {
-  //   if (roomId) localStorage.setItem("fs_roomId", roomId);
-  //   else localStorage.removeItem("fs_roomId");
+  //   if (roomId) localStorage.setItem("fruitseller_roomId", roomId);
+  //   else localStorage.removeItem("fruitseller_roomId");
   // }, [roomId]);
 
   // --- Room Listener ---
@@ -830,7 +830,7 @@ export default function FruitSellerGame() {
         setRoomId(null);
         setView("menu");
         setError("Market closed by the Master.");
-        localStorage.removeItem("fs_roomId");
+        localStorage.removeItem("fruitseller_roomId");
       }
     });
     return () => unsubscribe();
@@ -929,7 +929,7 @@ export default function FruitSellerGame() {
         readyPlayers: [], // Track who is ready for rematch
       },
     );
-    localStorage.setItem("fs_roomId", newRoomId);
+    localStorage.setItem("fruitseller_roomId", newRoomId);
     setRoomId(newRoomId);
   };
 
@@ -964,7 +964,7 @@ export default function FruitSellerGame() {
           }),
         });
       }
-      localStorage.setItem("fs_roomId", rId);
+      localStorage.setItem("fruitseller_roomId", rId);
       setRoomId(rId);
     } catch (e) {
       console.error(e);
@@ -1096,7 +1096,7 @@ export default function FruitSellerGame() {
 
   const leaveRoom = async () => {
     if (!roomId || !user) return;
-    localStorage.removeItem("fs_roomId");
+    localStorage.removeItem("fruitseller_roomId");
     try {
       const roomRef = doc(
         db,

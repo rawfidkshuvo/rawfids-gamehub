@@ -313,7 +313,7 @@ const SplashScreen = ({ onStart }) => {
 
   useEffect(() => {
     // 1. Check Session immediately
-    const saved = localStorage.getItem("crypt_roomId");
+    const saved = localStorage.getItem("cryptandcrimson_roomId");
     setHasSession(!!saved);
 
     // 2. Preload the image
@@ -460,20 +460,20 @@ export default function CryptGame() {
       if (snap.exists()) {
         const data = snap.data();
         if (!data.players.some((p) => p.id === user.uid)) {
-          setRoomId(""); localStorage.removeItem("crypt_roomId"); setView("menu"); setError("You have been banished."); return;
+          setRoomId(""); localStorage.removeItem("cryptandcrimson_roomId"); setView("menu"); setError("You have been banished."); return;
         }
         setGameState(data);
         if (data.status === "playing" || data.status === "finished") setView("game");
         else if (data.status === "lobby") setView("lobby");
       } else {
-        setView("menu"); setRoomId(""); localStorage.removeItem("crypt_roomId"); setError("The crypt has collapsed.");
+        setView("menu"); setRoomId(""); localStorage.removeItem("cryptandcrimson_roomId"); setError("The crypt has collapsed.");
       }
     }, (err) => { console.error(err); setError("Connection lost."); });
     return () => unsub();
   }, [roomId, user]);
 
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("crypt_roomId");
+    const savedRoomId = localStorage.getItem("cryptandcrimson_roomId");
     if (savedRoomId) { setLoading(true); setRoomId(savedRoomId); setView("menu"); }
     else { setView("menu"); }
   };
@@ -515,7 +515,7 @@ export default function CryptGame() {
     };
     try {
       await setDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", newId), initialData);
-      setRoomId(newId); localStorage.setItem("crypt_roomId", newId);
+      setRoomId(newId); localStorage.setItem("cryptandcrimson_roomId", newId);
     } catch (e) { setError("Failed to open the crypt."); }
     setLoading(false);
   };
@@ -534,7 +534,7 @@ export default function CryptGame() {
           const newPlayers = [...data.players, { id: user.uid, name: playerName, colorIdx: data.players.length, score: 0, hand: [], played: [], discarded: [], passed: false, isEliminated: false }];
           await updateDoc(ref, { players: newPlayers });
         }
-        setRoomId(code); localStorage.setItem("crypt_roomId", code);
+        setRoomId(code); localStorage.setItem("cryptandcrimson_roomId", code);
       } else setError("Crypt not found or rituals have begun.");
     } catch (e) { setError(e.message); }
     setLoading(false);
@@ -564,7 +564,7 @@ export default function CryptGame() {
       if (gameState.hostId === user.uid) await deleteDoc(ref);
       else { const newPlayers = gameState.players.filter((p) => p.id !== user.uid); await updateDoc(ref, { players: newPlayers }); }
     } catch (e) { console.log("Room gone"); }
-    localStorage.removeItem("crypt_roomId"); setRoomId(""); setView("menu"); setShowLeaveConfirm(false); setGameState(null);
+    localStorage.removeItem("cryptandcrimson_roomId"); setRoomId(""); setView("menu"); setShowLeaveConfirm(false); setGameState(null);
   };
 
   const kickPlayer = async (targetId) => {

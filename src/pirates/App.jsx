@@ -712,7 +712,7 @@ const SplashScreen = ({ onStart }) => {
 
   useEffect(() => {
     // 1. Check Session immediately
-    const saved = localStorage.getItem("pirates_room_id");
+    const saved = localStorage.getItem("pirates_roomId");
     setHasSession(!!saved);
 
     // 2. Preload the image
@@ -863,7 +863,7 @@ export default function PiratesGame() {
 
   // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("pirates_room_id");
+    const savedRoomId = localStorage.getItem("pirates_roomId");
 
     if (savedRoomId) {
       setLoading(true); // <--- Keep this! Shows loading spinner immediately
@@ -882,7 +882,7 @@ export default function PiratesGame() {
   // useEffect(() => {
   //   // Only attempt restore if logged in and currently in menu
   //   if (user && view === "menu") {
-  //     const savedRoomId = localStorage.getItem("pirates_room_id");
+  //     const savedRoomId = localStorage.getItem("pirates_roomId");
   //     const savedPlayerName = localStorage.getItem("pirates_player_name");
 
   //     if (savedRoomId && savedPlayerName) {
@@ -906,7 +906,7 @@ export default function PiratesGame() {
             setRoomId("");
             setView("menu");
             setError("The Captain abandoned the ship! (You were disconnected)");
-            localStorage.removeItem("pirates_room_id");
+            localStorage.removeItem("pirates_roomId");
             localStorage.removeItem("pirates_player_name");
             setLoading(false);
             return;
@@ -923,7 +923,7 @@ export default function PiratesGame() {
           setRoomId("");
           setView("menu");
           setError("The ship has sunk! (Room Closed)");
-          localStorage.removeItem("pirates_room_id");
+          localStorage.removeItem("pirates_roomId");
           localStorage.removeItem("pirates_player_name");
           setLoading(false);
         }
@@ -1143,7 +1143,7 @@ export default function PiratesGame() {
       initialData,
     );
     // SAVE SESSION
-    localStorage.setItem("pirates_room_id", newId);
+    localStorage.setItem("pirates_roomId", newId);
     localStorage.setItem("pirates_player_name", playerName);
 
     setRoomId(newId);
@@ -1208,7 +1208,7 @@ export default function PiratesGame() {
     }
 
     // SAVE SESSION
-    localStorage.setItem("pirates_room_id", roomCodeInput);
+    localStorage.setItem("pirates_roomId", roomCodeInput);
     localStorage.setItem("pirates_player_name", playerName);
 
     setRoomId(roomCodeInput);
@@ -1250,7 +1250,7 @@ export default function PiratesGame() {
       console.error("Error leaving room:", e);
     }
     // CLEAR SESSION
-    localStorage.removeItem("pirates_room_id");
+    localStorage.removeItem("pirates_roomId");
     localStorage.removeItem("pirates_player_name");
 
     setRoomId("");

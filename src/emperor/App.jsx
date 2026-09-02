@@ -726,7 +726,7 @@ const SplashScreen = ({ onStart }) => {
 
   useEffect(() => {
     // 1. Check Session immediately
-    const saved = localStorage.getItem("emperor_room_id");
+    const saved = localStorage.getItem("emperor_roomId");
     setHasSession(!!saved);
 
     // 2. Preload the image
@@ -870,7 +870,7 @@ export default function EmperorGame() {
 
   // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("emperor_room_id");
+    const savedRoomId = localStorage.getItem("emperor_roomId");
 
     if (savedRoomId) {
       setLoading(true);
@@ -888,7 +888,7 @@ export default function EmperorGame() {
   // --- ADD THIS: Restore Session from LocalStorage ---
   // useEffect(() => {
   //   if (user && view === "menu") {
-  //     const savedRoomId = localStorage.getItem("emperor_room_id");
+  //     const savedRoomId = localStorage.getItem("emperor_roomId");
   //     const savedPlayerName = localStorage.getItem("emperor_player_name");
 
   //     if (savedRoomId && savedPlayerName) {
@@ -912,7 +912,7 @@ export default function EmperorGame() {
             setView("menu");
             setError("You were removed from the room.");
             // Clear storage
-            localStorage.removeItem("emperor_room_id");
+            localStorage.removeItem("emperor_roomId");
             localStorage.removeItem("emperor_player_name");
             setLoading(false);
             return;
@@ -931,7 +931,7 @@ export default function EmperorGame() {
           setRoomId("");
           setView("menu");
           setError("The Kingdom has fallen (Room Closed).");
-          localStorage.removeItem("emperor_room_id");
+          localStorage.removeItem("emperor_roomId");
           localStorage.removeItem("emperor_player_name");
           setLoading(false);
         }
@@ -1076,7 +1076,7 @@ export default function EmperorGame() {
       },
     );
     // SAVE SESSION
-    localStorage.setItem("emperor_room_id", newRoomId);
+    localStorage.setItem("emperor_roomId", newRoomId);
     localStorage.setItem("emperor_player_name", playerName);
 
     setRoomId(newRoomId);
@@ -1134,7 +1134,7 @@ export default function EmperorGame() {
     }
 
     // SAVE SESSION
-    localStorage.setItem("emperor_room_id", roomCodeInput);
+    localStorage.setItem("emperor_roomId", roomCodeInput);
     localStorage.setItem("emperor_player_name", playerName);
 
     setRoomId(roomCodeInput);
@@ -1174,7 +1174,7 @@ export default function EmperorGame() {
     }
 
     // CLEAR SESSION
-    localStorage.removeItem("emperor_room_id");
+    localStorage.removeItem("emperor_roomId");
     localStorage.removeItem("emperor_player_name");
 
     setRoomId("");
@@ -1968,7 +1968,7 @@ export default function EmperorGame() {
                 setRoomId("");
                 setGameState(null);
                 setView("menu");
-                localStorage.removeItem("emperor_room_id");
+                localStorage.removeItem("emperor_roomId");
                 localStorage.removeItem("emperor_player_name");
               }}
               className="bg-yellow-600 hover:bg-yellow-500 text-black px-6 py-3 rounded font-bold w-full"

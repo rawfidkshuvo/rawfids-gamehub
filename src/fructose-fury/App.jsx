@@ -776,7 +776,7 @@ const SplashScreen = ({ onStart }) => {
 
   useEffect(() => {
     // 1. Check Session immediately
-    const saved = localStorage.getItem("fructose_room_id");
+    const saved = localStorage.getItem("fructosefury_roomId");
     setHasSession(!!saved);
 
     // 2. Preload the image
@@ -908,7 +908,7 @@ export default function FructoseFury() {
 
   // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("fructose_room_id");
+    const savedRoomId = localStorage.getItem("fructosefury_roomId");
 
     if (savedRoomId) {
       setLoading(true);
@@ -926,7 +926,7 @@ export default function FructoseFury() {
   // --- Session Persistence Logic ---
   // 1. Restore Room ID on mount
   // useEffect(() => {
-  //   const savedRoomId = localStorage.getItem("fructose_room_id");
+  //   const savedRoomId = localStorage.getItem("fructosefury_roomId");
   //   if (savedRoomId) {
   //     setRoomId(savedRoomId);
   //   }
@@ -942,9 +942,9 @@ export default function FructoseFury() {
   // 2. Save Room ID when it changes
   // useEffect(() => {
   //   if (roomId) {
-  //     localStorage.setItem("fructose_room_id", roomId);
+  //     localStorage.setItem("fructosefury_roomId", roomId);
   //   } else {
-  //     localStorage.removeItem("fructose_room_id");
+  //     localStorage.removeItem("fructosefury_roomId");
   //   }
   // }, [roomId]);
 
@@ -991,7 +991,7 @@ export default function FructoseFury() {
             setRoomId("");
             setView("menu");
             setError("You were kicked by the host.");
-            localStorage.removeItem("fructose_room_id");
+            localStorage.removeItem("fructosefury_roomId");
             return;
           }
 
@@ -1042,7 +1042,7 @@ export default function FructoseFury() {
           setRoomId("");
           setView("menu");
           setError("The Fruit Stand has closed (Host left).");
-          localStorage.removeItem("fructose_room_id");
+          localStorage.removeItem("fructosefury_roomId");
         }
       },
     );
@@ -1090,7 +1090,7 @@ export default function FructoseFury() {
       doc(db, "artifacts", APP_ID, "public", "data", "rooms", newId),
       initialData,
     );
-    localStorage.setItem("fructose_room_id", newId);
+    localStorage.setItem("fructosefury_roomId", newId);
     setRoomId(newId);
     setRoomCodeInput(newId);
     setLoading(false);
@@ -1143,7 +1143,7 @@ export default function FructoseFury() {
       });
     }
     // ADD THIS LINE:
-    localStorage.setItem("fructose_room_id", roomCodeInput);
+    localStorage.setItem("fructosefury_roomId", roomCodeInput);
     setRoomId(roomCodeInput);
     setLoading(false);
   };
@@ -1238,7 +1238,7 @@ export default function FructoseFury() {
     if (!roomId) return;
 
     // Clear session immediately
-    localStorage.removeItem("fructose_room_id");
+    localStorage.removeItem("fructosefury_roomId");
 
     const ref = doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId);
 

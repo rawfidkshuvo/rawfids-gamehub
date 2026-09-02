@@ -780,7 +780,7 @@ const SplashScreen = ({ onStart }) => {
 
   useEffect(() => {
     // 1. Check Session immediately
-    const saved = localStorage.getItem("guild_room_id");
+    const saved = localStorage.getItem("guildofshadows_roomId");
     setHasSession(!!saved);
 
     // 2. Preload the image
@@ -936,7 +936,7 @@ export default function GuildOfShadows() {
 
   // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("guild_room_id");
+    const savedRoomId = localStorage.getItem("guildofshadows_roomId");
 
     if (savedRoomId) {
       setLoading(true);
@@ -964,7 +964,7 @@ export default function GuildOfShadows() {
             setRoomId("");
             setView("menu");
             setError("You have been removed from the guild.");
-            localStorage.removeItem("guild_room_id");
+            localStorage.removeItem("guildofshadows_roomId");
             return;
           }
 
@@ -1009,7 +1009,7 @@ export default function GuildOfShadows() {
           setRoomId("");
           setView("menu");
           setError("The Guild Hall was disbanded by the host.");
-          localStorage.removeItem("guild_room_id");
+          localStorage.removeItem("guildofshadows_roomId");
         }
       },
       (err) => console.error(err),
@@ -1070,7 +1070,7 @@ export default function GuildOfShadows() {
         },
       );
       setRoomId(newId);
-      localStorage.setItem("guild_room_id", newId); // Persist
+      localStorage.setItem("guildofshadows_roomId", newId); // Persist
     } catch (e) {
       console.error(e);
       setError("Failed to create room.");
@@ -1123,7 +1123,7 @@ export default function GuildOfShadows() {
         ],
       });
       setRoomId(roomCode);
-      localStorage.setItem("guild_room_id", roomCode); // Persist
+      localStorage.setItem("guildofshadows_roomId", roomCode); // Persist
     } catch (e) {
       console.error(e);
       setError("Failed to join room.");
@@ -1160,7 +1160,7 @@ export default function GuildOfShadows() {
       );
     }
     setRoomId("");
-    localStorage.removeItem("guild_room_id");
+    localStorage.removeItem("guildofshadows_roomId");
     setView("menu");
     setShowLeaveConfirm(false);
   };

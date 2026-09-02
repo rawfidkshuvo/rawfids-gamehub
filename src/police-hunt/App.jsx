@@ -463,7 +463,7 @@ const SplashScreen = ({ onStart }) => {
 
   useEffect(() => {
     // 1. Check Session immediately
-    const saved = localStorage.getItem("police_room_id");
+    const saved = localStorage.getItem("policehunt_roomId");
     setHasSession(!!saved);
 
     // 2. Preload the image
@@ -608,7 +608,7 @@ export default function ThiefPoliceGame() {
 
   // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("police_room_id");
+    const savedRoomId = localStorage.getItem("policehunt_roomId");
 
     if (savedRoomId) {
       setLoading(true);
@@ -626,7 +626,7 @@ export default function ThiefPoliceGame() {
   // --- NEW: Restore Session ---
   // useEffect(() => {
   //   if (user && view === "menu") {
-  //     const savedRoomId = localStorage.getItem("police_room_id");
+  //     const savedRoomId = localStorage.getItem("policehunt_roomId");
   //     const savedPlayerName = localStorage.getItem("police_player_name");
 
   //     if (savedRoomId && savedPlayerName) {
@@ -659,7 +659,7 @@ export default function ThiefPoliceGame() {
           setRoomId(null);
           setView("menu");
           setError("You were removed from the Station.");
-          localStorage.removeItem("police_room_id");
+          localStorage.removeItem("policehunt_roomId");
           localStorage.removeItem("police_player_name");
           return;
         }
@@ -674,7 +674,7 @@ export default function ThiefPoliceGame() {
         setRoomId(null);
         setView("menu");
         setError("The Station has been closed! (Room Deleted)");
-        localStorage.removeItem("police_room_id");
+        localStorage.removeItem("policehunt_roomId");
         localStorage.removeItem("police_player_name");
       }
     });
@@ -862,7 +862,7 @@ export default function ThiefPoliceGame() {
       await setDoc(roomRef, roomData);
 
       // Save Session
-      localStorage.setItem("police_room_id", newRoomId);
+      localStorage.setItem("policehunt_roomId", newRoomId);
       localStorage.setItem("police_player_name", playerName);
 
       setRoomId(newRoomId);
@@ -912,7 +912,7 @@ export default function ThiefPoliceGame() {
       }
 
       // Save Session
-      localStorage.setItem("police_room_id", roomCode);
+      localStorage.setItem("policehunt_roomId", roomCode);
       localStorage.setItem("police_player_name", playerName);
 
       setRoomId(roomCode);
@@ -960,7 +960,7 @@ export default function ThiefPoliceGame() {
       console.error(e);
     }
     // Clear Session
-    localStorage.removeItem("police_room_id");
+    localStorage.removeItem("policehunt_roomId");
     localStorage.removeItem("police_player_name");
 
     setRoomId(null);

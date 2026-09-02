@@ -66,6 +66,7 @@ import {
   BugPlay,
   Moon,
   Earth,
+  RotateCcw,
 } from "lucide-react";
 import CoverImage from "./assets/gamehub_cover.png";
 
@@ -640,8 +641,6 @@ const INITIAL_GAMES = [
     duration: "40-60m",
     link: "./outbreak/",
   },
-  
-
 ];
 
 // ---------------------------------------------------------------------------
@@ -891,6 +890,11 @@ const NewReleaseSlider = ({ games, onGameClick }) => {
                   <>
                     <Hammer size={20} /> Under Maintenance
                   </>
+                ) : currentGame.hasSession ? (
+                  // --- NEW RESUME STATE ---
+                  <>
+                    Resume Game <RotateCcw size={20} />
+                  </>
                 ) : (
                   <>
                     Play Now <ArrowRight size={20} />
@@ -1085,6 +1089,12 @@ const GameCard = ({
               {game.maintenance ? (
                 <span className="text-slate-500 flex items-center gap-1">
                   <Hammer size={12} /> Offline
+                </span>
+              ) : game.hasSession ? (
+                // --- NEW RESUME STATE ---
+                <span className="text-emerald-400 flex items-center">
+                  Resume{" "}
+                  <RotateCcw className="w-4 h-4 ml-1 animate-reverse-spin" />
                 </span>
               ) : (
                 <span className="text-white flex items-center">
@@ -1387,9 +1397,32 @@ const GameHub = () => {
   const [systemMessage, setSystemMessage] = useState("");
   const [sortBy, setSortBy] = useState("popular");
   const [isNavigating, setIsNavigating] = useState(false);
+  // --- NEW: Track Active Sessions ---
+  const [activeSessions, setActiveSessions] = useState(new Set());
 
   // 1. Use a Ref to store location (PERSISTS across re-renders and Fast Refresh)
   const locationRef = useRef({ country: "Unknown", city: "Unknown" });
+
+  useEffect(() => {
+    // Scan localStorage for any saved room IDs
+    const sessions = new Set();
+    INITIAL_GAMES.forEach((game) => {
+      // Dynamically formats link "./dark/" -> "dark" -> "dark_roomId"
+      const folderName = game.link.replace(/[\.\/]/g, "");
+      const possibleKeys = [
+        `${folderName}_roomId`, // e.g., dark_roomId
+        `${folderName.replace(/-/g, "")}_roomId`,
+        `${game.title.toLowerCase().replace(/\s+/g, "_")}_roomId`,
+        game.storageKey, // Optional manually defined key on the game object
+      ];
+
+      const hasActive = possibleKeys.some(
+        (key) => key && localStorage.getItem(key),
+      );
+      if (hasActive) sessions.add(game.id);
+    });
+    setActiveSessions(sessions);
+  }, []);
 
   useEffect(() => {
     setIsNavigating(false);
@@ -1532,9 +1565,10 @@ const GameHub = () => {
         maintenance: override.maintenance || false,
         manualBoost: manualBoost,
         popularity: realClicks + manualBoost,
+        hasSession: activeSessions.has(game.id), // <--- INJECTED HERE
       };
     });
-  }, [gameOverrides, clickStats]);
+  }, [gameOverrides, clickStats, activeSessions]);
 
   const categories = [
     "All",
@@ -1765,7 +1799,9 @@ const GameHub = () => {
                       className={`shrink-0 group flex items-center gap-3 p-3 rounded-xl bg-slate-900 border border-slate-800 transition-all pr-6 ${
                         game.maintenance
                           ? "opacity-50 cursor-not-allowed border-orange-900"
-                          : "hover:border-indigo-500/50 cursor-pointer"
+                          : game.hasSession
+                            ? "hover:border-emerald-500/50 border-emerald-900/30 cursor-pointer" // Highlight active sessions
+                            : "hover:border-indigo-500/50 cursor-pointer"
                       }`}
                     >
                       <div
@@ -1780,8 +1816,14 @@ const GameHub = () => {
                         <div className="text-white font-bold text-sm truncate max-w-[150px]">
                           {game.title}
                         </div>
-                        <div className="text-slate-500 text-xs">
-                          {game.maintenance ? "Maintenance" : "Resume"}
+                        <div
+                          className={`text-xs ${game.hasSession && !game.maintenance ? "text-emerald-400" : "text-slate-500"}`}
+                        >
+                          {game.maintenance
+                            ? "Maintenance"
+                            : game.hasSession
+                              ? "Resume"
+                              : "Play Again"}
                         </div>
                       </div>
                     </div>
