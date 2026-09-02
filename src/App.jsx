@@ -1444,8 +1444,8 @@ const GameHub = () => {
       }
 
       const providers = [
-        "https://ipapi.co/json/",
         "https://ipinfo.io/json/",
+        "https://ipapi.co/json/",
         "https://freeipapi.com/api/json/",
         "https://geolocation-db.com/json/",
         "https://ipwho.is/",
