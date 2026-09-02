@@ -1203,7 +1203,7 @@ const SplashScreen = ({ onStart }) => {
 
   useEffect(() => {
     // 1. Check Session immediately
-    const saved = localStorage.getItem("together_game_roomId");
+    const saved = localStorage.getItem("together_roomId");
     setHasSession(!!saved);
 
     // 2. Preload the image
@@ -1349,7 +1349,7 @@ export default function TogetherGame() {
 
   // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("together_game_roomId");
+    const savedRoomId = localStorage.getItem("together_roomId");
 
     if (savedRoomId) {
       setLoading(true);
@@ -1383,7 +1383,7 @@ export default function TogetherGame() {
           const data = snap.data();
           if (!data.players.some((p) => p.id === user.uid)) {
             setRoomId("");
-            localStorage.removeItem("together_game_roomId");
+            localStorage.removeItem("together_roomId");
             setView("menu");
             setError("You were removed.");
             return;
@@ -1401,7 +1401,7 @@ export default function TogetherGame() {
           }
         } else {
           setRoomId("");
-          localStorage.removeItem("together_game_roomId");
+          localStorage.removeItem("together_roomId");
           setView("menu");
           setError("Room ended.");
         }
@@ -1447,7 +1447,7 @@ export default function TogetherGame() {
       initialData,
     );
     setRoomId(newId);
-    localStorage.setItem("together_game_roomId", newId);
+    localStorage.setItem("together_roomId", newId);
     setView("lobby");
     setLoading(false);
   };
@@ -1491,7 +1491,7 @@ export default function TogetherGame() {
     ];
     await updateDoc(ref, { players: newPlayers });
     setRoomId(roomCodeInput);
-    localStorage.setItem("together_game_roomId", roomCodeInput);
+    localStorage.setItem("together_roomId", roomCodeInput);
     setLoading(false);
   };
 
@@ -1661,7 +1661,7 @@ export default function TogetherGame() {
       console.error("Error leaving room", e);
     }
     setRoomId("");
-    localStorage.removeItem("together_game_roomId");
+    localStorage.removeItem("together_roomId");
     setView("menu");
     setGameState(null);
     setShowLeaveConfirm(false);
