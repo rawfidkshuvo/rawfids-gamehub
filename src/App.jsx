@@ -4,6 +4,9 @@ import { getAuth, signInAnonymously, onAuthStateChanged } from "firebase/auth";
 import {
   getFirestore,
   doc,
+  query,
+  where,
+  getDocs,
   updateDoc,
   increment,
   setDoc,
@@ -15,6 +18,7 @@ import {
 // --- ICONS ---
 import {
   Users,
+  User,
   Bot,
   Crown,
   Ship,
@@ -67,6 +71,11 @@ import {
   Moon,
   Earth,
   RotateCcw,
+  Trophy,
+  Medal,
+  Activity,
+  Save,
+  Calendar,
 } from "lucide-react";
 import CoverImage from "./assets/gamehub_cover.png";
 
@@ -1365,6 +1374,295 @@ const SplashScreen = ({ onStart }) => {
   );
 };
 
+const UserProfileModal = ({ isOpen, onClose }) => {
+  const [stats, setStats] = useState({
+    total: 0,
+    firstSeen: null,
+    allGames: [],
+    allCategories: [],
+  });
+  const [loading, setLoading] = useState(true);
+  const [localName, setLocalName] = useState(
+    localStorage.getItem("gameHub_playerName") || "Anonymous",
+  );
+  const [savedStatus, setSavedStatus] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || !auth.currentUser) return;
+
+    const fetchDetailedStats = async () => {
+      setLoading(true);
+      try {
+        const q = query(
+          collection(db, "game_click_logs"),
+          where("userId", "==", auth.currentUser.uid),
+        );
+        const snapshot = await getDocs(q);
+
+        let totalClicks = 0;
+        let earliest = Infinity;
+        const gameTally = {};
+        const catTally = {};
+
+        snapshot.forEach((doc) => {
+          totalClicks++;
+          const data = doc.data();
+
+          if (data.timestamp?.seconds && data.timestamp.seconds < earliest) {
+            earliest = data.timestamp.seconds;
+          }
+
+          if (data.gameTitle) {
+            gameTally[data.gameTitle] = (gameTally[data.gameTitle] || 0) + 1;
+          }
+          if (data.categories && Array.isArray(data.categories)) {
+            data.categories.forEach((cat) => {
+              catTally[cat] = (catTally[cat] || 0) + 1;
+            });
+          }
+        });
+
+        // Sort from highest to lowest with NO LIMIT
+        const sortTally = (tally) =>
+          Object.entries(tally).sort((a, b) => b[1] - a[1]);
+
+        setStats({
+          total: totalClicks,
+          firstSeen: earliest !== Infinity ? earliest : null,
+          allGames: sortTally(gameTally),
+          allCategories: sortTally(catTally),
+        });
+      } catch (err) {
+        console.error("Failed to fetch player stats", err);
+      }
+      setLoading(false);
+    };
+
+    fetchDetailedStats();
+  }, [isOpen]);
+
+  const handleSaveName = () => {
+    if (localName.trim()) {
+      localStorage.setItem("gameHub_playerName", localName.trim());
+      setSavedStatus(true);
+      setTimeout(() => setSavedStatus(false), 2000);
+    }
+  };
+
+  const getBadge = (clicks) => {
+    if (clicks >= 100)
+      return {
+        label: "Grandmaster",
+        color: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
+        icon: <Crown className="w-6 h-6 text-yellow-400" />,
+      };
+    if (clicks >= 50)
+      return {
+        label: "Veteran",
+        color: "text-purple-400 bg-purple-400/10 border-purple-400/30",
+        icon: <Trophy className="w-6 h-6 text-purple-400" />,
+      };
+    if (clicks >= 15)
+      return {
+        label: "Enthusiast",
+        color: "text-indigo-400 bg-indigo-400/10 border-indigo-400/30",
+        icon: <Medal className="w-6 h-6 text-indigo-400" />,
+      };
+    if (clicks >= 1)
+      return {
+        label: "Initiate",
+        color: "text-green-400 bg-green-400/10 border-green-400/30",
+        icon: <Star className="w-6 h-6 text-green-400" />,
+      };
+    return {
+      label: "Newcomer",
+      color: "text-slate-400 bg-slate-800 border-slate-700",
+      icon: <User className="w-6 h-6 text-slate-400" />,
+    };
+  };
+
+  if (!isOpen) return null;
+
+  const badge = getBadge(stats.total);
+
+  return (
+    <div className="fixed inset-0 z-[150] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm animate-in fade-in">
+      <div className="bg-slate-900 border border-slate-700 rounded-2xl max-w-2xl w-full flex flex-col shadow-2xl relative overflow-hidden max-h-[90vh]">
+        {/* HEADER */}
+        <div className="p-4 md:p-6 border-b border-slate-800 flex items-start bg-slate-900/90 backdrop-blur shrink-0 relative">
+          <div className="flex items-center gap-3 md:gap-4 w-full pr-8">
+            <div className="w-12 h-12 md:w-16 md:h-16 bg-slate-800 rounded-full flex items-center justify-center border border-slate-700 shadow-inner shrink-0">
+              {badge.icon}
+            </div>
+            <div className="flex-1 min-w-0 w-full">
+              <div className="text-[10px] md:text-xs uppercase tracking-wider font-bold text-slate-500 mb-1 flex items-center gap-2 truncate">
+                Your Player Card
+                <span
+                  className={`px-2 py-0.5 rounded text-[10px] shrink-0 ${badge.color}`}
+                >
+                  {badge.label}
+                </span>
+              </div>
+              <div className="flex w-full gap-2">
+                <input
+                  type="text"
+                  value={localName}
+                  onChange={(e) => setLocalName(e.target.value)}
+                  placeholder="Enter Nickname"
+                  className="flex-1 min-w-0 w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-white font-bold focus:border-indigo-500 focus:outline-none transition-colors text-sm"
+                />
+                <button
+                  onClick={handleSaveName}
+                  className={`px-3 shrink-0 rounded-lg flex items-center justify-center transition-colors ${savedStatus ? "bg-green-600 text-white" : "bg-indigo-600 hover:bg-indigo-500 text-white"}`}
+                >
+                  <Save size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* BODY */}
+        <div className="p-6 overflow-y-auto space-y-6 flex-1 text-sm">
+          {loading ? (
+            <div className="py-12 flex flex-col items-center justify-center text-slate-500 gap-3">
+              <RefreshCw className="animate-spin text-indigo-500" size={32} />
+              <p className="text-xs font-mono">Loading your history...</p>
+            </div>
+          ) : (
+            <>
+              {/* STATS ROW */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs uppercase text-slate-500 font-bold block mb-1">
+                      Total Sessions
+                    </span>
+                    <span className="text-2xl font-black text-white">
+                      {stats.total}
+                    </span>
+                  </div>
+                  <Activity className="text-emerald-400" size={24} />
+                </div>
+
+                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs uppercase text-slate-500 font-bold block mb-1">
+                      Joined
+                    </span>
+                    <span className="text-sm font-medium text-slate-300">
+                      {stats.firstSeen
+                        ? new Date(stats.firstSeen * 1000).toLocaleDateString()
+                        : "Just now"}
+                    </span>
+                  </div>
+                  <Calendar className="text-blue-400" size={24} />
+                </div>
+              </div>
+
+              {/* LISTS ROW */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* All Games List */}
+                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col">
+                  <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-800">
+                    <h3 className="text-xs font-bold uppercase text-indigo-400 flex items-center gap-2">
+                      <Gamepad2 size={16} /> Played Games (
+                      {stats.allGames.length})
+                    </h3>
+                  </div>
+                  {/* Added max-h-64 and overflow-y-auto to handle long lists smoothly */}
+                  <div className="space-y-4 max-h-64 overflow-y-auto pr-2">
+                    {stats.allGames.length > 0 ? (
+                      stats.allGames.map(([name, count], i) => {
+                        const pct = Math.round(
+                          (count / (stats.total || 1)) * 100,
+                        );
+                        return (
+                          <div key={name} className="space-y-1.5">
+                            <div className="flex justify-between text-xs">
+                              <span className="text-slate-300 font-medium truncate pr-2">
+                                {i + 1}. {name}
+                              </span>
+                              <span className="text-slate-400 shrink-0 font-mono">
+                                {count} plays
+                              </span>
+                            </div>
+                            <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                              <div
+                                className="bg-indigo-500 h-full rounded-full transition-all duration-1000"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <span className="text-slate-600 text-xs italic">
+                        Play some games to see stats!
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* All Categories List */}
+                <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex flex-col">
+                  <div className="flex items-center justify-between mb-4 pb-2 border-b border-slate-800">
+                    <h3 className="text-xs font-bold uppercase text-pink-400 flex items-center gap-2">
+                      <Layers size={16} /> Genres Explored (
+                      {stats.allCategories.length})
+                    </h3>
+                  </div>
+                  <div className="space-y-4 max-h-64 overflow-y-auto pr-2">
+                    {stats.allCategories.length > 0 ? (
+                      stats.allCategories.map(([name, count], i) => {
+                        const totalCatHits = stats.allCategories.reduce(
+                          (acc, cur) => acc + cur[1],
+                          0,
+                        );
+                        const pct = Math.round(
+                          (count / (totalCatHits || 1)) * 100,
+                        );
+                        return (
+                          <div key={name} className="space-y-1.5">
+                            <div className="flex justify-between text-xs">
+                              <span className="text-slate-300 font-medium truncate pr-2">
+                                {name}
+                              </span>
+                              <span className="text-slate-400 shrink-0 font-mono">
+                                {pct}%
+                              </span>
+                            </div>
+                            <div className="w-full bg-slate-900 h-1.5 rounded-full overflow-hidden">
+                              <div
+                                className="bg-pink-500 h-full rounded-full transition-all duration-1000"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <span className="text-slate-600 text-xs italic">
+                        No genres explored yet.
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- MAIN COMPONENT ---
 const GameHub = () => {
   const [showSplash, setShowSplash] = useState(() => {
@@ -1399,6 +1697,8 @@ const GameHub = () => {
   const [isNavigating, setIsNavigating] = useState(false);
   // --- NEW: Track Active Sessions ---
   const [activeSessions, setActiveSessions] = useState(new Set());
+
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // 1. Use a Ref to store location (PERSISTS across re-renders and Fast Refresh)
   const locationRef = useRef({ country: "Unknown", city: "Unknown" });
@@ -1764,6 +2064,10 @@ const GameHub = () => {
       />
 
       <WebsiteQrModal isOpen={isQrOpen} onClose={() => setIsQrOpen(false)} />
+      <UserProfileModal
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+      />
 
       <div className="relative z-10 container mx-auto px-4 py-12 max-w-7xl grow flex flex-col">
         <header className="text-center mb-12 space-y-6">
@@ -1777,6 +2081,13 @@ const GameHub = () => {
             Board Games{" "}
             <span className="animate-pulse animate-rainbow">Online</span>
           </h1>
+          <button
+            onClick={() => setIsProfileOpen(true)}
+            className="mt-4 mx-auto inline-flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-700 hover:border-indigo-500 rounded-full text-slate-300 transition-colors shadow-lg hover:shadow-indigo-500/20"
+          >
+            <User size={16} className="text-indigo-400" />
+            Player Profile
+          </button>
         </header>
 
         {maintenanceMode ? (
