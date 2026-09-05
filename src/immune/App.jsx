@@ -790,8 +790,7 @@ export default function ImmuneGame() {
       setUser(u);
       if (u) {
         const savedName =
-          localStorage.getItem("gameHub_playerName") ||
-          localStorage.getItem("immune_playerName");
+          localStorage.getItem("gameHub_playerName");
         if (savedName) setPlayerName(savedName);
       }
     });
@@ -889,7 +888,6 @@ export default function ImmuneGame() {
   const createRoom = async () => {
     if (!playerName) return setError("Enter Name");
     localStorage.setItem("gameHub_playerName", playerName);
-    localStorage.setItem("immune_playerName", playerName);
     setLoading(true);
     const newId = Math.random().toString(36).substring(2, 8).toUpperCase();
 
@@ -929,7 +927,6 @@ export default function ImmuneGame() {
   const joinRoom = async () => {
     if (!roomCode || !playerName) return setError("Enter details");
     localStorage.setItem("gameHub_playerName", playerName);
-    localStorage.setItem("immune_playerName", playerName);
     setLoading(true);
     try {
       const code = roomCode.toUpperCase().trim();

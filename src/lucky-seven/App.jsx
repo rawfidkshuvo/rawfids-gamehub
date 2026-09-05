@@ -522,7 +522,7 @@ export default function Lucky7Game() {
     const unsub = onAuthStateChanged(auth, (u) => {
       setUser(u);
       if (u) {
-        const savedName = localStorage.getItem("gameHub_playerName") || localStorage.getItem("lucky7_playerName");
+        const savedName = localStorage.getItem("gameHub_playerName");
         if (savedName) setPlayerName(savedName);
       }
     });
@@ -578,7 +578,7 @@ export default function Lucky7Game() {
   // ---------------------------------------------------------------------------
   const createRoom = async () => {
     if (!playerName) return setError("Enter Name");
-    localStorage.setItem("gameHub_playerName", playerName); localStorage.setItem("lucky7_playerName", playerName); setLoading(true);
+    localStorage.setItem("gameHub_playerName", playerName); setLoading(true);
     const newId = Math.random().toString(36).substring(2, 8).toUpperCase();
     
     const initialData = {
@@ -595,7 +595,7 @@ export default function Lucky7Game() {
 
   const joinRoom = async () => {
     if (!roomCode || !playerName) return setError("Enter details");
-    localStorage.setItem("gameHub_playerName", playerName); localStorage.setItem("lucky7_playerName", playerName); setLoading(true);
+    localStorage.setItem("gameHub_playerName", playerName); setLoading(true);
     try {
       const code = roomCode.toUpperCase().trim();
       const ref = doc(db, "artifacts", APP_ID, "public", "data", "rooms", code);
