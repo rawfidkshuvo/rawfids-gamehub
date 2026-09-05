@@ -263,7 +263,7 @@ const INITIAL_GAMES = [
     icon: <Crown className="w-12 h-12 text-white" />,
     color: "from-yellow-500 to-amber-700",
     shadow: "shadow-amber-500/50",
-    categories: ["Strategy", "Drafting"],
+    categories: ["Strategy"],
     minPlayers: 2,
     maxPlayers: 2,
     hasBots: false,
@@ -359,7 +359,7 @@ const INITIAL_GAMES = [
     icon: <Layers className="w-12 h-12 text-white" />,
     color: "from-cyan-400 to-purple-600",
     shadow: "shadow-cyan-500/50",
-    categories: ["Drafting", "Strategy"],
+    categories: ["Drafting", "Strategy", "Set Collection"],
     minPlayers: 2,
     maxPlayers: 6,
     hasBots: false,
@@ -375,7 +375,7 @@ const INITIAL_GAMES = [
     icon: <Package className="w-12 h-12 text-white" />,
     color: "from-emerald-500 to-green-800",
     shadow: "shadow-emerald-500/50",
-    categories: ["Bluffing", "Set Collection"],
+    categories: ["Bluffing"],
     minPlayers: 3,
     maxPlayers: 6,
     hasBots: false,
@@ -425,7 +425,7 @@ const INITIAL_GAMES = [
     icon: <Origami className="w-12 h-12 text-white" />,
     color: "from-blue-500 to-cyan-400",
     shadow: "shadow-cyan-500/50",
-    categories: ["Set Collection", "Push-Your-Luck", "Strategy"],
+    categories: ["Set Collection", "Push-Your-Luck", "Strategy", "Drafting"],
     minPlayers: 2,
     maxPlayers: 4,
     hasBots: false,
@@ -476,7 +476,7 @@ const INITIAL_GAMES = [
     icon: <Biohazard className="w-12 h-12 text-white" />,
     color: "from-green-600 to-lime-800",
     shadow: "shadow-lime-500/50",
-    categories: ["Push-Your-Luck", "Drafting"],
+    categories: ["Push-Your-Luck", "Drafting", "Set Collection"],
     minPlayers: 2,
     maxPlayers: 7,
     hasBots: false,
@@ -610,7 +610,7 @@ const INITIAL_GAMES = [
     icon: <HeartPulse className="w-12 h-12 text-white" />,
     color: "from-green-600 to-emerald-950",
     shadow: "shadow-green-500/50",
-    categories: ["Set Collection", "Party"],
+    categories: ["Party"],
     minPlayers: 2,
     maxPlayers: 6,
     hasBots: false,
@@ -626,7 +626,7 @@ const INITIAL_GAMES = [
     icon: <Moon className="w-12 h-12 text-white" />,
     color: "from-fuchsia-600 to-purple-950",
     shadow: "shadow-fuchsia-500/50",
-    categories: ["Set Collection"],
+    categories: ["Set Collection", "Strategy", "Drafting"],
     minPlayers: 2,
     maxPlayers: 6,
     hasBots: false,
@@ -2081,12 +2081,15 @@ const GameHub = () => {
             Board Games{" "}
             <span className="animate-pulse animate-rainbow">Online</span>
           </h1>
+          {/* Profile Button */}
           <button
             onClick={() => setIsProfileOpen(true)}
-            className="mt-4 mx-auto inline-flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-700 hover:border-indigo-500 rounded-full text-slate-300 transition-colors shadow-lg hover:shadow-indigo-500/20"
+            className="mt-4 mx-auto inline-flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-700 hover:border-indigo-500 rounded-full text-slate-300 transition-colors shadow-lg hover:shadow-indigo-500/20 max-w-[250px]"
           >
-            <User size={16} className="text-indigo-400" />
-            Player Profile
+            <User size={16} className="text-indigo-400 shrink-0" />
+            <span className="font-bold truncate">
+              {localStorage.getItem("gameHub_playerName") || "Player Profile"}
+            </span>
           </button>
         </header>
 
