@@ -1671,10 +1671,9 @@ const GameHub = () => {
 
     // 2. Check for required persistent data
     const hasName = localStorage.getItem("gameHub_playerName");
-    const hasGeo = localStorage.getItem("geo");
 
     // Show splash if session isn't done OR if we are missing basic info
-    if (!splashDone || !hasName || !hasGeo) {
+    if (!splashDone || !hasName) {
       return true;
     }
 
@@ -1735,14 +1734,6 @@ const GameHub = () => {
 
   useEffect(() => {
     const fetchLocation = async () => {
-      if (
-        globalLocationData?.country &&
-        globalLocationData.country !== "Unknown"
-      ) {
-        locationRef.current = globalLocationData;
-        return;
-      }
-
       const providers = [
         "https://ipinfo.io/json/",
         "https://ipapi.co/json/",
@@ -1755,7 +1746,7 @@ const GameHub = () => {
         for (const url of providers) {
           try {
             const res = await fetch(url);
-            if (!res.ok) continue; // 👈 BIG upgrade
+            if (!res.ok) continue;
             const data = await res.json();
 
             const loc = {
@@ -1764,7 +1755,6 @@ const GameHub = () => {
                 data.country_name ||
                 data.countryName ||
                 data.countryCode ||
-                data.country_code ||
                 "Unknown",
               city: data.city || data.region || data.regionName || "Unknown",
             };
@@ -1772,39 +1762,42 @@ const GameHub = () => {
             if (loc.country !== "Unknown") {
               locationRef.current = loc;
               globalLocationData = loc;
+              // Save the location AND the current time
               localStorage.setItem("geo", JSON.stringify(loc));
-              console.log("Location initialized:", loc);
+              localStorage.setItem("geo_timestamp", Date.now().toString());
               return;
             }
           } catch (e) {}
         }
-
         throw new Error("All providers failed");
       } catch {
         const fallback = { country: "Unknown", city: "Unknown" };
         locationRef.current = fallback;
         globalLocationData = fallback;
-        console.warn("Location fetch failed. Using Unknown.");
       }
     };
 
-    const cached = localStorage.getItem("geo");
-    if (cached) {
-      const loc = JSON.parse(cached);
+    const cachedLoc = localStorage.getItem("geo");
+    const cachedTime = localStorage.getItem("geo_timestamp");
+
+    // Check if cache exists and is less than 24 hours (86400000 ms) old
+    const isCacheValid =
+      cachedLoc && cachedTime && Date.now() - parseInt(cachedTime) < 86400000;
+
+    if (isCacheValid) {
+      const loc = JSON.parse(cachedLoc);
       locationRef.current = loc;
       globalLocationData = loc;
     } else {
       fetchLocation();
     }
 
+    // ... remaining favorites/history code ...
     const storedFavs = localStorage.getItem("gamehub_favorites");
-    if (storedFavs) {
-      setFavorites(new Set(JSON.parse(storedFavs)));
-    }
+    if (storedFavs) setFavorites(new Set(JSON.parse(storedFavs)));
+
     const storedHistory = localStorage.getItem("gamehub_history");
-    if (storedHistory) {
-      setRecentlyPlayed(JSON.parse(storedHistory));
-    }
+    if (storedHistory) setRecentlyPlayed(JSON.parse(storedHistory));
   }, []);
 
   useEffect(() => {
