@@ -1615,7 +1615,7 @@ export default function ThiefPoliceGame() {
                 </div>
               </>
             ) : (
-              <div className=" backdrop-blur px-6 py-4 rounded-xl border border-slate-600 shadow-xl w-full">
+              <div className="backdrop-blur px-6 py-4 rounded-xl border border-slate-600 shadow-xl w-full">
                 <div>
                   <span
                     className={`text-lg font-bold mb-1 text-center ${
@@ -1722,27 +1722,37 @@ export default function ThiefPoliceGame() {
             })}
           </div>
 
-          <div className="backdrop-blur px-6 py-4 w-full">
-            {gameState.status !== "finished" && (
-              <div className="mt-4">
-                <button
-                  onClick={toggleReady}
-                  disabled={iHaveVoted}
-                  className={`w-full py-3 rounded-lg font-bold transition-all ${
-                    iHaveVoted
-                      ? "border border-slate-500 text-slate-400"
-                      : "bg-green-600/20 border border-green-500 hover:bg-green-500 text-white shadow-lg hover:scale-105"
-                  }`}
-                >
-                  {iHaveVoted
-                    ? "Waiting for others..."
-                    : "Ready for Next Round"}
-                </button>
-                <div className="text-xs text-center mt-2 text-slate-500">
-                  {voteCount}/{humanCount} Players Ready
+          <div className="text-center mb-4 w-full max-w-md">
+            <div className="backdrop-blur px-6 py-4 rounded-xl border border-slate-600 shadow-xl w-full">
+              {gameState.status !== "finished" && (
+                <div className="mt-4">
+                  {gameState.turnState === "GUESSING" ? (
+                    <div className="w-full py-3 rounded-lg font-bold border border-slate-700 bg-slate-800/50 text-slate-400 text-center animate-pulse">
+                      Turn resolving...
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={toggleReady}
+                        disabled={iHaveVoted}
+                        className={`w-full py-3 rounded-lg font-bold transition-all ${
+                          iHaveVoted
+                            ? "border border-slate-500 text-slate-400"
+                            : "bg-green-600/20 border border-green-500 hover:bg-green-500 text-white shadow-lg hover:scale-105"
+                        }`}
+                      >
+                        {iHaveVoted
+                          ? "Waiting for others..."
+                          : "Ready for Next Round"}
+                      </button>
+                      <div className="text-xs text-center mt-2 text-slate-500">
+                        {voteCount}/{humanCount} Players Ready
+                      </div>
+                    </>
+                  )}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
