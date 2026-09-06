@@ -69,7 +69,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const APP_ID =
-  typeof __app_id !== "undefined" ? __app_id : "fructose-fury-game";
+  typeof __app_id !== "undefined" ? __app_id : "fructose-fury";
 const GAME_ID = "20"; // Assigned ID for Fructose Fury
 
 // --- Game Constants ---

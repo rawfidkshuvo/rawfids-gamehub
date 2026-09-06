@@ -110,7 +110,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const APP_ID = typeof __app_id !== "undefined" ? __app_id : "equilibrium-game";
+const APP_ID = typeof __app_id !== "undefined" ? __app_id : "equilibrium";
 const GAME_ID = "9";
 
 // ---------------------------------------------------------------------------

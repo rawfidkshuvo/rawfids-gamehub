@@ -68,7 +68,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const APP_ID =
-  typeof __app_id !== "undefined" ? __app_id : "royal-menagerie-game";
+  typeof __app_id !== "undefined" ? __app_id : "royal-menagerie";
 const GAME_ID = "19";
 
 // --- Game Constants ---

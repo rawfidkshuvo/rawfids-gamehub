@@ -69,7 +69,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const APP_ID = typeof __app_id !== "undefined" ? __app_id : "neon-draft-game";
+const APP_ID = typeof __app_id !== "undefined" ? __app_id : "neon-draft";
 const GAME_ID = "10";
 
 // --- Game Constants & Rules ---

@@ -55,7 +55,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const APP_ID = typeof __app_id !== "undefined" ? __app_id : "crypt-crimson-game";
+const APP_ID = typeof __app_id !== "undefined" ? __app_id : "crypt-and-crimson";
 const GAME_ID = "22";
 
 // ---------------------------------------------------------------------------

@@ -61,7 +61,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const appId = typeof __app_id !== "undefined" ? __app_id : "conspiracy-game";
+const appId = typeof __app_id !== "undefined" ? __app_id : "conspiracy";
 const GAME_ID = "1";
 
 // --- Game Constants ---

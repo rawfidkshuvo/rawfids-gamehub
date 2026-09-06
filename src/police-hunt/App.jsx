@@ -57,7 +57,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const GAME_APP_ID =
-  typeof __app_id !== "undefined" ? __app_id : "police-hunt-game";
+  typeof __app_id !== "undefined" ? __app_id : "police-hunt";
 const GAME_ID = "3";
 
 // --- Constants ---

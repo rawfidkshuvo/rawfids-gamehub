@@ -71,7 +71,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const APP_ID = typeof __app_id !== "undefined" ? __app_id : "spectrum-game";
+const APP_ID = typeof __app_id !== "undefined" ? __app_id : "spectrum";
 const GAME_ID = "16";
 
 // --- Game Constants ---

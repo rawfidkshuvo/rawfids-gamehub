@@ -80,7 +80,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 const APP_ID =
-  typeof __app_id !== "undefined" ? __app_id : "masquerade-protocol-game";
+  typeof __app_id !== "undefined" ? __app_id : "masquerade-protocol";
 const GAME_ID = "17";
 
 // ---------------------------------------------------------------------------

@@ -92,7 +92,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const APP_ID = typeof __app_id !== "undefined" ? __app_id : "dark-game";
+const APP_ID = typeof __app_id !== "undefined" ? __app_id : "dark";
 const GAME_ID = "26"; // Unique ID for DARK in Gamehub
 
 // ---------------------------------------------------------------------------

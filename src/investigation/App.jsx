@@ -62,7 +62,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const appId = typeof __app_id !== "undefined" ? __app_id : "investigation-game";
+const appId = typeof __app_id !== "undefined" ? __app_id : "investigation";
 const GAME_ID = "2";
 
 // --- Game Data Assets ---

@@ -63,7 +63,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const APP_ID = typeof __app_id !== "undefined" ? __app_id : "last-of-us-game";
+const APP_ID = typeof __app_id !== "undefined" ? __app_id : "last-of-us";
 const GAME_ID = "13";
 
 // --- Constants ---
