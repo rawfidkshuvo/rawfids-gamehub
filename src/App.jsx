@@ -76,6 +76,7 @@ import {
   Activity,
   Save,
   Calendar,
+  Check,
 } from "lucide-react";
 import CoverImage from "./assets/gamehub_cover.png";
 
@@ -1499,20 +1500,36 @@ const UserProfileModal = ({ isOpen, onClose }) => {
                   {badge.label}
                 </span>
               </div>
-              <div className="flex w-full gap-2">
-                <input
-                  type="text"
+              <div className="relative flex w-full gap-2">
+                <input 
+                  type="text" 
                   value={localName}
                   onChange={(e) => setLocalName(e.target.value)}
                   placeholder="Enter Nickname"
-                  className="flex-1 min-w-0 w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-white font-bold focus:border-indigo-500 focus:outline-none transition-colors text-sm"
+                  className={`flex-1 min-w-0 w-full bg-slate-950 border rounded-lg px-3 py-1.5 text-white font-bold focus:outline-none transition-all duration-300 text-sm ${
+                    savedStatus 
+                      ? 'border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)]' 
+                      : 'border-slate-800 focus:border-indigo-500'
+                  }`}
                 />
-                <button
+                <button 
                   onClick={handleSaveName}
-                  className={`px-3 shrink-0 rounded-lg flex items-center justify-center transition-colors ${savedStatus ? "bg-green-600 text-white" : "bg-indigo-600 hover:bg-indigo-500 text-white"}`}
+                  disabled={savedStatus}
+                  className={`px-3 shrink-0 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                    savedStatus 
+                      ? 'bg-green-500 text-white scale-105' 
+                      : 'bg-indigo-600 hover:bg-indigo-500 text-white active:scale-95'
+                  }`}
                 >
-                  <Save size={16} />
+                  {savedStatus ? <Check size={16} className="animate-in zoom-in" /> : <Save size={16} />}
                 </button>
+
+                {/* Floating "Saved" Indicator */}
+                {savedStatus && (
+                  <div className="absolute -top-8 right-0 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg animate-in slide-in-from-bottom-2 fade-in duration-300 pointer-events-none flex items-center gap-1">
+                    <Check size={10} /> Saved!
+                  </div>
+                )}
               </div>
             </div>
           </div>

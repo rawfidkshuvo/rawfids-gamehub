@@ -2192,6 +2192,7 @@ export default function OutbreakGame() {
   const [error, setError] = useState("");
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [showHowToPlay, setShowHowToPlay] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
 
   const [pendingEvent, setPendingEvent] = useState(null);
   const [forecastCards, setForecastCards] = useState(null);
@@ -2284,6 +2285,13 @@ export default function OutbreakGame() {
       setRoomId(savedId);
       setView("menu");
     } else setView("menu");
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(roomId).then(() => { setIsCopied(true); setTimeout(() => setIsCopied(false), 2000); }).catch(err => {
+      const el = document.createElement("textarea"); el.value = roomId; document.body.appendChild(el); el.select(); document.execCommand("copy"); document.body.removeChild(el);
+      setIsCopied(true); setTimeout(() => setIsCopied(false), 2000);
+    });
   };
 
   const createRoom = async () => {
@@ -3420,13 +3428,10 @@ export default function OutbreakGame() {
                 <div className="text-3xl font-mono text-white font-black">
                   {roomId}
                 </div>
-                <button
-                  onClick={() => navigator.clipboard.writeText(roomId)}
-                  className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white"
-                  title="Copy"
-                >
-                  <Copy size={16} />
-                </button>
+                <div className="relative">
+                                  <button onClick={copyToClipboard} className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white">{isCopied ? <CheckCircle size={20} className="text-emerald-500" /> : <Copy size={20} />}</button>
+                                  {isCopied && <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-cyan-600 text-white text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">Copied!</div>}
+                                </div>
               </div>
             </div>
             <button

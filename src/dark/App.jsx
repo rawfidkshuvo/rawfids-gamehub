@@ -2546,24 +2546,10 @@ export default function DarkFolkloreGame() {
                 </span>
 
                 {/* Inline Copy Button (No Box) */}
-                <button
-                  onClick={copyToClipboard}
-                  className="flex items-center justify-start w-20 text-slate-400 hover:text-white transition-all"
-                >
-                  {isCopied ? (
-                    <div className="flex items-center gap-1.5 animate-in fade-in zoom-in duration-200">
-                      <CheckCircle size={20} className="text-emerald-400" />
-                      <span className="text-[10px] sm:text-xs font-black text-emerald-400 uppercase tracking-widest mt-0.5">
-                        Copied
-                      </span>
-                    </div>
-                  ) : (
-                    <Copy
-                      size={20}
-                      className="hover:scale-110 transition-transform"
-                    />
-                  )}
-                </button>
+                <div className="relative">
+                  <button onClick={copyToClipboard} className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white">{isCopied ? <CheckCircle size={20} className="text-emerald-500" /> : <Copy size={20} />}</button>
+                  {isCopied && <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-fuchsia-600 text-white text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">Copied!</div>}
+                </div>
               </div>
             </div>
 

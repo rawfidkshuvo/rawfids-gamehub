@@ -1374,7 +1374,7 @@ export default function ColonyGame() {
                 <div className="text-3xl md:text-4xl font-mono text-white font-black">{roomId}</div>
                 <div className="relative">
                   <button onClick={copyToClipboard} className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white">{isCopied ? <CheckCircle size={20} className="text-green-500" /> : <Copy size={20} />}</button>
-                  {isCopied && <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-orange-500 text-black text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">Copied!</div>}
+                  {isCopied && <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">Copied!</div>}
                 </div>
               </div>
             </div>
