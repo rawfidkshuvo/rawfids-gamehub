@@ -1457,7 +1457,7 @@ export default function DarkFolkloreGame() {
     if (def.target === "SET_SWAP") {
       // Deep copy so we can visually inject the pending card
       let previewOwnSets = JSON.parse(
-        JSON.stringify(p.tableau.filter((s) => !s.isLocked))
+        JSON.stringify(p.tableau.filter((s) => !s.isLocked)),
       );
 
       // Default to "NEW" if they bypassed the placement modal
@@ -3498,17 +3498,19 @@ export default function DarkFolkloreGame() {
                                             ? "Grave Broker"
                                             : "Select Target"}
                   </h3>
-                  {!activeModal.isChain && (
-                    <button
-                      onClick={() => {
-                        setModalState(null);
-                        setSelectedHandCards([]);
-                      }}
-                      className="text-slate-500 hover:text-white bg-slate-900 p-2 rounded-full border border-slate-800 transition-colors"
-                    >
-                      <X size={20} />
-                    </button>
-                  )}
+                  {!activeModal.isChain &&
+                    activeModal.type !== "VIEW_HAND" &&
+                    activeModal.type !== "CHAINBINDER" && (
+                      <button
+                        onClick={() => {
+                          setModalState(null);
+                          setSelectedHandCards([]);
+                        }}
+                        className="text-slate-500 hover:text-white bg-slate-900 p-2 rounded-full border border-slate-800 transition-colors"
+                      >
+                        <X size={20} />
+                      </button>
+                    )}
                 </div>
 
                 <div className="max-h-[60vh] overflow-y-auto custom-scrollbar p-2">
@@ -4545,9 +4547,23 @@ export default function DarkFolkloreGame() {
                                 />
                               ))}
                           {activeModal.tempCards.length === 0 && (
-                            <span className="text-slate-500 uppercase tracking-widest font-bold">
-                              The discard pile was empty.
-                            </span>
+                            <div className="flex flex-col items-center gap-4">
+                              <span className="text-slate-500 uppercase tracking-widest font-bold">
+                                The discard pile was empty.
+                              </span>
+                              <button
+                                onClick={() => {
+                                  confirmModalAction({
+                                    keptCard: null,
+                                    scatterCards: [],
+                                    updatedDiscard: activeModal._discard,
+                                  });
+                                }}
+                                className="bg-fuchsia-700 hover:bg-fuchsia-600 text-white px-8 py-3 rounded-xl uppercase font-black tracking-widest transition-colors mt-2"
+                              >
+                                Continue
+                              </button>
+                            </div>
                           )}
                         </div>
                       )}
