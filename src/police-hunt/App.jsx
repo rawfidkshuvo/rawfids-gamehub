@@ -56,8 +56,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const GAME_APP_ID =
-  typeof __app_id !== "undefined" ? __app_id : "police-hunt";
+const GAME_APP_ID = typeof __app_id !== "undefined" ? __app_id : "police-hunt";
 const GAME_ID = "3";
 
 // --- Constants ---
@@ -152,7 +151,7 @@ const FloatingBackground = React.memo(() => {
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
       {/* Dark Gradient Layer */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-yellow-900/20 via-gray-950 to-black" />
-      
+
       {/* Floating Icons Layer */}
       <div className="absolute top-0 left-0 w-full h-full opacity-10">
         {backgroundIcons}
@@ -173,12 +172,12 @@ const DarkAtmosphere = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
     {/* Clean, deep gradient background (No hazy overlays) */}
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
-    
+
     {/* Crisp Particles */}
     {[...Array(25)].map((_, i) => {
       // Calculate individual random drifts using CSS variables
       const driftX = `${Math.random() * 40 - 20}px`;
-      
+
       return (
         <div
           key={i}
@@ -1616,7 +1615,7 @@ export default function ThiefPoliceGame() {
                 </div>
               </>
             ) : (
-              <div className="bg-slate-800/90 backdrop-blur px-6 py-4 rounded-xl border border-slate-600 shadow-xl w-full">
+              <div className=" backdrop-blur px-6 py-4 rounded-xl border border-slate-600 shadow-xl w-full">
                 <div>
                   <span
                     className={`text-lg font-bold mb-1 text-center ${
@@ -1630,26 +1629,6 @@ export default function ThiefPoliceGame() {
                   <br />
                   {gameState.lastRoundResult.body}
                 </div>
-                {gameState.status !== "finished" && (
-                  <div className="mt-4">
-                    <button
-                      onClick={toggleReady}
-                      disabled={iHaveVoted}
-                      className={`w-full py-3 rounded-lg font-bold transition-all ${
-                        iHaveVoted
-                          ? "bg-slate-600 text-slate-400"
-                          : "bg-green-600 hover:bg-green-500 text-white shadow-lg hover:scale-105"
-                      }`}
-                    >
-                      {iHaveVoted
-                        ? "Waiting for others..."
-                        : "Ready for Next Round"}
-                    </button>
-                    <div className="text-xs text-center mt-2 text-slate-500">
-                      {voteCount}/{humanCount} Players Ready
-                    </div>
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -1681,10 +1660,10 @@ export default function ThiefPoliceGame() {
                   key={p.id}
                   onClick={() => (canSelect ? handlePoliceGuess(p.id) : null)}
                   className={`
-                                relative p-4 rounded-xl border-2 flex flex-col items-center justify-center aspect-3/4 transition-all backdrop-blur-sm bg-slate-800/80
+                                relative p-4 rounded-xl border-2 flex flex-col items-center justify-center aspect-3/4 transition-all backdrop-blur-sm
                                 ${
                                   isMe
-                                    ? "bg-slate-800/90 shadow-[0_0_20px_rgba(6,182,212,0.4)] border-green-400 ring-2 ring-cyan-400/30 transform scale-105 z-10"
+                                    ? "shadow-[0_0_20px_rgba(6,182,212,0.4)] border-green-400 ring-2 ring-cyan-400/30 transform scale-105 z-10"
                                     : canSelect
                                       ? "cursor-pointer hover:scale-105 border-red-400 bg-red-900/20 shadow-[0_0_15px_rgba(248,113,113,0.5)]"
                                       : "border-slate-700"
@@ -1743,13 +1722,27 @@ export default function ThiefPoliceGame() {
             })}
           </div>
 
-          <div className="mt-auto bg-slate-800/90 backdrop-blur w-full max-w-md p-4 rounded-xl border border-slate-700 flex justify-between items-center shadow-lg">
-            <span className="text-slate-400 text-sm font-bold uppercase">
-              My Score
-            </span>
-            <span className="text-3xl font-black text-yellow-500">
-              {me.totalScore}
-            </span>
+          <div className="backdrop-blur px-6 py-4 w-full">
+            {gameState.status !== "finished" && (
+              <div className="mt-4">
+                <button
+                  onClick={toggleReady}
+                  disabled={iHaveVoted}
+                  className={`w-full py-3 rounded-lg font-bold transition-all ${
+                    iHaveVoted
+                      ? "border border-slate-500 text-slate-400"
+                      : "bg-green-600/20 border border-green-500 hover:bg-green-500 text-white shadow-lg hover:scale-105"
+                  }`}
+                >
+                  {iHaveVoted
+                    ? "Waiting for others..."
+                    : "Ready for Next Round"}
+                </button>
+                <div className="text-xs text-center mt-2 text-slate-500">
+                  {voteCount}/{humanCount} Players Ready
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1918,8 +1911,6 @@ export default function ThiefPoliceGame() {
             </div>
           </div>
         )}
-
-        <PoliceLogo />
       </div>
     );
   }
