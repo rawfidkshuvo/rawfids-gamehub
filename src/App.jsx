@@ -1489,39 +1489,38 @@ const UserProfileModal = ({ isOpen, onClose }) => {
         <div className="p-4 md:p-6 border-b border-slate-800 flex items-start bg-slate-900/90 backdrop-blur shrink-0 relative">
           <div className="flex items-center gap-3 md:gap-4 w-full pr-8">
             <div className="w-12 h-12 md:w-16 md:h-16 bg-slate-800 rounded-full flex items-center justify-center border border-slate-700 shadow-inner shrink-0">
-              {badge.icon}
+              <User size={24} />
             </div>
             <div className="flex-1 min-w-0 w-full">
               <div className="text-[10px] md:text-xs uppercase tracking-wider font-bold text-slate-500 mb-1 flex items-center gap-2 truncate">
                 Your Player Card
-                <span
-                  className={`px-2 py-0.5 rounded text-[10px] shrink-0 ${badge.color}`}
-                >
-                  {badge.label}
-                </span>
               </div>
               <div className="relative flex w-full gap-2">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={localName}
                   onChange={(e) => setLocalName(e.target.value)}
                   placeholder="Enter Nickname"
                   className={`flex-1 min-w-0 w-full bg-slate-950 border rounded-lg px-3 py-1.5 text-white font-bold focus:outline-none transition-all duration-300 text-sm ${
-                    savedStatus 
-                      ? 'border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)]' 
-                      : 'border-slate-800 focus:border-indigo-500'
+                    savedStatus
+                      ? "border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)]"
+                      : "border-slate-800 focus:border-indigo-500"
                   }`}
                 />
-                <button 
+                <button
                   onClick={handleSaveName}
                   disabled={savedStatus}
                   className={`px-3 shrink-0 rounded-lg flex items-center justify-center transition-all duration-300 ${
-                    savedStatus 
-                      ? 'bg-green-500 text-white scale-105' 
-                      : 'bg-indigo-600 hover:bg-indigo-500 text-white active:scale-95'
+                    savedStatus
+                      ? "bg-green-500 text-white scale-105"
+                      : "bg-indigo-600 hover:bg-indigo-500 text-white active:scale-95"
                   }`}
                 >
-                  {savedStatus ? <Check size={16} className="animate-in zoom-in" /> : <Save size={16} />}
+                  {savedStatus ? (
+                    <Check size={16} className="animate-in zoom-in" />
+                  ) : (
+                    <Save size={16} />
+                  )}
                 </button>
 
                 {/* Floating "Saved" Indicator */}
@@ -1550,6 +1549,21 @@ const UserProfileModal = ({ isOpen, onClose }) => {
             </div>
           ) : (
             <>
+              {/* STATS ROW */}
+              <div className="grid w-full">
+                <div className="flex-1 flex items-center justify-center gap-4">
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-slate-800 rounded-full flex items-center justify-center border border-slate-700 shadow-inner shrink-0">
+                    {badge.icon}
+                  </div>
+
+                  <span
+                    className={`px-4 py-2 rounded-full text-[20px] shrink-0 ${badge.color}`}
+                  >
+                    {badge.label}
+                  </span>
+                </div>
+              </div>
+
               {/* STATS ROW */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center justify-between">
