@@ -1447,32 +1447,38 @@ const UserProfileModal = ({ isOpen, onClose }) => {
   };
 
   const getBadge = (clicks) => {
+    if (clicks >= 300)
+      return {
+        label: "LEGEND",
+        color: "text-rose-400 bg-rose-400/10 border-rose-400/30",
+        icon: <Crown className="w-6 h-6 text-rose-400" />,
+      };
     if (clicks >= 100)
       return {
-        label: "Grandmaster",
+        label: "GRANDMASTER",
         color: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
         icon: <Crown className="w-6 h-6 text-yellow-400" />,
       };
     if (clicks >= 50)
       return {
-        label: "Veteran",
+        label: "VETERAN",
         color: "text-purple-400 bg-purple-400/10 border-purple-400/30",
         icon: <Trophy className="w-6 h-6 text-purple-400" />,
       };
     if (clicks >= 15)
       return {
-        label: "Enthusiast",
+        label: "ENTHUSIAST",
         color: "text-indigo-400 bg-indigo-400/10 border-indigo-400/30",
         icon: <Medal className="w-6 h-6 text-indigo-400" />,
       };
     if (clicks >= 1)
       return {
-        label: "Initiate",
+        label: "NEWBIE",
         color: "text-green-400 bg-green-400/10 border-green-400/30",
         icon: <Star className="w-6 h-6 text-green-400" />,
       };
     return {
-      label: "Newcomer",
+      label: "INITIATE",
       color: "text-slate-400 bg-slate-800 border-slate-700",
       icon: <User className="w-6 h-6 text-slate-400" />,
     };
@@ -1557,7 +1563,7 @@ const UserProfileModal = ({ isOpen, onClose }) => {
                   </div>
 
                   <span
-                    className={`px-4 py-2 rounded-full text-[20px] shrink-0 ${badge.color}`}
+                    className={`px-4 py-2 rounded-full text-[20px] font-bold shrink-0 ${badge.color}`}
                   >
                     {badge.label}
                   </span>
