@@ -125,12 +125,12 @@ const DarkAtmosphere = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
     {/* Clean, deep gradient background (No hazy overlays) */}
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
-    
+
     {/* Crisp Particles */}
     {[...Array(25)].map((_, i) => {
       // Calculate individual random drifts using CSS variables
       const driftX = `${Math.random() * 40 - 20}px`;
-      
+
       return (
         <div
           key={i}
@@ -198,12 +198,12 @@ const FloatingBackground = React.memo(() => {
   const backgroundIcons = React.useMemo(() => {
     return [...Array(20)].map((_, i) => {
       // --- CHANGE START ---
-        const diceKeys = Object.keys(DICE_ICONS);
-        // We cycle through keys 1-6 based on the index
-        const key = diceKeys[i % diceKeys.length];
-        // Direct assignment because DICE_ICONS values are the components themselves
-        const Icon = DICE_ICONS[key];
-        // --- CHANGE END ---
+      const diceKeys = Object.keys(DICE_ICONS);
+      // We cycle through keys 1-6 based on the index
+      const key = diceKeys[i % diceKeys.length];
+      // Direct assignment because DICE_ICONS values are the components themselves
+      const Icon = DICE_ICONS[key];
+      // --- CHANGE END ---
       return (
         <div
           key={i}
@@ -225,7 +225,7 @@ const FloatingBackground = React.memo(() => {
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
       {/* Dark Gradient Layer */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-yellow-900/20 via-gray-950 to-black" />
-      
+
       {/* Floating Icons Layer */}
       <div className="absolute top-0 left-0 w-full h-full opacity-10">
         {backgroundIcons}
@@ -294,10 +294,13 @@ const TokenDisplay = ({ count, size = "md" }) => (
 // --- New Component: Round Summary Modal ---
 const RoundSummaryModal = ({ players, onClose }) => {
   // Sort players by score (lowest wins)
-  const sortedPlayers = [...players].sort(
-    (a, b) =>
-      calculateScore(a.cards, a.tokens) - calculateScore(b.cards, b.tokens),
-  );
+  const sortedPlayers = [...players].sort((a, b) => {
+    const scoreA = calculateScore(a.cards, a.tokens);
+    const scoreB = calculateScore(b.cards, b.tokens);
+
+    if (scoreA !== scoreB) return scoreA - scoreB;
+    return b.tokens - a.tokens; // Highest vitamins wins ties
+  });
 
   return (
     <div className="fixed inset-0 bg-black/95 z-170 flex items-center justify-center p-4 animate-in fade-in">
@@ -1035,10 +1038,26 @@ export default function AngryVirus() {
 
         const scores = players.map((p) => ({
           id: p.id,
+          name: p.name,
           score: calculateScore(p.cards, p.tokens),
+          tokens: p.tokens, // Need tokens for tie-breaker
         }));
-        scores.sort((a, b) => a.score - b.score);
-        winnerId = scores[0].id;
+
+        // Sort: Lowest score -> Highest tokens
+        scores.sort((a, b) => {
+          if (a.score !== b.score) return a.score - b.score;
+          return b.tokens - a.tokens;
+        });
+
+        // Check for joint winners
+        const topScore = scores[0].score;
+        const topTokens = scores[0].tokens;
+        const winners = scores.filter(
+          (s) => s.score === topScore && s.tokens === topTokens,
+        );
+
+        // We can store a joined string of names in winnerId for the UI
+        winnerId = winners.map((w) => w.id).join(",");
 
         logs.push({
           text: "All viruses contained. Game Over!",

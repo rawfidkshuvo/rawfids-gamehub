@@ -147,12 +147,12 @@ const DarkAtmosphere = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
     {/* Clean, deep gradient background (No hazy overlays) */}
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
-    
+
     {/* Crisp Particles */}
     {[...Array(25)].map((_, i) => {
       // Calculate individual random drifts using CSS variables
       const driftX = `${Math.random() * 40 - 20}px`;
-      
+
       return (
         <div
           key={i}
@@ -217,7 +217,7 @@ const FloatingBackground = React.memo(() => {
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
       {/* Dark Gradient Layer */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-yellow-900/20 via-gray-950 to-black" />
-      
+
       {/* Floating Icons Layer */}
       <div className="absolute top-0 left-0 w-full h-full opacity-10">
         {backgroundIcons}
@@ -2148,6 +2148,9 @@ export default function Equilibrium() {
   const [activePalette, setActivePalette] = useState(null);
   const [inspectedAnimal, setInspectedAnimal] = useState(null);
 
+  // --- ADD THIS LINE ---
+  const [hideGameOverModal, setHideGameOverModal] = useState(false);
+
   // Gameplay State
   const [selectedHoldingIdx, setSelectedHoldingIdx] = useState(null);
   const [selectedAnimalIdx, setSelectedAnimalIdx] = useState(null);
@@ -2502,6 +2505,7 @@ export default function Equilibrium() {
   };
 
   const startGame = async () => {
+    setHideGameOverModal(false); // <--- ADD THIS
     // --- ADD THIS LOGIC ---
     const playerCount = gameState.players.length;
     const randomStartIndex = Math.floor(Math.random() * playerCount);
@@ -2596,6 +2600,7 @@ export default function Equilibrium() {
 
   const returnToLobby = async () => {
     if (gameState.hostId !== user.uid) return;
+    setHideGameOverModal(false); // <--- ADD THIS
     const initialBag = CREATE_BAG();
     const initialAnimalDeck = CREATE_ANIMAL_DECK();
     const { market, bag } = REFILL_MARKET([], initialBag);
@@ -3782,9 +3787,16 @@ export default function Equilibrium() {
             </div>
           )}
 
-          {gameState.status === "finished" && (
+          {gameState.status === "finished" && !hideGameOverModal && (
             <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center backdrop-blur-sm pt-20 pb-10 px-4">
               <div className="bg-slate-900 p-6 md:p-8 rounded-2xl border-2 border-yellow-500 text-center shadow-2xl animate-in zoom-in max-w-lg w-full flex flex-col max-h-full relative">
+                {/* --- NEW: CLOSE BUTTON --- */}
+                <button
+                  onClick={() => setHideGameOverModal(true)}
+                  className="absolute top-4 right-4 p-2 bg-slate-800 rounded-full hover:bg-slate-700 transition-colors z-10"
+                >
+                  <X size={24} className="text-white" />
+                </button>
                 {/* Fixed Header Section */}
                 <div className="shrink-0 mb-4">
                   <Trophy
@@ -3953,25 +3965,33 @@ export default function Equilibrium() {
                 </div>
 
                 {/* Fixed Footer Section */}
-                {gameState.hostId === user.uid ? (
-                  <div className="shrink-0 pt-2">
-                    <button
-                      onClick={returnToLobby}
-                      className="bg-slate-700 hover:bg-slate-600 px-6 py-3 rounded-xl font-bold w-full text-white transition-colors"
-                    >
-                      Return to Lobby
-                    </button>
-                  </div>
-                ) : (
-                  <div className="shrink-0 pt-2">
-                    <button
-                      disabled
-                      className="bg-slate-700/60 px-6 py-3 rounded-xl font-bold w-full text-white"
-                    >
-                      Waiting for Host...
-                    </button>
-                  </div>
-                )}
+                <div className="shrink-0 pt-4 flex flex-col gap-2">
+                  <button
+                    onClick={() => setHideGameOverModal(true)}
+                    className="bg-slate-800 hover:bg-slate-700 px-6 py-3 rounded-xl font-bold w-full text-white transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Grid size={18} /> View Final Board
+                  </button>
+                  {gameState.hostId === user.uid ? (
+                    <div className="shrink-0 pt-2">
+                      <button
+                        onClick={returnToLobby}
+                        className="bg-slate-700 hover:bg-slate-600 px-6 py-3 rounded-xl font-bold w-full text-white transition-colors"
+                      >
+                        Return to Lobby
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="shrink-0 pt-2">
+                      <button
+                        disabled
+                        className="bg-slate-700/60 px-6 py-3 rounded-xl font-bold w-full text-white"
+                      >
+                        Waiting for Host...
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -3982,180 +4002,194 @@ export default function Equilibrium() {
           <div className="flex gap-2 items-end w-full pointer-events-none">
             {/* --- BOTTOM LEFT: CONTROLS --- */}
             <div className="relative h-46 flex flex-col justify-end gap-2 mb-1 shrink-0 z-50 pointer-events-none items-start">
-              {/* 1. TURN STATUS INDICATOR (Absolute Top of h-44 container) */}
-              <div
-                className={`
-        absolute top-0 left-0
-        pointer-events-auto
-        px-3 py-1.5 rounded-full w-30 font-black text-[10px] uppercase tracking-widest shadow-lg backdrop-blur-md border animate-in slide-in-from-left-8
-    ${
-      isMyTurn
-        ? "bg-slate-800/90 text-emerald-300 border-emerald-400"
-        : "bg-slate-800/90 text-slate-400 border-slate-600"
-    }
-  `}
-              >
-                <div className="flex items-center gap-2">
-                  {isMyTurn ? (
-                    <>
-                      <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                      YOUR TURN
-                    </>
-                  ) : (
-                    <>
-                      <span className="w-2 h-2 rounded-full bg-slate-500" />
-                      AWAIT TURN
-                    </>
-                  )}
-                </div>
-              </div>
-              {/* 1. TOKEN HAND (Dynamic: Shows ME or OPPONENT based on tab) */}
-              {viewingPlayer.holding.length > 0 && (
-                <div
-                  className={`
-      w-full px-2 py-2 rounded-xl shadow-2xl flex flex-col items-center gap-2 backdrop-blur-md animate-in slide-in-from-left-4 pointer-events-auto
-      ${
-        viewingPlayer.id === user.uid
-          ? "bg-slate-900/90 border border-emerald-500 opacity-90" // Active (My Hand)
-          : "bg-slate-900/90 border border-slate-600 opacity-90" // Passive (Opponent Hand)
-      }
-    `}
-                >
-                  <span
-                    className={`text-[8px] font-bold uppercase tracking-widest ${
-                      viewingPlayer.id === user.uid
-                        ? "text-emerald-400"
-                        : "text-slate-400"
-                    }`}
+              {gameState.status === "finished" ? (
+                /* --- GAME OVER LEFT PANEL --- */
+                <div className="pointer-events-auto bg-slate-900/95 p-4 rounded-xl border-2 border-emerald-500/50 shadow-[0_0_20px_rgba(16,185,129,0.3)] backdrop-blur-md flex flex-col items-center justify-center mb-2">
+                  <h3 className="text-xs font-black text-emerald-400 tracking-widest animate-pulse mb-1 uppercase text-center">
+                    Ecosystem
+                    <br />
+                    Complete
+                  </h3>
+                  <button
+                    onClick={() => setHideGameOverModal(false)}
+                    className="mt-2 px-4 py-2 bg-emerald-600/20 border border-emerald-500/50 hover:bg-emerald-600/40 rounded-lg text-emerald-300 font-bold transition-all flex items-center gap-2 text-sm"
                   >
-                    {viewingPlayer.id === user.uid ? "Placing" : "Holding"}
-                  </span>
-
-                  <div className="flex items-center gap-1">
-                    {viewingPlayer.holding.map((t, i) => {
-                      const T = TOKEN_TYPES[t];
-                      const isMe = viewingPlayer.id === user.uid;
-
-                      return (
-                        <button
-                          key={i}
-                          // Click Logic: Only allow selecting if it is MY hand
-                          onClick={() => {
-                            if (isMe) {
-                              if (!checkViewAndWarn()) return;
-                              setSelectedHoldingIdx(
-                                selectedHoldingIdx === i ? null : i,
-                              );
-                              setSelectedAnimalIdx(null);
-                            }
-                          }}
-                          // Visual Logic: My hand allows interaction, Opponent hand is static
-                          className={`
-                w-10 h-10 rounded-full border-2 shadow-lg flex items-center justify-center transition-all 
-                ${T.color} ${T.border}
-                ${
-                  isMe
-                    ? "active:scale-90 cursor-pointer hover:opacity-100 hover:scale-105"
-                    : "cursor-default opacity-100"
-                }
-                ${
-                  isMe && selectedHoldingIdx === i
-                    ? "ring-4 ring-white scale-110 z-10"
-                    : "opacity-90"
-                }
-              `}
-                        >
-                          <T.icon size={18} className="text-white/80" />
-                        </button>
-                      );
-                    })}
-
-                    {/* Trash Can: Only visible if looking at MY hand */}
-                    {viewingPlayer.id === user.uid &&
-                      selectedHoldingIdx !== null && (
-                        <button
-                          onClick={handleDiscard}
-                          className="w-10 h-10 rounded-full border-2 border-red-500 bg-red-900/50 flex items-center justify-center hover:bg-red-800 transition-colors"
-                          title="Discard Token (-2 pts)"
-                        >
-                          <Trash2 size={18} className="text-red-300" />
-                        </button>
-                      )}
-                  </div>
+                    <Trophy size={16} />
+                    Results
+                  </button>
                 </div>
-              )}
+              ) : (
+                /* --- NORMAL GAME LEFT PANEL --- */
+                <>
+                  {/* 1. TURN STATUS INDICATOR */}
+                  <div
+                    className={`
+                      absolute top-0 left-0
+                      pointer-events-auto
+                      px-3 py-1.5 rounded-full w-30 font-black text-[10px] uppercase tracking-widest shadow-lg backdrop-blur-md border animate-in slide-in-from-left-8
+                      ${
+                        isMyTurn
+                          ? "bg-slate-800/90 text-emerald-300 border-emerald-400"
+                          : "bg-slate-800/90 text-slate-400 border-slate-600"
+                      }
+                    `}
+                  >
+                    <div className="flex items-center gap-2">
+                      {isMyTurn ? (
+                        <>
+                          <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                          YOUR TURN
+                        </>
+                      ) : (
+                        <>
+                          <span className="w-2 h-2 rounded-full bg-slate-500" />
+                          AWAIT TURN
+                        </>
+                      )}
+                    </div>
+                  </div>
 
-              {/* 2. END TURN BUTTON (Always visible if condition met, regardless of view) */}
-              {canEndTurn && (
-                <button
-                  onClick={handleEndTurn}
-                  className="bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-6 w-full rounded-xl shadow-lg flex items-center justify-center gap-2 text-sm whitespace-nowrap pointer-events-auto animate-bounce [animation-duration:1.5s]"
-                >
-                  End Turn
-                </button>
-              )}
+                  {/* 2. TOKEN HAND */}
+                  {viewingPlayer.holding.length > 0 && (
+                    <div
+                      className={`
+                        w-full px-2 py-2 rounded-xl shadow-2xl flex flex-col items-center gap-2 backdrop-blur-md animate-in slide-in-from-left-4 pointer-events-auto
+                        ${
+                          viewingPlayer.id === user.uid
+                            ? "bg-slate-900/90 border border-emerald-500 opacity-90"
+                            : "bg-slate-900/90 border border-slate-600 opacity-90"
+                        }
+                      `}
+                    >
+                      <span
+                        className={`text-[8px] font-bold uppercase tracking-widest ${
+                          viewingPlayer.id === user.uid
+                            ? "text-emerald-400"
+                            : "text-slate-400"
+                        }`}
+                      >
+                        {viewingPlayer.id === user.uid ? "Placing" : "Holding"}
+                      </span>
 
-              {/* 3. PALETTE BUTTONS (Always visible) */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => {
-                    if (!checkViewAndWarn()) return;
-                    togglePalette("TOKENS");
-                  }}
-                  className={`w-14 h-14 rounded-full border-2 shadow-xl flex items-center justify-center transition-all active:scale-90 pointer-events-auto ${
-                    isMyTurn && !me.hasDraftedTokens
-                      ? "bg-cyan-600 border-cyan-400 text-white animate-bounce-subtle"
-                      : "bg-slate-800 border-slate-600 text-slate-500"
-                  }`}
-                >
-                  <Circle size={24} />
-                </button>
-                <button
-                  onClick={() => {
-                    if (!checkViewAndWarn()) return;
-                    togglePalette("ANIMALS");
-                  }}
-                  className={`w-14 h-14 rounded-full border-2 shadow-xl flex items-center justify-center transition-all active:scale-90 pointer-events-auto ${
-                    isMyTurn &&
-                    !me.hasDraftedAnimal &&
-                    me.animals.filter((a) => a.slotsFilled < a.maxSlots)
-                      .length < 4
-                      ? "bg-orange-600 border-orange-400 text-white"
-                      : "bg-slate-800 border-slate-600 text-slate-500"
-                  }`}
-                >
-                  <PawPrint size={24} />
-                </button>
-              </div>
+                      <div className="flex items-center gap-1">
+                        {viewingPlayer.holding.map((t, i) => {
+                          const T = TOKEN_TYPES[t];
+                          const isMe = viewingPlayer.id === user.uid;
+
+                          return (
+                            <button
+                              key={i}
+                              onClick={() => {
+                                if (isMe) {
+                                  if (!checkViewAndWarn()) return;
+                                  setSelectedHoldingIdx(
+                                    selectedHoldingIdx === i ? null : i,
+                                  );
+                                  setSelectedAnimalIdx(null);
+                                }
+                              }}
+                              className={`
+                                w-10 h-10 rounded-full border-2 shadow-lg flex items-center justify-center transition-all 
+                                ${T.color} ${T.border}
+                                ${
+                                  isMe
+                                    ? "active:scale-90 cursor-pointer hover:opacity-100 hover:scale-105"
+                                    : "cursor-default opacity-100"
+                                }
+                                ${
+                                  isMe && selectedHoldingIdx === i
+                                    ? "ring-4 ring-white scale-110 z-10"
+                                    : "opacity-90"
+                                }
+                              `}
+                            >
+                              <T.icon size={18} className="text-white/80" />
+                            </button>
+                          );
+                        })}
+
+                        {/* Trash Can */}
+                        {viewingPlayer.id === user.uid &&
+                          selectedHoldingIdx !== null && (
+                            <button
+                              onClick={handleDiscard}
+                              className="w-10 h-10 rounded-full border-2 border-red-500 bg-red-900/50 flex items-center justify-center hover:bg-red-800 transition-colors"
+                              title="Discard Token (-2 pts)"
+                            >
+                              <Trash2 size={18} className="text-red-300" />
+                            </button>
+                          )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 3. END TURN BUTTON */}
+                  {canEndTurn && (
+                    <button
+                      onClick={handleEndTurn}
+                      className="bg-red-600 hover:bg-red-500 text-white font-bold py-3 px-6 w-full rounded-xl shadow-lg flex items-center justify-center gap-2 text-sm whitespace-nowrap pointer-events-auto animate-bounce [animation-duration:1.5s]"
+                    >
+                      End Turn
+                    </button>
+                  )}
+
+                  {/* 4. PALETTE BUTTONS */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        if (!checkViewAndWarn()) return;
+                        togglePalette("TOKENS");
+                      }}
+                      className={`w-14 h-14 rounded-full border-2 shadow-xl flex items-center justify-center transition-all active:scale-90 pointer-events-auto ${
+                        isMyTurn && !me.hasDraftedTokens
+                          ? "bg-cyan-600 border-cyan-400 text-white animate-bounce-subtle"
+                          : "bg-slate-800 border-slate-600 text-slate-500"
+                      }`}
+                    >
+                      <Circle size={24} />
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (!checkViewAndWarn()) return;
+                        togglePalette("ANIMALS");
+                      }}
+                      className={`w-14 h-14 rounded-full border-2 shadow-xl flex items-center justify-center transition-all active:scale-90 pointer-events-auto ${
+                        isMyTurn &&
+                        !me.hasDraftedAnimal &&
+                        me.animals.filter((a) => a.slotsFilled < a.maxSlots)
+                          .length < 4
+                          ? "bg-orange-600 border-orange-400 text-white"
+                          : "bg-slate-800 border-slate-600 text-slate-500"
+                      }`}
+                    >
+                      <PawPrint size={24} />
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
 
-            {/* --- BOTTOM RIGHT: ANIMAL HAND AREA --- */}
-            {/* CHANGED: pointer-events-auto -> pointer-events-none (The scroll container acts as ghost) */}
-            <div className="flex-1 flex gap-2 items-end overflow-x-auto pb-4 no-scrollbar h-60 pl-2 pointer-events-none">
+            {/* --- BOTTOM RIGHT: ANIMAL HAND AREA (Always Visible) --- */}
+            <div className="flex-1 flex gap-2 items-end overflow-x-auto pb-4 pt-4 no-scrollbar h-auto pl-2 pointer-events-auto">
               {viewingPlayer.animals.map((card, i) => {
                 const def = ANIMALS[card.type];
                 const isSelected =
                   i === selectedAnimalIdx && viewingPlayer.id === user.uid;
                 const isComplete = card.slotsFilled >= card.maxSlots;
 
-                // --- NEW: HAND MATCH DETECTION ---
-                // Decoupled from "isMyTurn".
-                // Shows hint if:
-                // 1. I am looking at my own hand (viewingPlayer.id === user.uid)
-                // 2. The card is not finished
-                // 3. A valid pattern exists on my board
                 const hasPossibleMatch =
                   viewingPlayer.id === user.uid &&
                   !isComplete &&
+                  gameState.status !== "finished" &&
                   Object.values(me.board).some((cell) => {
                     return !cell.animal && def.check(cell, me.board);
                   });
-                // ---------------------------------
 
                 return (
                   <button
                     key={card.id}
                     onClick={() => {
+                      if (gameState.status === "finished") return; // Disable selection if game over
                       if (viewingPlayer.id !== user.uid) {
                         checkViewAndWarn();
                         return;
@@ -4163,34 +4197,29 @@ export default function Equilibrium() {
                       setSelectedHoldingIdx(null);
                       setSelectedAnimalIdx(isSelected ? null : i);
                     }}
-                    // --- ADD THESE 4 LINES ---
                     onMouseDown={() => handleLongPressStart(card)}
                     onMouseUp={handleLongPressEnd}
                     onMouseLeave={handleLongPressEnd}
                     onTouchStart={() => handleLongPressStart(card)}
                     onTouchEnd={handleLongPressEnd}
-                    onTouchMove={handleScrollCancel} // <--- Adds scroll safety
-                    // -------------------------
-                    // CHANGED: Added pointer-events-auto so the specific card is clickable
+                    onTouchMove={handleScrollCancel}
                     className={`
-          relative w-32 h-44 bg-slate-900/90 border-2 rounded-xl flex flex-col shadow-xl shrink-0 backdrop-blur-md transition-all duration-300 text-left overflow-hidden pointer-events-auto
-          ${
-            isSelected
-              ? "border-yellow-400 ring-2 ring-yellow-500/50 scale-105 z-10 -translate-y-6"
-              : "hover:-translate-y-4"
-          }
-          ${
-            // --- NEW: HIGHLIGHT LOGIC ---
-            // If match exists but not selected: Green Border + Glow + Pulse
-            // Works even if not your turn
-            hasPossibleMatch && !isSelected
-              ? "border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.4)] animate-pulse"
-              : !isSelected
-                ? "border-slate-600 hover:border-slate-400"
-                : ""
-          }
-          ${isComplete ? "grayscale opacity-75 border-slate-700" : ""}
-        `}
+                      relative w-32 h-44 bg-slate-900/90 border-2 rounded-xl flex flex-col shadow-xl shrink-0 backdrop-blur-md transition-all duration-300 text-left overflow-hidden pointer-events-auto
+                      ${
+                        isSelected
+                          ? "border-yellow-400 ring-2 ring-yellow-500/50 scale-105 z-10 -translate-y-6"
+                          : "hover:-translate-y-4"
+                      }
+                      ${
+                        hasPossibleMatch && !isSelected
+                          ? "border-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.4)] animate-pulse"
+                          : !isSelected
+                            ? "border-slate-600 hover:border-slate-400"
+                            : ""
+                      }
+                      ${isComplete ? "grayscale opacity-75 border-slate-700" : ""}
+                      ${gameState.status === "finished" ? "cursor-default" : ""}
+                    `}
                   >
                     {/* Header */}
                     <div className="flex justify-between items-center p-2 border-b border-white/10 bg-black/20 h-10 shrink-0">
@@ -4220,12 +4249,10 @@ export default function Equilibrium() {
 
                     {/* Body */}
                     <div className="p-2 flex-1 flex flex-col items-center w-full min-h-0 justify-between bg-gradient-to-b from-slate-800/50 to-transparent">
-                      {/* Preview Image */}
                       <div className="scale-75 origin-center shrink-0">
                         <PatternPreview visual={def.visual} />
                       </div>
 
-                      {/* Description */}
                       <div className="text-[9px] text-slate-300 text-center leading-tight line-clamp-2 px-1 w-full break-words min-h-[24px] flex items-center justify-center font-medium">
                         {def.desc}
                       </div>

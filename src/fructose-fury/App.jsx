@@ -68,8 +68,7 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-const APP_ID =
-  typeof __app_id !== "undefined" ? __app_id : "fructose-fury";
+const APP_ID = typeof __app_id !== "undefined" ? __app_id : "fructose-fury";
 const GAME_ID = "20"; // Assigned ID for Fructose Fury
 
 // --- Game Constants ---
@@ -219,12 +218,12 @@ const DarkAtmosphere = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
     {/* Clean, deep gradient background (No hazy overlays) */}
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
-    
+
     {/* Crisp Particles */}
     {[...Array(25)].map((_, i) => {
       // Calculate individual random drifts using CSS variables
       const driftX = `${Math.random() * 40 - 20}px`;
-      
+
       return (
         <div
           key={i}
@@ -289,7 +288,7 @@ const FloatingBackground = React.memo(() => {
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
       {/* Dark Gradient Layer */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-yellow-900/20 via-gray-950 to-black" />
-      
+
       {/* Floating Icons Layer */}
       <div className="absolute top-0 left-0 w-full h-full opacity-10">
         {backgroundIcons}
@@ -1936,11 +1935,17 @@ export default function FructoseFury() {
         .filter((t) => t !== null);
     }
 
-    let winner = null;
-    if (gameState.status === "finished") {
-      winner = [...gameState.players].sort(
+    let winners = [];
+    let winningScore = 0;
+
+    if (gameState.status === "finished" && gameState.players.length > 0) {
+      const sortedPlayers = [...gameState.players].sort(
         (a, b) => calculateScore(b.bank) - calculateScore(a.bank),
-      )[0];
+      );
+      winningScore = calculateScore(sortedPlayers[0].bank);
+      winners = sortedPlayers.filter(
+        (p) => calculateScore(p.bank) === winningScore,
+      );
     }
 
     const allPlayersReady = gameState.players.every(
@@ -2074,9 +2079,13 @@ export default function FructoseFury() {
               Harvest Complete!
             </h1>
             <p className="text-2xl text-gray-300 mb-8">
-              The Master Farmer is{" "}
-              <span className="text-yellow-400 font-bold">{winner?.name}</span>{" "}
-              with {calculateScore(winner?.bank || [])} points!
+              {winners.length > 1
+                ? "The Master Farmers are "
+                : "The Master Farmer is "}
+              <span className="text-yellow-400 font-bold">
+                {winners.map((w) => w.name).join(" & ")}
+              </span>{" "}
+              with {winningScore} points!
             </p>
             {/* Player list and buttons... (kept same logic as your original) */}
             <div className="grid grid-cols-2 gap-4 max-w-md w-full mb-8">
@@ -2091,7 +2100,7 @@ export default function FructoseFury() {
                     )}
                     <span
                       className={
-                        p.id === winner.id
+                        winners.some((w) => w.id === p.id)
                           ? "text-yellow-400 font-bold"
                           : "text-gray-400"
                       }

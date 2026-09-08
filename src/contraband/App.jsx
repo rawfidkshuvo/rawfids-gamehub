@@ -658,10 +658,25 @@ const ReportCard = ({ players, roundData, isFinal }) => {
 
   // --- NEW: Helper to render the detailed Stash View ---
   const renderStashView = () => {
-    // Sort players by final score for display order
-    const sortedPlayers = [...players].sort(
-      (a, b) => b.finalScore - a.finalScore,
-    );
+    // Sort players by final score and apply tie-breaker rules
+    const sortedPlayers = [...players].sort((a, b) => {
+      const scoreDiff = (b.finalScore || 0) - (a.finalScore || 0);
+      if (scoreDiff !== 0) return scoreDiff;
+      const legalDiff = (b.legalCount || 0) - (a.legalCount || 0);
+      if (legalDiff !== 0) return legalDiff;
+      return (b.illegalCount || 0) - (a.illegalCount || 0);
+    });
+
+    const topScore = sortedPlayers[0]?.finalScore;
+    const topLegal = sortedPlayers[0]?.legalCount;
+    const topIllegal = sortedPlayers[0]?.illegalCount;
+
+    // Helper to determine if a player is among the winners
+    const isWinner = (p) =>
+      p.finalScore !== undefined &&
+      p.finalScore === topScore &&
+      p.legalCount === topLegal &&
+      p.illegalCount === topIllegal;
 
     return (
       <div className="flex flex-row gap-4 p-6 bg-slate-900/50 overflow-x-auto pb-8 snap-x">
@@ -674,7 +689,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
           const contraband = [];
 
           const counts = {};
-          p.stash.forEach((id) => {
+          (p.stash || []).forEach((id) => {
             counts[id] = (counts[id] || 0) + 1;
           });
 
@@ -698,12 +713,13 @@ const ReportCard = ({ players, roundData, isFinal }) => {
             }
           });
 
+          const isTopDog = isWinner(p);
+
           return (
             <div
               key={p.id}
-              // CHANGED: Reduced width to 320px (standard card size)
               className={`flex flex-col w-[320px] shrink-0 bg-slate-800 rounded-xl border snap-center ${
-                i === 0
+                isTopDog
                   ? "border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.1)]"
                   : "border-slate-700"
               } overflow-hidden`}
@@ -713,14 +729,14 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                 <div>
                   <div className="font-bold text-md text-white">{p.name}</div>
                 </div>
-                {i === 0 && (
+                {isTopDog && (
                   <div className="flex items-center gap-1 text-yellow-500 text-[10px] font-bold uppercase tracking-wider bg-yellow-900/20 px-2 py-1 rounded border border-yellow-500/20">
                     <Crown size={10} /> Winner
                   </div>
                 )}
               </div>
 
-              {/* Exports Section - CHANGED: Removed Grid, now just Flex Column */}
+              {/* Exports Section */}
               <div className="flex-1 p-3 flex flex-col gap-4">
                 {/* Section 1: Exports Inventory */}
                 <div className="space-y-3 flex-1">
@@ -826,7 +842,9 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                         return (
                           <div
                             key={idx}
-                            className={`flex items-center gap-2 p-1.5 rounded ${isKing ? "bg-yellow-500/10" : "bg-pink-500/10"}`}
+                            className={`flex items-center gap-2 p-1.5 rounded ${
+                              isKing ? "bg-yellow-500/10" : "bg-pink-500/10"
+                            }`}
                           >
                             {isKing ? (
                               <Crown size={12} className="text-yellow-400" />
@@ -834,7 +852,9 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                               <ChessKing size={12} className="text-pink-400" />
                             )}
                             <span
-                              className={`text-[10px] font-bold ${isKing ? "text-yellow-200" : "text-pink-200"}`}
+                              className={`text-[10px] font-bold ${
+                                isKing ? "text-yellow-200" : "text-pink-200"
+                              }`}
                             >
                               {detail}
                             </span>
@@ -854,9 +874,13 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                       Bonus Payout
                     </span>
                     <span
-                      className={`font-mono font-bold ${p.kqIncome > 0 ? "text-yellow-400 text-sm" : "text-slate-600 text-xs"}`}
+                      className={`font-mono font-bold ${
+                        (p.kqIncome || 0) > 0
+                          ? "text-yellow-400 text-sm"
+                          : "text-slate-600 text-xs"
+                      }`}
                     >
-                      +${p.kqIncome}
+                      +${p.kqIncome || 0}
                     </span>
                   </div>
                 </div>
@@ -901,7 +925,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
             if (rStats.roleBonus > 0) {
               totalRoleBonus += rStats.roleBonus;
               bonusBreakdown.push(
-                `R${i + 1} (${ROLES[rStats.role]?.name}): +$${rStats.roleBonus}`,
+                `R${i + 1} (${ROLES[rStats.role]?.name}): +$${rStats.roleBonus}`
               );
             }
 
@@ -911,7 +935,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
               eventBreakdown.push(
                 `R${i + 1} (${r.event?.name}): ${
                   rStats.eventImpact > 0 ? "+" : ""
-                }$${rStats.eventImpact}`,
+                }$${rStats.eventImpact}`
               );
             }
 
@@ -922,7 +946,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                 if (item) {
                   totalMarketSpend += item.cost;
                   marketBreakdown.push(
-                    `R${i + 1}: ${item.name} (-$${item.cost})`,
+                    `R${i + 1}: ${item.name} (-$${item.cost})`
                   );
                 }
               });
@@ -955,7 +979,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                     inspectionBreakdown.push(
                       `R${i + 1}: ${label} (${t.amount > 0 ? "+" : ""}${
                         t.amount
-                      })`,
+                      })`
                     );
                   }
                 }
@@ -966,11 +990,19 @@ const ReportCard = ({ players, roundData, isFinal }) => {
 
         // 1. SAFE STASH CALCULATION
         const stashTotal = stash.reduce(
-          (acc, c) => acc + (GOODS[c]?.val || 0), // ?.val prevents crash on invalid ID
-          0,
+          (acc, c) => acc + (GOODS[c]?.val || 0),
+          0
         );
 
-        // 2. SAFE TOTAL CALCULATION
+        // 2. TIE-BREAKER COUNTERS
+        let legalCount = 0;
+        let illegalCount = 0;
+        stash.forEach((c) => {
+          if (GOODS[c]?.type === "LEGAL") legalCount++;
+          else if (GOODS[c]?.type === "ILLEGAL") illegalCount++;
+        });
+
+        // 3. SAFE TOTAL CALCULATION
         const total = Math.floor(p.coins - BANK_LOAN + kqIncome);
 
         return {
@@ -979,6 +1011,9 @@ const ReportCard = ({ players, roundData, isFinal }) => {
           role: p.role,
           cash: p.coins,
           stashVal: stashTotal,
+
+          legalCount,
+          illegalCount,
 
           bonus: Math.floor(totalRoleBonus),
           bonusDetails: bonusBreakdown,
@@ -1001,8 +1036,29 @@ const ReportCard = ({ players, roundData, isFinal }) => {
         };
       });
 
-      displayData.sort((a, b) => b.total - a.total);
-      if (displayData.length > 0) displayData[0].isWinner = true;
+      // Updated Final Sorting logic with Tie-Breakers
+      displayData.sort((a, b) => {
+        if (b.total !== a.total) return b.total - a.total;
+        if (b.legalCount !== a.legalCount) return b.legalCount - a.legalCount;
+        return b.illegalCount - a.illegalCount;
+      });
+
+      // Mark All Valid Winners (Joint winner support)
+      if (displayData.length > 0) {
+        const topTotal = displayData[0].total;
+        const topLegal = displayData[0].legalCount;
+        const topIllegal = displayData[0].illegalCount;
+
+        displayData.forEach((d) => {
+          if (
+            d.total === topTotal &&
+            d.legalCount === topLegal &&
+            d.illegalCount === topIllegal
+          ) {
+            d.isWinner = true;
+          }
+        });
+      }
     } else {
       // Existing Round View Logic
       const roundIdx =
@@ -1015,8 +1071,8 @@ const ReportCard = ({ players, roundData, isFinal }) => {
             activeTab === "FINAL" || activeTab === "STASH"
               ? 0
               : typeof activeTab === "number"
-                ? activeTab
-                : parseInt(activeTab.split(" ")[1]) - 1
+              ? activeTab
+              : parseInt(activeTab.split(" ")[1]) - 1
           ]
         : null;
       const stats = roundEntry ? roundEntry.stats : null;
@@ -1119,12 +1175,18 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                     <td className="px-6 py-4 align-top">
                       <div className="flex items-center gap-3">
                         <div
-                          className={`flex items-center justify-center w-6 h-6 rounded-full font-bold text-[10px] ${d.isWinner ? "bg-yellow-500 text-black" : "bg-slate-800 text-slate-500"}`}
+                          className={`flex items-center justify-center w-6 h-6 rounded-full font-bold text-[10px] ${
+                            d.isWinner
+                              ? "bg-yellow-500 text-black"
+                              : "bg-slate-800 text-slate-500"
+                          }`}
                         >
                           {i + 1}
                         </div>
                         <span
-                          className={`font-medium ${d.isWinner ? "text-white" : "text-slate-400"}`}
+                          className={`font-medium ${
+                            d.isWinner ? "text-white" : "text-slate-400"
+                          }`}
                         >
                           {d.name}
                         </span>
@@ -1142,7 +1204,13 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                     <td className="px-6 py-4 text-right align-top">
                       <div className="flex flex-col items-end">
                         <span
-                          className={`font-mono ${d.inspectionNet > 0 ? "text-purple-400" : d.inspectionNet < 0 ? "text-red-400" : "text-slate-600"}`}
+                          className={`font-mono ${
+                            d.inspectionNet > 0
+                              ? "text-purple-400"
+                              : d.inspectionNet < 0
+                              ? "text-red-400"
+                              : "text-slate-600"
+                          }`}
                         >
                           {d.inspectionNet > 0 ? "+" : ""}
                           {d.inspectionNet}
@@ -1160,9 +1228,13 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                     <td className="px-6 py-4 text-right align-top">
                       <div className="flex flex-col items-end">
                         <span
-                          className={`font-mono ${d.marketCost > 0 ? "text-orange-400" : "text-slate-600"}`}
+                          className={`font-mono ${
+                            d.marketCost > 0
+                              ? "text-orange-400"
+                              : "text-slate-600"
+                          }`}
                         >
-                          -${d.marketCost}
+                          -{d.marketCost}
                         </span>
                         {d.marketDetails.map((det, idx) => (
                           <span
@@ -1192,7 +1264,13 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                     <td className="px-6 py-4 text-right align-top">
                       <div className="flex flex-col items-end">
                         <span
-                          className={`font-mono ${d.eventBonus > 0 ? "text-blue-400" : d.eventBonus < 0 ? "text-red-400" : "text-slate-600"}`}
+                          className={`font-mono ${
+                            d.eventBonus > 0
+                              ? "text-blue-400"
+                              : d.eventBonus < 0
+                              ? "text-red-400"
+                              : "text-slate-600"
+                          }`}
                         >
                           {d.eventBonus > 0 ? "+" : ""}
                           {d.eventBonus}
@@ -1210,7 +1288,11 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                     <td className="px-6 py-4 text-right align-top">
                       <div className="flex flex-col items-end">
                         <span
-                          className={`font-mono ${d.kqIncome > 0 ? "text-yellow-200" : "text-slate-600"}`}
+                          className={`font-mono ${
+                            d.kqIncome > 0
+                              ? "text-yellow-200"
+                              : "text-slate-600"
+                          }`}
                         >
                           {d.kqIncome > 0 ? "+" : ""}
                           {d.kqIncome}
@@ -1262,7 +1344,11 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                       )}
                       {d.eventImpact !== 0 ? (
                         <span
-                          className={`font-mono text-xs font-bold px-1.5 py-0.5 rounded ${d.eventImpact > 0 ? "text-emerald-400 bg-emerald-900/20" : "text-red-400 bg-red-900/20"}`}
+                          className={`font-mono text-xs font-bold px-1.5 py-0.5 rounded ${
+                            d.eventImpact > 0
+                              ? "text-emerald-400 bg-emerald-900/20"
+                              : "text-red-400 bg-red-900/20"
+                          }`}
                         >
                           {d.eventImpact > 0 ? "+" : ""}
                           {d.eventImpact}
@@ -1319,7 +1405,11 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                                   {t.label}
                                 </span>
                                 <span
-                                  className={`font-mono ${t.amount >= 0 ? "text-emerald-400" : "text-red-400"}`}
+                                  className={`font-mono ${
+                                    t.amount >= 0
+                                      ? "text-emerald-400"
+                                      : "text-red-400"
+                                  }`}
                                 >
                                   {t.amount >= 0 ? "+" : ""}
                                   {t.amount}

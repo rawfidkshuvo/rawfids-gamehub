@@ -2547,8 +2547,21 @@ export default function DarkFolkloreGame() {
 
                 {/* Inline Copy Button (No Box) */}
                 <div className="relative">
-                  <button onClick={copyToClipboard} className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white">{isCopied ? <CheckCircle size={20} className="text-emerald-500" /> : <Copy size={20} />}</button>
-                  {isCopied && <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-fuchsia-600 text-white text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">Copied!</div>}
+                  <button
+                    onClick={copyToClipboard}
+                    className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white"
+                  >
+                    {isCopied ? (
+                      <CheckCircle size={20} className="text-emerald-500" />
+                    ) : (
+                      <Copy size={20} />
+                    )}
+                  </button>
+                  {isCopied && (
+                    <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-fuchsia-600 text-white text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">
+                      Copied!
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -4563,54 +4576,156 @@ export default function DarkFolkloreGame() {
 
         {/* WIN SCREEN OVERLAY */}
         {gameState.status === "finished" && (
-          <div className="fixed inset-0 z-[200] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4">
-            <div className="bg-slate-900/80 p-8 md:p-12 rounded-3xl border border-yellow-500/50 shadow-[0_0_60px_rgba(234,179,8,0.4)] text-center animate-in zoom-in max-w-2xl w-full">
-              <Crown
-                size={64}
-                className="text-yellow-500 mx-auto mb-4 md:mb-6 animate-bounce drop-shadow-[0_0_20px_rgba(234,179,8,0.8)]"
-              />
-              <h2 className="text-3xl md:text-5xl font-black uppercase tracking-[0.2em] text-white mb-3">
-                {
-                  gameState.players.find((p) => p.id === gameState.winnerId)
-                    ?.name
-                }{" "}
-                Wins!
-              </h2>
-              <p className="text-slate-400 uppercase tracking-widest text-sm md:text-lg font-bold mb-8 md:mb-10">
-                The shadows bow to them.
-              </p>
+          <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-4 md:p-6 animate-in fade-in">
+            <div className="bg-slate-900/90 p-6 md:p-8 rounded-3xl border border-yellow-500/50 shadow-[0_0_60px_rgba(234,179,8,0.3)] text-center animate-in zoom-in max-w-4xl w-full flex flex-col max-h-[90vh]">
+              {/* Header */}
+              <div className="shrink-0 mb-6 border-b border-slate-800 pb-6">
+                <Crown
+                  size={64}
+                  className="text-yellow-500 mx-auto mb-4 animate-bounce drop-shadow-[0_0_20px_rgba(234,179,8,0.8)]"
+                />
+                <h2 className="text-3xl md:text-5xl font-black uppercase tracking-[0.2em] text-white mb-2 drop-shadow-md">
+                  {
+                    gameState.players.find((p) => p.id === gameState.winnerId)
+                      ?.name
+                  }{" "}
+                  Wins!
+                </h2>
+                <p className="text-slate-400 uppercase tracking-widest text-sm md:text-lg font-bold">
+                  The shadows bow to them.
+                </p>
+              </div>
 
-              {gameState.hostId === user.uid && (
-                <button
-                  onClick={() => {
-                    const resetPlayers = gameState.players.map((p) => ({
-                      ...p,
-                      ready: true,
-                      score: 0,
-                      hand: [],
-                      tableau: [],
-                      skipNextTurn: false,
-                      finalTurnTaken: false,
-                    }));
-                    executeAction(
-                      {
-                        status: "lobby",
-                        players: resetPlayers,
-                        deck: [],
-                        discardPile: [],
-                        logs: [],
-                        turnIndex: 0,
-                        winnerId: null,
-                        isFinalRound: false,
-                      },
-                      null,
+              {/* Player Breakdown (Scrollable) */}
+              <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 text-left pr-2 mb-6">
+                {gameState.players
+                  .slice()
+                  .sort((a, b) => b.score - a.score)
+                  .map((p, i) => {
+                    const isWinner = p.id === gameState.winnerId;
+                    return (
+                      <div
+                        key={p.id}
+                        className={`p-4 rounded-xl border-2 flex flex-col gap-3 transition-all ${
+                          isWinner
+                            ? "bg-slate-800/80 border-yellow-500/50 shadow-[0_0_15px_rgba(234,179,8,0.2)]"
+                            : "bg-slate-950/50 border-slate-800"
+                        }`}
+                      >
+                        {/* Player Info Row */}
+                        <div className="flex justify-between items-center border-b border-slate-700/50 pb-3">
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`font-mono text-lg font-black ${
+                                isWinner ? "text-yellow-500" : "text-slate-500"
+                              }`}
+                            >
+                              #{i + 1}
+                            </span>
+                            <span className="font-black text-xl text-slate-200 uppercase tracking-widest flex items-center gap-2">
+                              {p.name}
+                              {isWinner && (
+                                <Crown size={16} className="text-yellow-500" />
+                              )}
+                            </span>
+                          </div>
+                          <span
+                            className={`text-2xl font-black ${
+                              isWinner ? "text-yellow-400" : "text-fuchsia-400"
+                            }`}
+                          >
+                            {p.score}{" "}
+                            <span className="text-sm text-slate-500">Pts</span>
+                          </span>
+                        </div>
+
+                        {/* Player Tableau / Sets */}
+                        <div>
+                          <h4 className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                            <Layers size={14} /> Banked Sets
+                          </h4>
+                          <div className="flex flex-wrap gap-3">
+                            {p.tableau.length === 0 ? (
+                              <div className="text-slate-600 italic text-xs uppercase font-bold py-2">
+                                No sets banked
+                              </div>
+                            ) : (
+                              p.tableau.map((set, sIdx) => (
+                                <div
+                                  key={sIdx}
+                                  className={`flex rounded-lg p-1.5 bg-slate-900 border ${
+                                    set.isLocked
+                                      ? "border-yellow-600/50"
+                                      : "border-slate-700"
+                                  } shrink-0 relative`}
+                                >
+                                  {set.isLocked && (
+                                    <Shield
+                                      className="absolute -top-2 -right-2 text-yellow-500 bg-slate-900 rounded-full p-0.5 z-20 shadow-md"
+                                      size={14}
+                                    />
+                                  )}
+                                  {set.cards.map((c, cIdx) => (
+                                    <div
+                                      key={c.uid}
+                                      className={`relative transition-transform hover:-translate-y-1 ${
+                                        cIdx > 0 ? "-ml-4" : ""
+                                      }`}
+                                    >
+                                      <CardDisplay cardId={c.cardId} tiny />
+                                    </div>
+                                  ))}
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     );
-                  }}
-                  className="bg-yellow-600 hover:bg-yellow-500 text-black px-8 md:px-10 py-4 md:py-5 rounded-xl text-base md:text-lg font-black uppercase tracking-widest shadow-[0_0_30px_rgba(234,179,8,0.5)] transition-transform hover:scale-105 active:scale-95"
-                >
-                  Return to Lobby
-                </button>
-              )}
+                  })}
+              </div>
+
+              {/* Footer / Controls */}
+              <div className="shrink-0 pt-4 border-t border-slate-800">
+                {gameState.hostId === user.uid ? (
+                  <button
+                    onClick={() => {
+                      const resetPlayers = gameState.players.map((p) => ({
+                        ...p,
+                        ready: true,
+                        score: 0,
+                        hand: [],
+                        tableau: [],
+                        skipNextTurn: false,
+                        finalTurnTaken: false,
+                      }));
+                      executeAction(
+                        {
+                          status: "lobby",
+                          players: resetPlayers,
+                          deck: [],
+                          discardPile: [],
+                          logs: [],
+                          turnIndex: 0,
+                          winnerId: null,
+                          isFinalRound: false,
+                        },
+                        null,
+                      );
+                    }}
+                    className="bg-gradient-to-r from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 text-black px-8 py-4 w-full rounded-xl text-lg font-black uppercase tracking-widest shadow-[0_0_30px_rgba(234,179,8,0.3)] transition-transform hover:scale-105 active:scale-95"
+                  >
+                    Return to Lobby
+                  </button>
+                ) : (
+                  <button
+                    disabled
+                    className="bg-slate-800 text-slate-500 px-8 py-4 w-full rounded-xl text-lg font-black uppercase tracking-widest cursor-not-allowed border border-slate-700"
+                  >
+                    Waiting for Host...
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         )}

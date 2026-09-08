@@ -2038,7 +2038,7 @@ export default function RoyalMenagerie() {
                 </div>
                 <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                   {/* FIX: Improved Key for stability */}
-                  {myPlayer.hand.map((card, i) => (
+                  {[...myPlayer.hand].sort().map((card, i) => (
                     <div
                       key={`${card}-${i}`}
                       className="relative group shrink-0"

@@ -2530,10 +2530,29 @@ export default function TogetherGame() {
 
     // Win Screen
     if (gameState.status === "finished") {
-      const winnerId = Object.keys(gameState.teamScores).reduce((a, b) =>
-        gameState.teamScores[a].points > gameState.teamScores[b].points ? a : b,
+      // 1. Convert scores to an array for easy sorting
+      const teamsArray = Object.keys(gameState.teamScores).map((id) => ({
+        id,
+        ...gameState.teamScores[id],
+      }));
+
+      // 2. Sort by Points (descending), then by Goals (descending)
+      teamsArray.sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points; // Highest score wins
+        return b.goals - a.goals; // Tie-breaker: Highest goals wins
+      });
+
+      // 3. Find the top score and goals to check for joint winners
+      const topScore = teamsArray[0].points;
+      const topGoals = teamsArray[0].goals;
+
+      // 4. Filter all teams that match the top score and goals
+      const winners = teamsArray.filter(
+        (t) => t.points === topScore && t.goals === topGoals,
       );
-      const winnerTeam = TEAMS.find((t) => t.id === winnerId);
+      const winnerNames = winners
+        .map((w) => TEAMS.find((t) => t.id === w.id).name)
+        .join(" & ");
 
       return (
         <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-8 text-center text-white font-sans relative">
@@ -2669,9 +2688,14 @@ export default function TogetherGame() {
               size={80}
               className="text-yellow-400 mb-6 mx-auto animate-bounce"
             />
-            <h1 className="text-6xl font-black mb-2">
-              {winnerTeam.name} Wins!
+            <h1 className="text-5xl md:text-6xl font-black mb-2">
+              {winners.length > 1 ? "Joint Winners!" : `${winnerNames} Wins!`}
             </h1>
+            {winners.length > 1 && (
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-yellow-400">
+                {winnerNames}
+              </h2>
+            )}
             <div className="grid grid-cols-2 gap-8 my-8">
               {TEAMS.map((t) => {
                 if (!gameState.teamScores[t.id]) return null;

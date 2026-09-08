@@ -421,7 +421,7 @@ const FloatingBackground = React.memo(() => {
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
       {/* Dark Gradient Layer */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-yellow-900/20 via-gray-950 to-black" />
-      
+
       {/* Floating Icons Layer */}
       <div className="absolute top-0 left-0 w-full h-full opacity-10">
         {backgroundIcons}
@@ -442,12 +442,12 @@ const DarkAtmosphere = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
     {/* Clean, deep gradient background (No hazy overlays) */}
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
-    
+
     {/* Crisp Particles */}
     {[...Array(25)].map((_, i) => {
       // Calculate individual random drifts using CSS variables
       const driftX = `${Math.random() * 40 - 20}px`;
-      
+
       return (
         <div
           key={i}
@@ -1478,6 +1478,7 @@ export default function PaperOceans() {
       // Calculate scores as if everyone did a Safe Stop (Normal Score)
       players.forEach((p) => {
         const pts = calculatePoints(p.hand, p.tableau);
+        p.lastRoundScore = pts; // Record points gained in this round
         p.score += pts;
         p.ready = p.id === gameState.hostId;
       });
@@ -1496,7 +1497,10 @@ export default function PaperOceans() {
           }),
         },
       );
-      setTimeout(() => checkForGameWin(players, roomId), 3000);
+      setTimeout(
+        () => checkForGameWin(players, roomId, gameState.turnIndex),
+        3000,
+      );
       return;
     }
     // ---------------------------------------
@@ -1765,6 +1769,7 @@ export default function PaperOceans() {
 
     players.forEach((p) => {
       const pts = calculatePoints(p.hand, p.tableau);
+      p.lastRoundScore = pts; // Record points gained in this round
       p.score += pts;
       p.ready = p.id === gameState.hostId;
     });
@@ -1781,7 +1786,10 @@ export default function PaperOceans() {
         }),
       },
     );
-    setTimeout(() => checkForGameWin(players, roomId), 3000);
+    setTimeout(
+      () => checkForGameWin(players, roomId, gameState.turnIndex),
+      3000,
+    );
   };
 
   const handleLastChance = async () => {
@@ -1810,24 +1818,17 @@ export default function PaperOceans() {
     const bettor = players.find((p) => p.id === bettorId);
 
     // 1. Calculate Standard Scores (Strength) using global function
-    // NOTE: 'calculatePoints' handles the Mermaid Multiplication logic.
-    // We pass 'false' to ensure we get the strict score (Normal Score).
     const bettorStrength = calculatePoints(bettor.hand, bettor.tableau, false);
-
     let bettorWon = true;
 
     players.forEach((p) => {
       if (p.id !== bettorId) {
-        // Opponent Normal Score (includes Mermaid Multiplier)
         const oppStrength = calculatePoints(p.hand, p.tableau, false);
-
-        // If opponent ties or exceeds bettor, bettor loses
         if (oppStrength >= bettorStrength) bettorWon = false;
       }
     });
 
     // 2. Helper: Special Color Bonus (SCB)
-    // This is the NEW logic: Highest color count ONLY. No multiplication.
     const getSpecialColorBonus = (p) => {
       const all = [...p.hand, ...p.tableau];
       const colorCounts = {};
@@ -1842,24 +1843,28 @@ export default function PaperOceans() {
     // 3. Apply Scoring Rules
     if (bettorWon) {
       // SCENARIO: BETTOR WINS
-      // Bettor gets: Normal Score (w/ Mermaids) + SCB (Flat)
-      bettor.score += bettorStrength + getSpecialColorBonus(bettor);
+      const bettorBonus = bettorStrength + getSpecialColorBonus(bettor);
+      bettor.lastRoundScore = bettorBonus;
+      bettor.score += bettorBonus;
 
       players.forEach((p) => {
         if (p.id !== bettorId) {
-          // Opponents (Losers) get: SCB only
-          p.score += getSpecialColorBonus(p);
+          const oppBonus = getSpecialColorBonus(p);
+          p.lastRoundScore = oppBonus;
+          p.score += oppBonus;
         }
       });
     } else {
       // SCENARIO: BETTOR LOSES
-      // Bettor (Loser) gets: SCB only
-      bettor.score += getSpecialColorBonus(bettor);
+      const bettorBonus = getSpecialColorBonus(bettor);
+      bettor.lastRoundScore = bettorBonus;
+      bettor.score += bettorBonus;
 
       players.forEach((p) => {
         if (p.id !== bettorId) {
-          // Opponents (Winners) get: Normal Score (w/ Mermaids)
-          p.score += calculatePoints(p.hand, p.tableau, false);
+          const oppBonus = calculatePoints(p.hand, p.tableau, false);
+          p.lastRoundScore = oppBonus;
+          p.score += oppBonus;
         }
       });
     }
@@ -1880,23 +1885,57 @@ export default function PaperOceans() {
         }),
       },
     );
-    setTimeout(() => checkForGameWin(players, roomId), 4000);
+    setTimeout(
+      () => checkForGameWin(players, roomId, gameState.turnIndex),
+      4000,
+    );
   };
 
-  const checkForGameWin = async (players, rId) => {
-    const sorted = [...players].sort((a, b) => b.score - a.score);
-    const winner = sorted[0];
+  const checkForGameWin = async (players, rId, endingTurnIndex) => {
     const threshold = GET_WIN_THRESHOLD(players.length);
+    const N = players.length;
 
-    if (winner.score >= threshold) {
-      await updateDoc(
-        doc(db, "artifacts", APP_ID, "public", "data", "rooms", rId),
-        {
-          status: "finished",
-          winnerId: winner.id,
-        },
+    // 1. Find the highest score
+    const maxScore = Math.max(...players.map((p) => p.score));
+
+    // If nobody reached the threshold, no one wins yet
+    if (maxScore < threshold) return;
+
+    // 2. Find all players who share the highest score
+    let candidates = players.filter((p) => p.score === maxScore);
+
+    if (candidates.length > 1) {
+      // TIEBREAKER 1: Most points scored in the LAST round
+      const maxLastRoundScore = Math.max(
+        ...candidates.map((p) => p.lastRoundScore || 0),
+      );
+      candidates = candidates.filter(
+        (p) => (p.lastRoundScore || 0) === maxLastRoundScore,
       );
     }
+
+    if (candidates.length > 1) {
+      // TIEBREAKER 2: Player who went last in the final round
+      // 'endingTurnIndex' represents the player who took the final turn.
+      // Distance 0 = went last, 1 = went second to last, etc.
+      candidates.sort((a, b) => {
+        const idxA = players.findIndex((p) => p.id === a.id);
+        const idxB = players.findIndex((p) => p.id === b.id);
+        const distA = (endingTurnIndex - idxA + N) % N;
+        const distB = (endingTurnIndex - idxB + N) % N;
+        return distA - distB;
+      });
+    }
+
+    const winner = candidates[0];
+
+    await updateDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", rId),
+      {
+        status: "finished",
+        winnerId: winner.id,
+      },
+    );
   };
 
   if (isMaintenance) {
