@@ -1608,14 +1608,9 @@ export default function ThiefPoliceGame() {
                     {gameState.roundTarget}
                   </span>
                 </div>
-                <div className="text-sm bg-slate-800/80 p-2 rounded-lg border border-slate-700 animate-pulse text-blue-300 backdrop-blur-sm">
-                  {isPolice
-                    ? "Click a player to guess!"
-                    : `${currentPolice?.name} is investigating...`}
-                </div>
               </>
             ) : (
-              <div className="backdrop-blur px-6 py-4 rounded-xl border border-slate-600 shadow-xl w-full">
+              <div className="backdrop-blur px-6 py-4 rounded-xl shadow-xl w-full">
                 <div>
                   <span
                     className={`text-lg font-bold mb-1 text-center ${
@@ -1723,12 +1718,14 @@ export default function ThiefPoliceGame() {
           </div>
 
           <div className="text-center mb-4 w-full max-w-md">
-            <div className="backdrop-blur px-6 py-4 rounded-xl border border-slate-600 shadow-xl w-full">
+            <div className="backdrop-blur px-6 py-4 w-full">
               {gameState.status !== "finished" && (
                 <div className="mt-4">
                   {gameState.turnState === "GUESSING" ? (
-                    <div className="w-full py-3 rounded-lg font-bold border border-slate-700 bg-slate-800/50 text-slate-400 text-center animate-pulse">
-                      Turn resolving...
+                    <div className="w-full py-3 rounded-lg font-bold border border-slate-700 bg-slate-800/80 text-blue-400 text-center animate-pulse shadow-lg backdrop-blur-sm">
+                      {isPolice
+                        ? "Click a criminal to guess!"
+                        : `${currentPolice?.name || "Police"} is investigating...`}
                     </div>
                   ) : (
                     <>
