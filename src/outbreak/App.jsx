@@ -2180,9 +2180,19 @@ const HowToPlayModal = ({ ROLES, onClose }) => (
 // --- MAIN COMPONENT ---
 export default function OutbreakGame() {
   const [user, setUser] = useState(null);
-  const [view, setView] = useState("splash");
+  // Change these two state initializations:
+  const [view, setView] = useState(() => {
+    return sessionStorage.getItem("splashRefreshed") ? "menu" : "splash";
+  });
 
-  const [roomId, setRoomId] = useState("");
+  const [roomId, setRoomId] = useState(() => {
+    // If we just refreshed via the splash screen, auto-load the room ID
+    if (sessionStorage.getItem("splashRefreshed")) {
+      sessionStorage.removeItem("splashRefreshed"); // Clear the flag
+      return localStorage.getItem("outbreak_roomId") || "";
+    }
+    return "";
+  });
   const [roomInput, setRoomInput] = useState("");
   const [playerName, setPlayerName] = useState(
     () => localStorage.getItem("gameHub_playerName") || "",
@@ -2278,13 +2288,13 @@ export default function OutbreakGame() {
     return () => unsub();
   }, []);
 
+  // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedId = localStorage.getItem("outbreak_roomId");
-    if (savedId) {
-      setLoading(true);
-      setRoomId(savedId);
-      setView("menu");
-    } else setView("menu");
+    // Set a temporary session flag
+    sessionStorage.setItem("splashRefreshed", "true");
+    
+    // Force a hard browser reload to ensure a perfectly clean state
+    window.location.reload();
   };
 
   const copyToClipboard = () => {

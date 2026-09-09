@@ -836,9 +836,21 @@ const SplashScreen = ({ onStart }) => {
 // ---------------------------------------------------------------------------
 export default function DarkFolkloreGame() {
   const [user, setUser] = useState(null);
-  const [view, setView] = useState("splash");
+  // Change these two state initializations:
+  const [view, setView] = useState(() => {
+    return sessionStorage.getItem("splashRefreshed") ? "menu" : "splash";
+  });
+
+  const [roomId, setRoomId] = useState(() => {
+    // If we just refreshed via the splash screen, auto-load the room ID
+    if (sessionStorage.getItem("splashRefreshed")) {
+      sessionStorage.removeItem("splashRefreshed"); // Clear the flag
+      return localStorage.getItem("dark_roomId") || "";
+    }
+    return "";
+  });
   const [playerName, setPlayerName] = useState("");
-  const [roomId, setRoomId] = useState("");
+  
   const [roomCode, setRoomCode] = useState("");
   const [gameState, setGameState] = useState(null);
   const [error, setError] = useState("");
@@ -880,16 +892,13 @@ export default function DarkFolkloreGame() {
   }, []);
 
   // 3. NEW FUNCTION: Handle Splash Button Click
+  // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("dark_roomId");
-
-    if (savedRoomId) {
-      // User clicked RESUME: Set the roomId to trigger the Reconnecting screen
-      setRoomId(savedRoomId);
-    } else {
-      // User clicked PLAY: Go to menu
-      setView("menu");
-    }
+    // Set a temporary session flag
+    sessionStorage.setItem("splashRefreshed", "true");
+    
+    // Force a hard browser reload to ensure a perfectly clean state
+    window.location.reload();
   };
 
   useEffect(() => {

@@ -525,18 +525,38 @@ const RoundSummary = ({
   );
 };
 
-const GameOverModal = ({ players, winner, isHost, hostId, currentUserId, onRestart, onLobby, onToggleReady, onHide }) => {
+const GameOverModal = ({
+  players,
+  winner,
+  isHost,
+  hostId,
+  currentUserId,
+  onRestart,
+  onLobby,
+  onToggleReady,
+  onHide,
+}) => {
   const guests = players.filter((p) => p.id !== hostId);
   const allGuestsReady = guests.length === 0 || guests.every((p) => p.ready);
-  
+
   const me = players.find((p) => p.id === currentUserId);
+
+  // Calculate true winners for the UI
   const maxScore = Math.max(...players.map((p) => p.score));
-  const isTie = players.filter(p => p.score === maxScore).length > 1;
+  let topScorers = players.filter((p) => p.score === maxScore);
+
+  let trueWinners = topScorers;
+  if (topScorers.length > 1) {
+    const maxBackdoors = Math.max(...topScorers.map((p) => p.backdoorCount));
+    trueWinners = topScorers.filter((p) => p.backdoorCount === maxBackdoors);
+  }
+
+  const isTie = trueWinners.length > 1;
+  const trueWinnerIds = trueWinners.map((p) => p.id);
 
   return (
     <div className="fixed inset-0 top-14 bg-black/95 z-200 flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
       <div className="bg-slate-900 border border-cyan-500/50 rounded-2xl w-full max-w-3xl flex flex-col shadow-[0_0_50px_rgba(34,211,238,0.2)] overflow-hidden max-h-[90vh] relative">
-        
         {/* Header */}
         <div className="p-8 border-b border-slate-800 bg-slate-950 flex flex-col items-center text-center relative">
           {/* NEW: Close Modal Button */}
@@ -548,12 +568,15 @@ const GameOverModal = ({ players, winner, isHost, hostId, currentUserId, onResta
             <X size={24} />
           </button>
 
-          <Trophy size={48} className="text-yellow-400 mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
+          <Trophy
+            size={48}
+            className="text-yellow-400 mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]"
+          />
           <h2 className="text-3xl md:text-5xl font-black text-cyan-400 uppercase tracking-widest mb-2">
-             {isTie ? "CO-OP DOMINATION" : "MISSION ACCOMPLISHED"}
+            {isTie ? "CO-OP DOMINATION" : "MISSION ACCOMPLISHED"}
           </h2>
           <h3 className="text-xl md:text-2xl font-bold text-white uppercase tracking-wider">
-             {winner} {isTie ? "WIN!" : "WINS!"}
+            {winner} {isTie ? "WIN!" : "WINS!"}
           </h3>
         </div>
 
@@ -579,13 +602,24 @@ const GameOverModal = ({ players, winner, isHost, hostId, currentUserId, onResta
                   const r2 = p.history.find((h) => h.round === 2)?.score || 0;
                   const r3 = p.history.find((h) => h.round === 3)?.score || 0;
                   const bdBonus = p.backdoorScore || 0;
-                  const isWinner = p.score === maxScore;
+
+                  // Updated to use true tie-breaker logic
+                  const isWinner = trueWinnerIds.includes(p.id);
 
                   return (
-                    <tr key={p.id} className={`border-b border-slate-800 transition-colors ${isWinner ? "bg-cyan-900/20" : "hover:bg-slate-800/30"}`}>
+                    <tr
+                      key={p.id}
+                      className={`border-b border-slate-800 transition-colors ${isWinner ? "bg-cyan-900/20" : "hover:bg-slate-800/30"}`}
+                    >
                       <td className="p-3 font-bold flex items-center gap-2">
-                        {isWinner && <Crown size={14} className="text-yellow-400" />}
-                        <span className={isWinner ? "text-cyan-300" : "text-white"}>{p.name}</span>
+                        {isWinner && (
+                          <Crown size={14} className="text-yellow-400" />
+                        )}
+                        <span
+                          className={isWinner ? "text-cyan-300" : "text-white"}
+                        >
+                          {p.name}
+                        </span>
                         {p.backdoorCount > 0 && (
                           <span className="text-[10px] font-sans text-pink-400 bg-pink-900/30 px-1.5 py-0.5 rounded flex items-center gap-1">
                             <Ghost size={10} /> {p.backdoorCount}
@@ -595,10 +629,15 @@ const GameOverModal = ({ players, winner, isHost, hostId, currentUserId, onResta
                       <td className="p-3 text-center text-slate-400">{r1}</td>
                       <td className="p-3 text-center text-slate-400">{r2}</td>
                       <td className="p-3 text-center text-slate-400">{r3}</td>
-                      <td className={`p-3 text-center font-bold ${bdBonus > 0 ? "text-green-400" : bdBonus < 0 ? "text-red-400" : "text-slate-600"}`}>
-                        {bdBonus > 0 ? "+" : ""}{bdBonus}
+                      <td
+                        className={`p-3 text-center font-bold ${bdBonus > 0 ? "text-green-400" : bdBonus < 0 ? "text-red-400" : "text-slate-600"}`}
+                      >
+                        {bdBonus > 0 ? "+" : ""}
+                        {bdBonus}
                       </td>
-                      <td className={`p-3 text-right font-black text-lg ${isWinner ? "text-yellow-400 drop-shadow-md" : "text-cyan-400"}`}>
+                      <td
+                        className={`p-3 text-right font-black text-lg ${isWinner ? "text-yellow-400 drop-shadow-md" : "text-cyan-400"}`}
+                      >
                         {p.score}
                       </td>
                     </tr>
@@ -611,19 +650,30 @@ const GameOverModal = ({ players, winner, isHost, hostId, currentUserId, onResta
         {/* Footer Actions */}
         <div className="p-6 border-t border-slate-800 bg-slate-950 flex flex-col gap-4">
           <div className="flex gap-2 justify-center flex-wrap">
-             {players.map((p) => {
-                const isThisPlayerHost = p.id === hostId;
-                return (
-                  <div key={p.id} className={`flex items-center gap-1 px-3 py-1.5 rounded text-xs font-bold ${
-                    isThisPlayerHost ? "bg-cyan-900/30 text-cyan-400 border border-cyan-500/30" 
-                    : p.ready ? "bg-green-900/30 text-green-400 border border-green-500/30" 
-                    : "bg-slate-900 text-slate-500 border border-slate-700"
-                  }`}>
-                     <span className="truncate max-w-[80px]">{p.name}</span>
-                     {isThisPlayerHost ? <Crown size={12} /> : p.ready ? <CheckCircle size={12} /> : <Clock size={12} className="animate-pulse" />}
-                  </div>
-                )
-             })}
+            {players.map((p) => {
+              const isThisPlayerHost = p.id === hostId;
+              return (
+                <div
+                  key={p.id}
+                  className={`flex items-center gap-1 px-3 py-1.5 rounded text-xs font-bold ${
+                    isThisPlayerHost
+                      ? "bg-cyan-900/30 text-cyan-400 border border-cyan-500/30"
+                      : p.ready
+                        ? "bg-green-900/30 text-green-400 border border-green-500/30"
+                        : "bg-slate-900 text-slate-500 border border-slate-700"
+                  }`}
+                >
+                  <span className="truncate max-w-[80px]">{p.name}</span>
+                  {isThisPlayerHost ? (
+                    <Crown size={12} />
+                  ) : p.ready ? (
+                    <CheckCircle size={12} />
+                  ) : (
+                    <Clock size={12} className="animate-pulse" />
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <div className="flex flex-wrap gap-4 justify-center mt-2">
@@ -657,12 +707,12 @@ const GameOverModal = ({ players, winner, isHost, hostId, currentUserId, onResta
                 onClick={onToggleReady}
                 className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg ${me?.ready ? "bg-green-600/20 text-green-400 border border-green-500/50" : "bg-cyan-600 hover:bg-cyan-500 text-white animate-pulse"}`}
               >
-                <CheckCircle size={18} /> {me?.ready ? "READY FOR PROTOCOL" : "MARK READY"}
+                <CheckCircle size={18} />{" "}
+                {me?.ready ? "READY FOR PROTOCOL" : "MARK READY"}
               </button>
             )}
           </div>
         </div>
-
       </div>
     </div>
   );
@@ -1154,9 +1204,19 @@ const SplashScreen = ({ onStart }) => {
 // --- Main Component ---
 export default function NeonDraftGame() {
   const [user, setUser] = useState(null);
-  const [view, setView] = useState("splash");
+  // Change these two state initializations:
+  const [view, setView] = useState(() => {
+    return sessionStorage.getItem("splashRefreshed") ? "menu" : "splash";
+  });
 
-  const [roomId, setRoomId] = useState("");
+  const [roomId, setRoomId] = useState(() => {
+    // If we just refreshed via the splash screen, auto-load the room ID
+    if (sessionStorage.getItem("splashRefreshed")) {
+      sessionStorage.removeItem("splashRefreshed"); // Clear the flag
+      return localStorage.getItem("neondraft_roomId") || "";
+    }
+    return "";
+  });
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [gameState, setGameState] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -1199,20 +1259,13 @@ export default function NeonDraftGame() {
   }, []);
 
   // 3. NEW FUNCTION: Handle Splash Button Click
+  // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("neondraft_roomId");
-
-    if (savedRoomId) {
-      setLoading(true);
-      // Resume: Set the room ID, which triggers the existing logic to connect
-      setRoomId(savedRoomId);
-      // We switch to 'menu' briefly; if the connection works,
-      // the existing listener will auto-switch to 'lobby' or 'game'
-      setView("menu");
-    } else {
-      // New Game: Just go to menu
-      setView("menu");
-    }
+    // Set a temporary session flag
+    sessionStorage.setItem("splashRefreshed", "true");
+    
+    // Force a hard browser reload to ensure a perfectly clean state
+    window.location.reload();
   };
 
   // --- Session Restore ---
@@ -1741,7 +1794,18 @@ export default function NeonDraftGame() {
 
       // --- TIE RESOLUTION LOGIC ---
       const maxScore = Math.max(...players.map((p) => p.score));
-      const winningPlayers = players.filter((p) => p.score === maxScore);
+      let winningPlayers = players.filter((p) => p.score === maxScore);
+
+      // Tie-breaker: Player with the most Backdoors wins
+      if (winningPlayers.length > 1) {
+        const maxBackdoorsAmongWinners = Math.max(
+          ...winningPlayers.map((p) => p.backdoorCount),
+        );
+        winningPlayers = winningPlayers.filter(
+          (p) => p.backdoorCount === maxBackdoorsAmongWinners,
+        );
+      }
+
       const winnerName = winningPlayers.map((p) => p.name).join(" & ");
       const isTie = winningPlayers.length > 1;
 
@@ -2153,7 +2217,7 @@ export default function NeonDraftGame() {
             players={gameState.players}
             winner={gameState.winner}
             isHost={gameState.hostId === user.uid}
-            hostId={gameState.hostId} 
+            hostId={gameState.hostId}
             currentUserId={user.uid}
             onRestart={startGame}
             onLobby={returnToLobby}
@@ -2288,18 +2352,20 @@ export default function NeonDraftGame() {
           >
             {gameState.status === "finished" ? (
               <div className="text-center py-4 w-full flex flex-col items-center">
-                 <h3 className="text-xl font-black text-cyan-400 tracking-widest animate-pulse mb-1">
-                   SESSION TERMINATED
-                 </h3>
-                 <p className="text-xs text-slate-500 mb-4">Final board state preserved for analysis.</p>
-                 
-                 <button 
-                   onClick={() => setHideGameOverModal(false)}
-                   className="px-6 py-3 bg-cyan-600/20 border border-cyan-500/50 hover:bg-cyan-600/40 rounded-xl text-cyan-300 font-bold transition-all shadow-[0_0_15px_rgba(34,211,238,0.2)] flex items-center gap-2"
-                 >
-                    <Trophy size={18} />
-                    Open Mission Debriefing
-                 </button>
+                <h3 className="text-xl font-black text-cyan-400 tracking-widest animate-pulse mb-1">
+                  SESSION TERMINATED
+                </h3>
+                <p className="text-xs text-slate-500 mb-4">
+                  Final board state preserved for analysis.
+                </p>
+
+                <button
+                  onClick={() => setHideGameOverModal(false)}
+                  className="px-6 py-3 bg-cyan-600/20 border border-cyan-500/50 hover:bg-cyan-600/40 rounded-xl text-cyan-300 font-bold transition-all shadow-[0_0_15px_rgba(34,211,238,0.2)] flex items-center gap-2"
+                >
+                  <Trophy size={18} />
+                  Open Mission Debriefing
+                </button>
               </div>
             ) : (
               <>

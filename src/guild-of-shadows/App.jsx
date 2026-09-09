@@ -877,7 +877,19 @@ const SplashScreen = ({ onStart }) => {
 
 export default function GuildOfShadows() {
   const [user, setUser] = useState(null);
-  const [view, setView] = useState("splash");
+  // Change these two state initializations:
+  const [view, setView] = useState(() => {
+    return sessionStorage.getItem("splashRefreshed") ? "menu" : "splash";
+  });
+
+  const [roomId, setRoomId] = useState(() => {
+    // If we just refreshed via the splash screen, auto-load the room ID
+    if (sessionStorage.getItem("splashRefreshed")) {
+      sessionStorage.removeItem("splashRefreshed"); // Clear the flag
+      return localStorage.getItem("guildofshadows_roomId") || "";
+    }
+    return "";
+  });
 
   const [roomCode, setRoomCode] = useState("");
 
@@ -887,7 +899,7 @@ export default function GuildOfShadows() {
   const [loading, setLoading] = useState(false);
 
   // PERSISTENCE FIX: Load room ID from local storage
-  const [roomId, setRoomId] = useState("");
+  
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
@@ -935,20 +947,13 @@ export default function GuildOfShadows() {
   }, []);
 
   // 3. NEW FUNCTION: Handle Splash Button Click
+  // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("guildofshadows_roomId");
-
-    if (savedRoomId) {
-      setLoading(true);
-      // Resume: Set the room ID, which triggers the existing logic to connect
-      setRoomId(savedRoomId);
-      // We switch to 'menu' briefly; if the connection works,
-      // the existing listener will auto-switch to 'lobby' or 'game'
-      setView("menu");
-    } else {
-      // New Game: Just go to menu
-      setView("menu");
-    }
+    // Set a temporary session flag
+    sessionStorage.setItem("splashRefreshed", "true");
+    
+    // Force a hard browser reload to ensure a perfectly clean state
+    window.location.reload();
   };
 
   useEffect(() => {

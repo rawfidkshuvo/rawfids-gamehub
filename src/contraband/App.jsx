@@ -75,6 +75,7 @@ import {
   RectangleVertical,
   GalleryHorizontalEnd,
   Repeat,
+  HatGlasses,
 } from "lucide-react";
 import CoverImage from "./assets/contraband_cover.png";
 
@@ -552,12 +553,12 @@ const DarkAtmosphere = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
     {/* Clean, deep gradient background (No hazy overlays) */}
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
-    
+
     {/* Crisp Particles */}
     {[...Array(25)].map((_, i) => {
       // Calculate individual random drifts using CSS variables
       const driftX = `${Math.random() * 40 - 20}px`;
-      
+
       return (
         <div
           key={i}
@@ -622,7 +623,7 @@ const FloatingBackground = React.memo(() => {
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
       {/* Dark Gradient Layer */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-yellow-900/20 via-gray-950 to-black" />
-      
+
       {/* Floating Icons Layer */}
       <div className="absolute top-0 left-0 w-full h-full opacity-10">
         {backgroundIcons}
@@ -925,7 +926,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
             if (rStats.roleBonus > 0) {
               totalRoleBonus += rStats.roleBonus;
               bonusBreakdown.push(
-                `R${i + 1} (${ROLES[rStats.role]?.name}): +$${rStats.roleBonus}`
+                `R${i + 1} (${ROLES[rStats.role]?.name}): +$${rStats.roleBonus}`,
               );
             }
 
@@ -935,7 +936,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
               eventBreakdown.push(
                 `R${i + 1} (${r.event?.name}): ${
                   rStats.eventImpact > 0 ? "+" : ""
-                }$${rStats.eventImpact}`
+                }$${rStats.eventImpact}`,
               );
             }
 
@@ -946,7 +947,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                 if (item) {
                   totalMarketSpend += item.cost;
                   marketBreakdown.push(
-                    `R${i + 1}: ${item.name} (-$${item.cost})`
+                    `R${i + 1}: ${item.name} (-$${item.cost})`,
                   );
                 }
               });
@@ -979,7 +980,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                     inspectionBreakdown.push(
                       `R${i + 1}: ${label} (${t.amount > 0 ? "+" : ""}${
                         t.amount
-                      })`
+                      })`,
                     );
                   }
                 }
@@ -991,7 +992,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
         // 1. SAFE STASH CALCULATION
         const stashTotal = stash.reduce(
           (acc, c) => acc + (GOODS[c]?.val || 0),
-          0
+          0,
         );
 
         // 2. TIE-BREAKER COUNTERS
@@ -1071,8 +1072,8 @@ const ReportCard = ({ players, roundData, isFinal }) => {
             activeTab === "FINAL" || activeTab === "STASH"
               ? 0
               : typeof activeTab === "number"
-              ? activeTab
-              : parseInt(activeTab.split(" ")[1]) - 1
+                ? activeTab
+                : parseInt(activeTab.split(" ")[1]) - 1
           ]
         : null;
       const stats = roundEntry ? roundEntry.stats : null;
@@ -1146,7 +1147,9 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                   <th className="px-6 py-3 border-b border-slate-800">
                     Event Impact
                   </th>
-                  <th className="px-6 py-3 border-b border-slate-800">Market</th>
+                  <th className="px-6 py-3 border-b border-slate-800">
+                    Market
+                  </th>
                   <th className="px-6 py-3 border-b border-slate-800">
                     Role Bonus
                   </th>
@@ -1208,8 +1211,8 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                             d.inspectionNet > 0
                               ? "text-purple-400"
                               : d.inspectionNet < 0
-                              ? "text-red-400"
-                              : "text-slate-600"
+                                ? "text-red-400"
+                                : "text-slate-600"
                           }`}
                         >
                           {d.inspectionNet > 0 ? "+" : ""}
@@ -1268,8 +1271,8 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                             d.eventBonus > 0
                               ? "text-blue-400"
                               : d.eventBonus < 0
-                              ? "text-red-400"
-                              : "text-slate-600"
+                                ? "text-red-400"
+                                : "text-slate-600"
                           }`}
                         >
                           {d.eventBonus > 0 ? "+" : ""}
@@ -1815,7 +1818,9 @@ const FeedbackOverlay = ({ type, message, subtext, icon: Icon }) => (
       }
       ${type === "danger" ? "bg-red-900/90 border-red-500 text-red-100" : ""}
       ${
-        type === "neutral" ? "bg-slate-800/90 border-slate-500 text-slate-100" : ""
+        type === "neutral"
+          ? "bg-slate-800/90 border-slate-500 text-slate-100"
+          : ""
       }
       ${
         type === "bribe"
@@ -1995,9 +2000,9 @@ const RulesModal = ({ onClose }) => (
               <Package size={16} /> 2. Load & Bluff
             </h4>
             <p className="text-sm">
-              Pack up to 4 items (+1 with extention). You must declare a legal good type. You can
-              lie. You can also attach a cash <strong>Bribe</strong> to tempt
-              the Inspector.
+              Pack up to 4 items (+1 with extention). You must declare a legal
+              good type. You can lie. You can also attach a cash{" "}
+              <strong>Bribe</strong> to tempt the Inspector.
             </p>
           </div>
           <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
@@ -2006,8 +2011,9 @@ const RulesModal = ({ onClose }) => (
             </h4>
             <p className="text-sm">
               The Inspector chooses to <strong>PASS</strong> or{" "}
-              <strong>OPEN</strong> or take <strong>BRIBE</strong>. If passed, you sell goods immediately. If
-              opened and caught lying, you pay a fine!
+              <strong>OPEN</strong> or take <strong>BRIBE</strong>. If passed,
+              you sell goods immediately. If opened and caught lying, you pay a
+              fine!
             </p>
           </div>
         </section>
@@ -2131,8 +2137,7 @@ const RulesModal = ({ onClose }) => (
             <div className="flex items-center gap-3 p-2 bg-slate-800 rounded">
               <Bomb size={16} className="text-red-500" />{" "}
               <span>
-                <strong>War Zone:</strong> Weapons sell for 2x
-                value.
+                <strong>War Zone:</strong> Weapons sell for 2x value.
               </span>
             </div>
             <div className="flex items-center gap-3 p-2 bg-slate-800 rounded">
@@ -2144,8 +2149,8 @@ const RulesModal = ({ onClose }) => (
             <div className="flex items-center gap-3 p-2 bg-slate-800 rounded">
               <Factory size={16} className="text-green-500" />{" "}
               <span>
-                <strong>Industrial Revolution:</strong> Uniforms and Machinery sell for 2x
-                value.
+                <strong>Industrial Revolution:</strong> Uniforms and Machinery
+                sell for 2x value.
               </span>
             </div>
             <div className="flex items-center gap-3 p-2 bg-slate-800 rounded">
@@ -2286,9 +2291,19 @@ const SplashScreen = ({ onStart }) => {
 // --- Main Component ---
 export default function ContrabandGame() {
   const [user, setUser] = useState(null);
-  const [view, setView] = useState("splash");
+  // Change these two state initializations:
+  const [view, setView] = useState(() => {
+    return sessionStorage.getItem("splashRefreshed") ? "menu" : "splash";
+  });
 
-  const [roomId, setRoomId] = useState("");
+  const [roomId, setRoomId] = useState(() => {
+    // If we just refreshed via the splash screen, auto-load the room ID
+    if (sessionStorage.getItem("splashRefreshed")) {
+      sessionStorage.removeItem("splashRefreshed"); // Clear the flag
+      return localStorage.getItem("contraband_roomId") || "";
+    }
+    return "";
+  });
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [gameState, setGameState] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -2336,20 +2351,13 @@ export default function ContrabandGame() {
   }, []);
 
   // 3. NEW FUNCTION: Handle Splash Button Click
+  // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("contraband_roomId");
-
-    if (savedRoomId) {
-      setLoading(true);
-      // Resume: Set the room ID, which triggers the existing logic to connect
-      setRoomId(savedRoomId);
-      // We switch to 'menu' briefly; if the connection works,
-      // the existing listener will auto-switch to 'lobby' or 'game'
-      setView("menu");
-    } else {
-      // New Game: Just go to menu
-      setView("menu");
-    }
+    // Set a temporary session flag
+    sessionStorage.setItem("splashRefreshed", "true");
+    
+    // Force a hard browser reload to ensure a perfectly clean state
+    window.location.reload();
   };
 
   // --- Session Restoration ---
@@ -2422,6 +2430,8 @@ export default function ContrabandGame() {
   useEffect(() => {
     if (me.loadedCrate && me.loadedCrate.bribe !== undefined) {
       setBribeAmount(me.loadedCrate.bribe);
+    } else {
+      setBribeAmount(0); // Explicitly reset to 0 for new rounds
     }
   }, [me.loadedCrate]);
 
@@ -3104,6 +3114,7 @@ export default function ContrabandGame() {
         let illegalCards = cards.filter(
           (c) => GOODS[c].type === "ILLEGAL" || c !== declared,
         );
+        let savedCard = null; // Track the card saved by the hidden compartment
 
         if (targetHasConceal && illegalCards.length > 0) {
           illegalCards.sort((a, b) => GOODS[a].val - GOODS[b].val);
@@ -3116,9 +3127,13 @@ export default function ContrabandGame() {
         }
 
         if (illegalCards.length === 0) {
-          // CLEAN - Calculate Fine & Impact
+          // Only charge the inspector wrongful-search fines for truthfully declared legal goods
+          const legalCards = cards.filter(
+            (c) => GOODS[c]?.type === "LEGAL" && c === declared,
+          );
+
           const { finalFine: penalty, eventImpact } = calculateFineStats(
-            cards,
+            legalCards,
             false,
           );
 
@@ -3130,7 +3145,7 @@ export default function ContrabandGame() {
             transaction: {
               label: "Wrongful Search",
               amount: -penalty,
-              detail: "Paid compensation",
+              detail: `Compensated ${legalCards.length} legal goods`,
             },
           });
           stats = getUpdatedStats(stats, target.id, {
@@ -3143,6 +3158,7 @@ export default function ContrabandGame() {
             },
           });
 
+          // All cards (including the hidden item) still pass through and are sold
           const { total: saleValue, impact: saleImpact } =
             calculateSaleStats(cards);
           players[targetIdx].coins += saleValue;
@@ -3166,14 +3182,14 @@ export default function ContrabandGame() {
 
           logs.push({
             id: Date.now().toString(),
-            text: `CLEAN! Inspector pays $${penalty} fine.`,
+            text: `CLEAN! Inspector pays $${penalty} fine for ${legalCards.length} legal goods.`,
             type: "danger",
           });
           fb = {
             id: Date.now(),
             type: "danger",
             message: "CLEAN",
-            subtext: "Inspector pays fine.",
+            subtext: `Inspector fined $${penalty}.`,
           };
         } else {
           // BUSTED
@@ -3837,26 +3853,31 @@ export default function ContrabandGame() {
 
   if (view === "game" && gameState) {
     // --- CRASH FIX START ---
-    // Safety Check: Ensure the inspector exists. 
+    // Safety Check: Ensure the inspector exists.
     // If a player left, the array index might be out of bounds.
     const inspector = gameState.players[gameState.inspectorIndex];
-    
+
     // Safety Check: Ensure 'me' (current user) still exists in the game state
     // (Though the onSnapshot listener usually catches this, it prevents render races)
-    const currentUser = gameState.players.find(p => p.id === user?.uid);
+    const currentUser = gameState.players.find((p) => p.id === user?.uid);
 
     if (!inspector || !currentUser) {
       return (
         <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-6 relative overflow-hidden">
           <DarkAtmosphere />
           <div className="z-10 bg-slate-900/90 p-8 rounded-2xl border border-red-500/50 shadow-2xl text-center max-w-md animate-in fade-in zoom-in">
-            <Siren size={64} className="text-red-500 mx-auto mb-4 animate-pulse" />
-            <h2 className="text-2xl font-bold text-white mb-2">MISSION COMPROMISED</h2>
+            <Siren
+              size={64}
+              className="text-red-500 mx-auto mb-4 animate-pulse"
+            />
+            <h2 className="text-2xl font-bold text-white mb-2">
+              MISSION COMPROMISED
+            </h2>
             <p className="text-slate-400 mb-6">
-              An agent has disconnected or the operation data is out of sync. 
+              An agent has disconnected or the operation data is out of sync.
               The current round cannot continue.
             </p>
-            <button 
+            <button
               onClick={returnToLobby}
               className="w-full py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-xl font-bold transition-all flex items-center justify-center gap-2"
             >
@@ -4025,19 +4046,15 @@ export default function ContrabandGame() {
 
               const isInsp = p.id === inspector.id;
 
-              // --- CHANGE 1: Determine Icon (Siren for Inspector, Role for others) ---
-              let StatusIcon = User;
-              let iconColor = "text-slate-500";
-              let StatusName = "Player";
+              // --- CHANGE 1: Determine Icon (Siren for Inspector, Generic for others) ---
+              let StatusIcon = HatGlasses; // Default icon for smugglers
+              let iconColor = "text-blue-500";
+              let StatusName = "Smuggler"; // Generic hidden role
 
               if (isInsp) {
                 StatusIcon = Siren;
-                iconColor = "text-red-500 animate-pulse"; // Added pulse for visibility
+                iconColor = "text-red-500 animate-pulse";
                 StatusName = "Inspector";
-              } else if (p.role) {
-                StatusIcon = ROLES[p.role].icon;
-                iconColor = ROLES[p.role].color;
-                StatusName = ROLES[p.role].name;
               }
               // -----------------------------------------------------------------------
 
@@ -4283,13 +4300,9 @@ export default function ContrabandGame() {
               <div className="flex-1 overflow-x-auto min-h-[160px]">
                 {/* --- CHANGE: Removed the text box for Inspector --- */}
                 {isInspector ? null : me.loadedCrate ? (
-                  // ... existing loadedCrate code ...
                   <div className="h-full flex flex-col items-center justify-center w-full min-w-0">
                     {/* Display Locked Cards - Scrollable & Centered */}
                     <div className="w-full overflow-x-auto no-scrollbar">
-                      {/* w-max + mx-auto: Centers the cards if they fit, aligns left if they overflow.
-                          p-4: Adds padding so the hover animation (-translate-y) doesn't get clipped.
-                      */}
                       <div className="flex gap-2 w-max mx-auto px-4 py-4 grayscale-[0.3] scale-90 origin-bottom">
                         {me.loadedCrate.cards.map((cId, i) => (
                           <div
@@ -4328,7 +4341,8 @@ export default function ContrabandGame() {
                       )}
                     </div>
                   </div>
-                ) : gameState.turnState === "LOADING" ? (
+                ) : gameState.turnState === "LOADING" ||
+                  gameState.turnState === "SHOPPING" ? (
                   <div className="flex gap-2 pb-2">
                     {me.hand.map((cId, i) => (
                       <Card
@@ -4336,6 +4350,9 @@ export default function ContrabandGame() {
                         typeId={cId}
                         selected={selectedCards.includes(i)}
                         onClick={() => {
+                          // Prevent selecting cards until the Loading Phase starts
+                          if (gameState.turnState !== "LOADING") return;
+
                           if (selectedCards.includes(i))
                             setSelectedCards(
                               selectedCards.filter((idx) => idx !== i),
@@ -4351,7 +4368,7 @@ export default function ContrabandGame() {
                   </div>
                 ) : (
                   <div className="h-full flex items-center justify-center text-slate-600 italic">
-                    Market Phase - Check Shop
+                    Waiting for next phase...
                   </div>
                 )}
               </div>

@@ -746,10 +746,22 @@ const SplashScreen = ({ onStart }) => {
 // ---------------------------------------------------------------------------
 export default function ImmuneGame() {
   const [user, setUser] = useState(null);
-  const [view, setView] = useState("splash");
+  // Change these two state initializations:
+  const [view, setView] = useState(() => {
+    return sessionStorage.getItem("splashRefreshed") ? "menu" : "splash";
+  });
+
+  const [roomId, setRoomId] = useState(() => {
+    // If we just refreshed via the splash screen, auto-load the room ID
+    if (sessionStorage.getItem("splashRefreshed")) {
+      sessionStorage.removeItem("splashRefreshed"); // Clear the flag
+      return localStorage.getItem("immune_roomId") || "";
+    }
+    return "";
+  });
   const [playerName, setPlayerName] = useState("");
   const [roomCode, setRoomCode] = useState("");
-  const [roomId, setRoomId] = useState("");
+  
   const [gameState, setGameState] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -839,15 +851,13 @@ export default function ImmuneGame() {
     return () => unsub();
   }, [roomId, user]);
 
+  // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("immune_roomId");
-    if (savedRoomId) {
-      setLoading(true);
-      setRoomId(savedRoomId);
-      setView("menu");
-    } else {
-      setView("menu");
-    }
+    // Set a temporary session flag
+    sessionStorage.setItem("splashRefreshed", "true");
+    
+    // Force a hard browser reload to ensure a perfectly clean state
+    window.location.reload();
   };
 
   const lastLogIdRef = useRef(null);

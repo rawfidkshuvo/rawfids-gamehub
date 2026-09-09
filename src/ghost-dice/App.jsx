@@ -663,10 +663,19 @@ const SplashScreen = ({ onStart }) => {
 // --- Main Component ---
 export default function GhostDiceGame() {
   const [user, setUser] = useState(null);
-  const [view, setView] = useState("splash");
+  // Change these two state initializations:
+  const [view, setView] = useState(() => {
+    return sessionStorage.getItem("splashRefreshed") ? "menu" : "splash";
+  });
 
-  // PERSISTENCE: Init state from localStorage
-  const [roomId, setRoomId] = useState("");
+  const [roomId, setRoomId] = useState(() => {
+    // If we just refreshed via the splash screen, auto-load the room ID
+    if (sessionStorage.getItem("splashRefreshed")) {
+      sessionStorage.removeItem("splashRefreshed"); // Clear the flag
+      return localStorage.getItem("ghost_dice_roomId") || "";
+    }
+    return "";
+  });
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [gameState, setGameState] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -708,20 +717,13 @@ export default function GhostDiceGame() {
   }, []);
 
   // 3. NEW FUNCTION: Handle Splash Button Click
+  // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("ghost_dice_roomId");
-
-    if (savedRoomId) {
-      setLoading(true);
-      // Resume: Set the room ID, which triggers the existing logic to connect
-      setRoomId(savedRoomId);
-      // We switch to 'menu' briefly; if the connection works,
-      // the existing listener will auto-switch to 'lobby' or 'game'
-      setView("menu");
-    } else {
-      // New Game: Just go to menu
-      setView("menu");
-    }
+    // Set a temporary session flag
+    sessionStorage.setItem("splashRefreshed", "true");
+    
+    // Force a hard browser reload to ensure a perfectly clean state
+    window.location.reload();
   };
 
   useEffect(() => {

@@ -737,9 +737,19 @@ const SplashScreen = ({ onStart }) => {
 // --- Main Component ---
 export default function FruitSellerGame() {
   const [user, setUser] = useState(null);
-  const [view, setView] = useState("splash");
-  // Initialize state from local storage to persist session on refresh
-  const [roomId, setRoomId] = useState("");
+  // Change these two state initializations:
+  const [view, setView] = useState(() => {
+    return sessionStorage.getItem("splashRefreshed") ? "menu" : "splash";
+  });
+
+  const [roomId, setRoomId] = useState(() => {
+    // If we just refreshed via the splash screen, auto-load the room ID
+    if (sessionStorage.getItem("splashRefreshed")) {
+      sessionStorage.removeItem("splashRefreshed"); // Clear the flag
+      return localStorage.getItem("fruitseller_roomId") || "";
+    }
+    return "";
+  });
 
   const [gameState, setGameState] = useState(null);
   const [roomCodeInput, setRoomCodeInput] = useState("");
@@ -775,19 +785,13 @@ export default function FruitSellerGame() {
   }, []);
 
   // 3. NEW FUNCTION: Handle Splash Button Click
+  // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
-    const savedRoomId = localStorage.getItem("fruitseller_roomId");
-
-    if (savedRoomId) {
-      // Resume: Set the room ID, which triggers the existing logic to connect
-      setRoomId(savedRoomId);
-      // We switch to 'menu' briefly; if the connection works,
-      // the existing listener will auto-switch to 'lobby' or 'game'
-      setView("menu");
-    } else {
-      // New Game: Just go to menu
-      setView("menu");
-    }
+    // Set a temporary session flag
+    sessionStorage.setItem("splashRefreshed", "true");
+    
+    // Force a hard browser reload to ensure a perfectly clean state
+    window.location.reload();
   };
 
   // --- Persistence Logic ---
