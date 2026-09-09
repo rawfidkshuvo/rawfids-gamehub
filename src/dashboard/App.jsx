@@ -2127,32 +2127,38 @@ const AdminPlayerProfileModal = ({ playerId, onClose }) => {
   }, [playerId]);
 
   const getBadge = (clicks) => {
+    if (clicks >= 300)
+      return {
+        label: "Legend",
+        color: "text-red-400 bg-red-400/10 border-red-400/30",
+        icon: <Crown className="w-5 h-5 text-red-400" />,
+      };
     if (clicks >= 100)
       return {
         label: "Grandmaster",
         color: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
         icon: <Crown className="w-5 h-5 text-yellow-400" />,
       };
-    if (clicks >= 50)
+    if (clicks >= 70)
       return {
         label: "Veteran",
         color: "text-purple-400 bg-purple-400/10 border-purple-400/30",
         icon: <Trophy className="w-5 h-5 text-purple-400" />,
       };
-    if (clicks >= 15)
+    if (clicks >= 40)
       return {
         label: "Enthusiast",
         color: "text-indigo-400 bg-indigo-400/10 border-indigo-400/30",
         icon: <Medal className="w-5 h-5 text-indigo-400" />,
       };
-    if (clicks >= 1)
+    if (clicks >= 20)
       return {
-        label: "Initiate",
+        label: "Newbie",
         color: "text-green-400 bg-green-400/10 border-green-400/30",
         icon: <Star className="w-5 h-5 text-green-400" />,
       };
     return {
-      label: "Newcomer",
+      label: "Visitor",
       color: "text-slate-400 bg-slate-800 border-slate-700",
       icon: <User className="w-5 h-5 text-slate-400" />,
     };
