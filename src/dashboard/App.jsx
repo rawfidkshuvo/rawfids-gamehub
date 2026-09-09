@@ -69,6 +69,8 @@ import {
   Trash2,
   AlertOctagon,
   FolderOpen,
+  ChessKing,
+  ChessQueen,
 } from "lucide-react";
 import {
   BarChart,
@@ -161,13 +163,13 @@ const DatabaseManager = ({ db, logAdminAction }) => {
     setDocuments([]);
     try {
       let q;
-      
+
       // Sort click logs by recent first, default to standard limit for others
       if (path === "game_click_logs") {
         q = query(
-          collection(db, path), 
-          orderBy("timestamp", "desc"), 
-          limit(100)
+          collection(db, path),
+          orderBy("timestamp", "desc"),
+          limit(100),
         );
       } else {
         q = query(collection(db, path), limit(100));
@@ -243,26 +245,31 @@ const DatabaseManager = ({ db, logAdminAction }) => {
         <div className="lg:col-span-3 space-y-4">
           {/* Custom Path & Game Selector */}
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex flex-col gap-4">
-            
             {/* Quick Game Room Selector */}
             <div className="flex-1 w-full">
               <label className="text-xs font-bold text-emerald-500 uppercase mb-1 block">
                 Quick Inspect: Live Game Rooms
               </label>
-              <select 
+              <select
                 onChange={(e) => {
-                  if(e.target.value) {
+                  if (e.target.value) {
                     // Formats the path based on your security rules: artifacts/{appId}/public/data
-                    const gameId = e.target.value.toLowerCase().replace(/\s+/g, '-');
+                    const gameId = e.target.value
+                      .toLowerCase()
+                      .replace(/\s+/g, "-");
                     const generatedPath = `artifacts/${gameId}/public/data/rooms`;
                     setCollectionPath(generatedPath);
                   }
                 }}
                 className="w-full bg-slate-950 border border-emerald-900/50 rounded-lg px-4 py-2 text-emerald-400 font-bold focus:border-emerald-500 outline-none transition-colors mb-4"
               >
-                <option value="">-- Select a game to view its active rooms --</option>
-                {KNOWN_GAMES.map(game => (
-                  <option key={game.id} value={game.title}>{game.title}</option>
+                <option value="">
+                  -- Select a game to view its active rooms --
+                </option>
+                {KNOWN_GAMES.map((game) => (
+                  <option key={game.id} value={game.title}>
+                    {game.title}
+                  </option>
                 ))}
               </select>
             </div>
@@ -272,18 +279,21 @@ const DatabaseManager = ({ db, logAdminAction }) => {
                 Target Collection Path (Manual Override)
               </label>
               <div className="flex gap-2 w-full">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={collectionPath}
                   onChange={(e) => setCollectionPath(e.target.value)}
                   placeholder="e.g., artifacts/conspiracy/public/data/rooms"
                   className="flex-1 bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 text-white font-mono text-sm focus:border-indigo-500 outline-none transition-colors"
                 />
-                <button 
+                <button
                   onClick={() => fetchDocuments(collectionPath)}
                   className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-bold flex items-center gap-2 transition-all shrink-0"
                 >
-                  <RefreshCw size={16} className={loading ? "animate-spin" : ""} /> 
+                  <RefreshCw
+                    size={16}
+                    className={loading ? "animate-spin" : ""}
+                  />
                   <span className="hidden sm:inline">Query</span>
                 </button>
               </div>
@@ -2127,34 +2137,40 @@ const AdminPlayerProfileModal = ({ playerId, onClose }) => {
   }, [playerId]);
 
   const getBadge = (clicks) => {
+    if (clicks >= 500)
+      return {
+        label: "Immortal",
+        color: "text-rose-500 bg-rose-400/10 border-rose-400/30",
+        icon: <ChessKing className="w-5 h-5 text-rose-400" />,
+      };
     if (clicks >= 300)
       return {
         label: "Legend",
-        color: "text-red-400 bg-red-400/10 border-red-400/30",
-        icon: <Crown className="w-5 h-5 text-red-400" />,
+        color: "text-red-500 bg-red-400/10 border-red-400/30",
+        icon: <ChessQueen className="w-5 h-5 text-red-400" />,
       };
     if (clicks >= 100)
       return {
         label: "Grandmaster",
-        color: "text-yellow-400 bg-yellow-400/10 border-yellow-400/30",
+        color: "text-yellow-500 bg-yellow-400/10 border-yellow-400/30",
         icon: <Crown className="w-5 h-5 text-yellow-400" />,
       };
-    if (clicks >= 70)
+    if (clicks >= 50)
       return {
         label: "Veteran",
-        color: "text-purple-400 bg-purple-400/10 border-purple-400/30",
+        color: "text-purple-500 bg-purple-400/10 border-purple-400/30",
         icon: <Trophy className="w-5 h-5 text-purple-400" />,
       };
-    if (clicks >= 40)
+    if (clicks >= 25)
       return {
         label: "Enthusiast",
-        color: "text-indigo-400 bg-indigo-400/10 border-indigo-400/30",
+        color: "text-indigo-500 bg-indigo-400/10 border-indigo-400/30",
         icon: <Medal className="w-5 h-5 text-indigo-400" />,
       };
-    if (clicks >= 20)
+    if (clicks >= 1)
       return {
         label: "Newbie",
-        color: "text-green-400 bg-green-400/10 border-green-400/30",
+        color: "text-green-500 bg-green-400/10 border-green-400/30",
         icon: <Star className="w-5 h-5 text-green-400" />,
       };
     return {
