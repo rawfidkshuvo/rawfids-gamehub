@@ -50,12 +50,12 @@ import CoverImage from "./assets/outbreak.png";
 
 // --- Firebase Config & Init ---
 const firebaseConfig = {
-  apiKey: "AIzaSyChsSRZW5mu5v529i83h3dDE9o2UZYx--o",
-  authDomain: "rawfids-gamehub.firebaseapp.com",
-  projectId: "rawfids-gamehub",
-  storageBucket: "rawfids-gamehub.firebasestorage.app",
-  messagingSenderId: "33131208034",
-  appId: "1:33131208034:web:d731df5d2ffee26b6b603b",
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
@@ -2292,16 +2292,28 @@ export default function OutbreakGame() {
   const handleSplashStart = () => {
     // Set a temporary session flag
     sessionStorage.setItem("splashRefreshed", "true");
-    
+
     // Force a hard browser reload to ensure a perfectly clean state
     window.location.reload();
   };
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(roomId).then(() => { setIsCopied(true); setTimeout(() => setIsCopied(false), 2000); }).catch(err => {
-      const el = document.createElement("textarea"); el.value = roomId; document.body.appendChild(el); el.select(); document.execCommand("copy"); document.body.removeChild(el);
-      setIsCopied(true); setTimeout(() => setIsCopied(false), 2000);
-    });
+    navigator.clipboard
+      .writeText(roomId)
+      .then(() => {
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      })
+      .catch((err) => {
+        const el = document.createElement("textarea");
+        el.value = roomId;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand("copy");
+        document.body.removeChild(el);
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 2000);
+      });
   };
 
   const createRoom = async () => {
@@ -3439,9 +3451,22 @@ export default function OutbreakGame() {
                   {roomId}
                 </div>
                 <div className="relative">
-                                  <button onClick={copyToClipboard} className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white">{isCopied ? <CheckCircle size={20} className="text-emerald-500" /> : <Copy size={20} />}</button>
-                                  {isCopied && <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-cyan-600 text-white text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">Copied!</div>}
-                                </div>
+                  <button
+                    onClick={copyToClipboard}
+                    className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white"
+                  >
+                    {isCopied ? (
+                      <CheckCircle size={20} className="text-emerald-500" />
+                    ) : (
+                      <Copy size={20} />
+                    )}
+                  </button>
+                  {isCopied && (
+                    <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-cyan-600 text-white text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">
+                      Copied!
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             <button

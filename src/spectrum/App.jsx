@@ -584,7 +584,7 @@ const SplashScreen = ({ onStart }) => {
 // --- Main Component ---
 export default function SpectrumGame() {
   const [user, setUser] = useState(null);
-  c// Change these two state initializations:
+  // Change these two state initializations:
   const [view, setView] = useState(() => {
     return sessionStorage.getItem("splashRefreshed") ? "menu" : "splash";
   });
@@ -596,7 +596,7 @@ export default function SpectrumGame() {
       return localStorage.getItem("spectrum_roomId") || "";
     }
     return "";
-  });onst [view, setView] = useState("splash");
+  });
 
   const [roomCodeInput, setRoomCodeInput] = useState("");
   
