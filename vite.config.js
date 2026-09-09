@@ -37,6 +37,7 @@ export default defineConfig({
         royalMenagerie: resolve(__dirname, 'royal-menagerie/index.html'),
         spectrum: resolve(__dirname, 'spectrum/index.html'),
         together: resolve(__dirname, 'together/index.html'),
+        dashboard: resolve(__dirname, 'dashboard/index.html'),
       },
     },
   },
