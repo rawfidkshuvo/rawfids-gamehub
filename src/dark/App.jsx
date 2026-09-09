@@ -850,7 +850,7 @@ export default function DarkFolkloreGame() {
     return "";
   });
   const [playerName, setPlayerName] = useState("");
-  
+
   const [roomCode, setRoomCode] = useState("");
   const [gameState, setGameState] = useState(null);
   const [error, setError] = useState("");
@@ -896,7 +896,7 @@ export default function DarkFolkloreGame() {
   const handleSplashStart = () => {
     // Set a temporary session flag
     sessionStorage.setItem("splashRefreshed", "true");
-    
+
     // Force a hard browser reload to ensure a perfectly clean state
     window.location.reload();
   };
@@ -4585,8 +4585,8 @@ export default function DarkFolkloreGame() {
 
         {/* WIN SCREEN OVERLAY */}
         {gameState.status === "finished" && (
-          <div className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-4 md:p-6 animate-in fade-in">
-            <div className="bg-slate-900/90 p-6 md:p-8 rounded-3xl border border-yellow-500/50 shadow-[0_0_60px_rgba(234,179,8,0.3)] text-center animate-in zoom-in max-w-4xl w-full flex flex-col max-h-[90vh]">
+          <div className="fixed top-16 md:top-20 inset-x-0 bottom-0 z-[200] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-4 md:p-6 animate-in fade-in">
+            <div className="bg-slate-900/90 p-6 md:p-8 rounded-3xl border border-yellow-500/50 shadow-[0_0_60px_rgba(234,179,8,0.3)] text-center animate-in zoom-in max-w-4xl w-full flex flex-col max-h-[90vh] md:max-h-[80vh]">
               {/* Header */}
               <div className="shrink-0 mb-6 border-b border-slate-800 pb-6">
                 <Crown

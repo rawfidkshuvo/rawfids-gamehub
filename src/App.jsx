@@ -1774,11 +1774,10 @@ const GameHub = () => {
   useEffect(() => {
     const fetchLocation = async () => {
       const providers = [
-        "https://ipinfo.io/json/",
-        "https://ipapi.co/json/",
-        "https://freeipapi.com/api/json/",
-        "https://geolocation-db.com/json/",
         "https://ipwho.is/",
+        "https://ipapi.co/json/",
+        "https://free.freeipapi.com/api/json",
+        "https://ipinfo.io/json",
       ];
 
       try {

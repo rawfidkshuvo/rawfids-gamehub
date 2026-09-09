@@ -962,6 +962,7 @@ export default function ColonyGame() {
   const [feedback, setFeedback] = useState(null);
   // ADD THIS LINE
   const [hideGameOverModal, setHideGameOverModal] = useState(false);
+  const [tradeTargetId, setTradeTargetId] = useState("");
 
   const [showTradeModal, setShowTradeModal] = useState(false);
   const [showDevModal, setShowDevCards] = useState(false);
@@ -1193,11 +1194,7 @@ export default function ColonyGame() {
         );
       }
     }
-    if (
-      data.activeTrade &&
-      data.activeTrade.senderId !== user.uid &&
-      !data.activeTrade.responses?.[user.uid]
-    ) {
+    if (data.activeTrade) {
       setPopupContent({ type: "INCOMING_TRADE", trade: data.activeTrade });
       return;
     }
@@ -1672,6 +1669,7 @@ export default function ColonyGame() {
   };
 
   const proposeDomesticTrade = async () => {
+    if (!tradeTargetId) return alert("Select a player to trade with!");
     let hasOffer = Object.values(offerTokens).some((v) => v > 0);
     let hasReq = Object.values(requestTokens).some((v) => v > 0);
     if (!hasOffer || !hasReq) return alert("Must offer and request something.");
@@ -1681,27 +1679,33 @@ export default function ColonyGame() {
     });
     if (!valid) return alert("You don't have those resources!");
 
+    const targetPlayer = gameState.players.find((p) => p.id === tradeTargetId);
+
     const trade = {
       id: Date.now(),
       senderId: user.uid,
       senderName: me.name,
+      targetId: tradeTargetId,
+      targetName: targetPlayer.name,
       offer: offerTokens,
       request: requestTokens,
-      responses: {},
     };
+    
     await updateDoc(
       doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
       {
         activeTrade: trade,
-        logs: arrayUnion(triggerLog(`${me.name} proposed a domestic trade.`)),
+        logs: arrayUnion(triggerLog(`${me.name} proposed a trade to ${targetPlayer.name}.`)),
       },
     );
     setShowTradeModal(false);
+    setTradeTargetId(""); // Reset after sending
   };
 
   const respondToTrade = async (accept) => {
     const active = gameState.activeTrade;
     if (!active) return;
+
     if (accept) {
       let valid = true;
       Object.keys(active.request).forEach((k) => {
@@ -1735,9 +1739,18 @@ export default function ColonyGame() {
         },
       );
     } else {
+      // Handle Reject or Sender Cancel
+      const isCancel = active.senderId === user.uid;
+      const logMsg = isCancel 
+        ? `${me.name} canceled their trade proposal.`
+        : `${me.name} rejected ${active.senderName}'s trade.`;
+
       await updateDoc(
         doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
-        { [`activeTrade.responses.${user.uid}`]: "rejected" },
+        { 
+          activeTrade: null,
+          logs: arrayUnion(triggerLog(logMsg, "warning"))
+        },
       );
     }
     setPopupContent(null);
@@ -2721,11 +2734,14 @@ export default function ColonyGame() {
                 className="text-blue-500 mx-auto mb-4 animate-pulse"
               />
               <h3 className="text-xl font-black text-white mb-2 uppercase">
-                {popupContent.trade.senderName} Proposes a Trade
+                {popupContent.trade.senderName}
+                <span className="text-slate-400 text-sm block mt-1 normal-case tracking-normal">
+                  Proposes to <strong className="text-white">{popupContent.trade.targetName}</strong>
+                </span>
               </h3>
-              <div className="bg-black/30 p-4 rounded-xl mb-4">
+              <div className="bg-black/30 p-4 rounded-xl mb-6">
                 <div className="text-xs text-orange-400 font-bold mb-1 uppercase">
-                  You Receive:
+                  {popupContent.trade.targetId === user.uid ? "You Receive:" : `${popupContent.trade.targetName} Receives:`}
                 </div>
                 <div className="flex justify-center gap-2 mb-4">
                   {Object.keys(popupContent.trade.offer).map(
@@ -2741,7 +2757,7 @@ export default function ColonyGame() {
                   )}
                 </div>
                 <div className="text-xs text-red-400 font-bold mb-1 uppercase">
-                  You Give:
+                  {popupContent.trade.targetId === user.uid ? "You Give:" : `${popupContent.trade.targetName} Gives:`}
                 </div>
                 <div className="flex justify-center gap-2">
                   {Object.keys(popupContent.trade.request).map(
@@ -2757,20 +2773,40 @@ export default function ColonyGame() {
                   )}
                 </div>
               </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => respondToTrade(false)}
-                  className="flex-1 py-3 bg-red-900/50 rounded-xl font-bold text-red-200 hover:bg-red-800"
-                >
-                  Reject
-                </button>
-                <button
-                  onClick={() => respondToTrade(true)}
-                  className="flex-1 py-3 bg-orange-600 rounded-xl font-bold text-white hover:bg-orange-500"
-                >
-                  Accept
-                </button>
-              </div>
+              
+              {/* Conditional Buttons */}
+              {popupContent.trade.targetId === user.uid ? (
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => respondToTrade(false)}
+                    className="flex-1 py-3 bg-red-900/50 rounded-xl font-bold text-red-200 hover:bg-red-800 transition-colors"
+                  >
+                    Reject
+                  </button>
+                  <button
+                    onClick={() => respondToTrade(true)}
+                    className="flex-1 py-3 bg-orange-600 rounded-xl font-bold text-white hover:bg-orange-500 transition-colors"
+                  >
+                    Accept
+                  </button>
+                </div>
+              ) : popupContent.trade.senderId === user.uid ? (
+                <div className="flex flex-col gap-3">
+                  <div className="text-sm font-bold text-slate-400 animate-pulse">
+                    Waiting for {popupContent.trade.targetName}...
+                  </div>
+                  <button
+                    onClick={() => respondToTrade(false)}
+                    className="py-2 bg-red-900/30 rounded-xl font-bold text-red-400 hover:bg-red-900/60 transition-colors border border-red-900/50 text-sm mx-8"
+                  >
+                    Cancel Trade
+                  </button>
+                </div>
+              ) : (
+                <div className="text-sm font-bold text-slate-400 animate-pulse py-2">
+                  Waiting for {popupContent.trade.targetName} to respond...
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -3246,7 +3282,12 @@ export default function ColonyGame() {
                           <Building2 size={16} /> City
                         </button>
                         <button
-                          onClick={() => setShowTradeModal(true)}
+                          onClick={() => {
+                            setOfferTokens({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 });
+                            setRequestTokens({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 });
+                            setTradeTargetId("");
+                            setShowTradeModal(true);
+                          }}
                           className="px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold flex flex-col items-center border-2 bg-slate-800 border-slate-600 hover:bg-slate-700 transition-all text-xs md:text-base"
                         >
                           <Handshake size={16} /> Trade
@@ -3327,6 +3368,29 @@ export default function ColonyGame() {
               <h3 className="text-2xl font-black text-white mb-4 uppercase">
                 Trading Post
               </h3>
+              {/* NEW: Player Selector */}
+              <div className="bg-slate-800/80 p-3 rounded-xl mb-4 border border-slate-700">
+                <div className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest text-center">
+                  Select Player to Trade With
+                </div>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {gameState.players
+                    .filter((p) => p.id !== user.uid)
+                    .map((p) => (
+                      <button
+                        key={p.id}
+                        onClick={() => setTradeTargetId(p.id)}
+                        className={`px-3 py-1.5 rounded-lg font-bold text-sm border-2 transition-all ${
+                          tradeTargetId === p.id
+                            ? "bg-blue-600 border-blue-400 text-white"
+                            : "bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500"
+                        }`}
+                      >
+                        {p.name}
+                      </button>
+                    ))}
+                </div>
+              </div>
               <div className="bg-slate-800/80 p-3 rounded-xl mb-4 border border-slate-700">
                 <div className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest text-center">
                   Your Exchange Rates
