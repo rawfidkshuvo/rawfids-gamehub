@@ -557,7 +557,7 @@ const INITIAL_GAMES = [
     description:
       "A dark and mysterious world awaits. Navigate the crypts, uncover secrets, and outwit your opponents in a game of strategy and deception.",
     icon: <Flower className="w-12 h-12 text-white" />,
-    color: "from-rose-600 to-rose-950",
+    color: "from-rose-600 to-rose-900",
     shadow: "shadow-rose-500/50",
     categories: ["Bluffing"],
     minPlayers: 3,
@@ -966,14 +966,15 @@ const GameCard = ({
           : "cursor-pointer"
       }`}
     >
+      {/* 1. GLOW BACKGROUND: Visible on mobile, hidden on desktop (md:opacity-0) until hover */}
       <div
         className={`absolute -inset-0.5 bg-linear-to-r ${
           game.color
-        } rounded-2xl opacity-0 ${
+        } rounded-2xl blur transition duration-500 group-hover:duration-200 ${
           isUpcoming || game.maintenance
-            ? "group-hover:opacity-30"
-            : "group-hover:opacity-75"
-        } blur transition duration-500 group-hover:duration-200`}
+            ? "opacity-30 md:opacity-0 group-hover:opacity-30"
+            : "opacity-75 md:opacity-0 group-hover:opacity-75"
+        }`}
       />
       <div className="relative h-full flex flex-col bg-slate-900 rounded-xl p-6 border border-slate-800 hover:border-transparent transition-colors duration-300">
         {!isUpcoming && (
