@@ -274,12 +274,12 @@ const DarkAtmosphere = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
     {/* Clean, deep gradient background (No hazy overlays) */}
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
-    
+
     {/* Crisp Particles */}
     {[...Array(25)].map((_, i) => {
       // Calculate individual random drifts using CSS variables
       const driftX = `${Math.random() * 40 - 20}px`;
-      
+
       return (
         <div
           key={i}
@@ -344,7 +344,7 @@ const FloatingBackground = React.memo(() => {
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
       {/* Dark Gradient Layer */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-yellow-900/20 via-gray-950 to-black" />
-      
+
       {/* Floating Icons Layer */}
       <div className="absolute top-0 left-0 w-full h-full opacity-10">
         {backgroundIcons}
@@ -899,7 +899,7 @@ export default function GuildOfShadows() {
   const [loading, setLoading] = useState(false);
 
   // PERSISTENCE FIX: Load room ID from local storage
-  
+
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
@@ -951,7 +951,7 @@ export default function GuildOfShadows() {
   const handleSplashStart = () => {
     // Set a temporary session flag
     sessionStorage.setItem("splashRefreshed", "true");
-    
+
     // Force a hard browser reload to ensure a perfectly clean state
     window.location.reload();
   };
@@ -1877,7 +1877,7 @@ export default function GuildOfShadows() {
     }
 
     logs.push({
-      text: `zzz ${me.name} scouted (replaced a card).`,
+      text: `${me.name} scouted (replaced a card).`,
       type: "neutral",
       id: Date.now(),
     });

@@ -94,7 +94,7 @@ const COLORS = {
 const TEAMS = [
   {
     id: "A",
-    name: "Team Magenta",
+    name: "Magenta",
     color: "text-pink-400",
     bg: "bg-pink-900/30",
     border: "border-pink-500/50",
@@ -102,7 +102,7 @@ const TEAMS = [
   },
   {
     id: "B",
-    name: "Team Lemon",
+    name: "Lemon",
     color: "text-yellow-400",
     bg: "bg-yellow-900/30",
     border: "border-yellow-500/50",
@@ -110,7 +110,7 @@ const TEAMS = [
   },
   {
     id: "C",
-    name: "Team Cyan",
+    name: "Cyan",
     color: "text-cyan-400",
     bg: "bg-cyan-900/30",
     border: "border-cyan-500/50",
@@ -1316,7 +1316,7 @@ export default function TogetherGame() {
 
   const [roomCodeInput, setRoomCodeInput] = useState("");
   // Initialize roomId from localStorage if available to persist session
-  
+
   const [gameState, setGameState] = useState(null);
   const [error, setError] = useState("");
   const [isMaintenance, setIsMaintenance] = useState(false);
@@ -1364,7 +1364,7 @@ export default function TogetherGame() {
   const handleSplashStart = () => {
     // Set a temporary session flag
     sessionStorage.setItem("splashRefreshed", "true");
-    
+
     // Force a hard browser reload to ensure a perfectly clean state
     window.location.reload();
   };

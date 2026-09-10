@@ -372,12 +372,14 @@ const RoundSummaryModal = ({ players, onClose }) => {
                     groups.map((group, gIdx) => (
                       <div
                         key={gIdx}
-                        className="flex items-center p-1 bg-black/30 rounded border border-gray-700/50"
+                        // FIX: Added flex-wrap and gap-1 here
+                        className="flex flex-wrap items-center gap-1 p-1 bg-black/30 rounded border border-gray-700/50"
                       >
                         {group.map((card, cIdx) => (
                           <div
                             key={card}
-                            className={`w-8 h-10 flex items-center justify-center text-xs font-bold rounded mr-1 last:mr-0 ${
+                            // FIX: Removed mr-1 last:mr-0, added shrink-0
+                            className={`w-8 h-10 shrink-0 flex items-center justify-center text-xs font-bold rounded ${
                               cIdx === 0
                                 ? "bg-gray-200 text-red-900 border-2 border-red-500/50 z-10 scale-110 shadow-lg"
                                 : "bg-gray-700 text-gray-400 border border-gray-600 opacity-60 scale-90"
@@ -688,7 +690,7 @@ export default function AngryVirus() {
   const handleSplashStart = () => {
     // Set a temporary session flag
     sessionStorage.setItem("splashRefreshed", "true");
-    
+
     // Force a hard browser reload to ensure a perfectly clean state
     window.location.reload();
   };
@@ -1652,28 +1654,31 @@ export default function AngryVirus() {
                     </div>
 
                     {/* Opponent Card Mini Visualization */}
-                    <div className="flex gap-1 overflow-x-auto w-full mb-1 no-scrollbar justify-center">
-                      {oppGroups.length > 0 ? (
-                        oppGroups.map((group, gIdx) => (
-                          <div
-                            key={gIdx}
-                            className="flex flex-col items-center bg-gray-800/80 rounded px-1 border border-gray-600"
-                          >
-                            <span className="text-[10px] font-bold text-green-400">
-                              {group[0]}
-                            </span>
-                            {group.length > 1 && (
-                              <span className="text-[8px] text-gray-500">
-                                +{group.length - 1}
+                    <div className="w-full mb-1 overflow-x-auto no-scrollbar">
+                      {/* The inner div uses w-max and mx-auto to center without clipping */}
+                      <div className="flex gap-1 w-max mx-auto">
+                        {oppGroups.length > 0 ? (
+                          oppGroups.map((group, gIdx) => (
+                            <div
+                              key={gIdx}
+                              className="flex flex-col items-center bg-gray-800/80 rounded px-1 border border-gray-600"
+                            >
+                              <span className="text-[10px] font-bold text-green-400">
+                                {group[0]}
                               </span>
-                            )}
+                              {group.length > 1 && (
+                                <span className="text-[8px] text-gray-500">
+                                  +{group.length - 1}
+                                </span>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-[10px] text-gray-600">
+                            No cards
                           </div>
-                        ))
-                      ) : (
-                        <div className="text-[10px] text-gray-600">
-                          No cards
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
 
                     <div className="mt-auto flex gap-2 text-xs">

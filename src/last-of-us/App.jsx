@@ -141,12 +141,12 @@ const FloatingBackground = React.memo(() => {
   const backgroundIcons = React.useMemo(() => {
     return [...Array(20)].map((_, i) => {
       // --- CHANGE START ---
-        const diceKeys = Object.keys(DICE_ICONS);
-        // We cycle through keys 1-6 based on the index
-        const key = diceKeys[i % diceKeys.length];
-        // Direct assignment because DICE_ICONS values are the components themselves
-        const Icon = DICE_ICONS[key];
-        // --- CHANGE END ---
+      const diceKeys = Object.keys(DICE_ICONS);
+      // We cycle through keys 1-6 based on the index
+      const key = diceKeys[i % diceKeys.length];
+      // Direct assignment because DICE_ICONS values are the components themselves
+      const Icon = DICE_ICONS[key];
+      // --- CHANGE END ---
       return (
         <div
           key={i}
@@ -168,7 +168,7 @@ const FloatingBackground = React.memo(() => {
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
       {/* Dark Gradient Layer */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-yellow-900/20 via-gray-950 to-black" />
-      
+
       {/* Floating Icons Layer */}
       <div className="absolute top-0 left-0 w-full h-full opacity-10">
         {backgroundIcons}
@@ -189,12 +189,12 @@ const DarkAtmosphere = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
     {/* Clean, deep gradient background (No hazy overlays) */}
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
-    
+
     {/* Crisp Particles */}
     {[...Array(25)].map((_, i) => {
       // Calculate individual random drifts using CSS variables
       const driftX = `${Math.random() * 40 - 20}px`;
-      
+
       return (
         <div
           key={i}
@@ -306,7 +306,7 @@ const Card = ({
       )}
 
       {count > 1 && (
-        <div className="absolute top-[-5px] right-[-5px] bg-yellow-500 text-black font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md border border-yellow-600 z-20">
+        <div className="absolute top-[-2px] right-[-2px] bg-yellow-500 text-black font-bold rounded-full w-6 h-6 flex items-center justify-center text-xs shadow-md border border-yellow-600 z-20">
           x{count}
         </div>
       )}
@@ -603,7 +603,7 @@ export default function LastOfUs() {
   const handleSplashStart = () => {
     // Set a temporary session flag
     sessionStorage.setItem("splashRefreshed", "true");
-    
+
     // Force a hard browser reload to ensure a perfectly clean state
     window.location.reload();
   };

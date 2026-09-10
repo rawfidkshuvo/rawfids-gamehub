@@ -2355,7 +2355,7 @@ export default function ContrabandGame() {
   const handleSplashStart = () => {
     // Set a temporary session flag
     sessionStorage.setItem("splashRefreshed", "true");
-    
+
     // Force a hard browser reload to ensure a perfectly clean state
     window.location.reload();
   };
@@ -2955,11 +2955,6 @@ export default function ContrabandGame() {
         doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
         {
           players: updatedPlayers,
-          logs: arrayUnion({
-            id: Date.now().toString(),
-            text: `Inspector used scanner in ${target.name}'s crate!`,
-            type: "neutral",
-          }),
           feedbackTrigger: {
             id: Date.now(),
             type: "neutral",
@@ -4100,26 +4095,6 @@ export default function ContrabandGame() {
                       </div>
                     </button>
                   </div>
-
-                  {/* --- NEW CODE STARTS HERE --- */}
-                  {p.upgrades && p.upgrades.length > 0 && (
-                    <div className="flex gap-1 justify-center mt-1 flex-wrap">
-                      {p.upgrades.map((uId) => {
-                        const item = SHOP_ITEMS[uId];
-                        if (!item) return null;
-                        return (
-                          <div
-                            key={uId}
-                            className="p-0.5 bg-slate-800 rounded border border-slate-600 text-yellow-500"
-                            title={item.name}
-                          >
-                            <item.icon size={10} />
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  {/* --- NEW CODE ENDS HERE --- */}
 
                   {p.loadedCrate ? (
                     <div className="mt-2 w-full bg-black/40 rounded p-2 text-center border border-slate-600">

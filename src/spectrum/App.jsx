@@ -187,7 +187,7 @@ const FloatingBackground = React.memo(() => {
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
       {/* Dark Gradient Layer */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-yellow-900/20 via-gray-950 to-black" />
-      
+
       {/* Floating Icons Layer */}
       <div className="absolute top-0 left-0 w-full h-full opacity-10">
         {backgroundIcons}
@@ -208,12 +208,12 @@ const DarkAtmosphere = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
     {/* Clean, deep gradient background (No hazy overlays) */}
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
-    
+
     {/* Crisp Particles */}
     {[...Array(25)].map((_, i) => {
       // Calculate individual random drifts using CSS variables
       const driftX = `${Math.random() * 40 - 20}px`;
-      
+
       return (
         <div
           key={i}
@@ -324,19 +324,72 @@ const CardDisplay = ({
   small,
   tiny,
 }) => {
-  const suitInfo = faceDown ? SUITS.MAGENTA : SUITS[suit] || SUITS.MAGENTA;
-  const displayVal = faceDown ? 5 : val;
+  // If the card is in the Trick (small) or Score Pile (tiny),
+  // we completely disguise it so opponents cannot deduce the original suit.
+  const isSecretBoardCard = faceDown && (small || tiny);
+
+  // Only show the "partial mask" overlay when the card is in the player's own hand
+  const showPartialMask = faceDown && !isSecretBoardCard;
+
+  const suitInfo = isSecretBoardCard
+    ? SUITS.MAGENTA
+    : SUITS[suit] || SUITS.MAGENTA;
+  const displayVal = isSecretBoardCard ? 5 : val;
   const SuitIcon = suitInfo.icon;
+
+  // --- DISTINCT STYLING FOR PLAYED OVERRIDE CARDS ---
+  // Uses an arbitrary Tailwind repeating linear gradient for a "warning tape" hacker vibe
+  const overrideBg =
+    "bg-black bg-[repeating-linear-gradient(-45deg,rgba(217,70,239,0.15),rgba(217,70,239,0.15)_8px,transparent_8px,transparent_16px)]";
+  const overrideBorder = "border-dashed border-fuchsia-500";
+
+  // Tighter gradient for the tiny score pile cards
+  const tinyOverrideBg =
+    "bg-black bg-[repeating-linear-gradient(-45deg,rgba(217,70,239,0.25),rgba(217,70,239,0.25)_4px,transparent_4px,transparent_8px)]";
 
   if (tiny) {
     return (
       <div
-        className={`w-6 h-8 rounded border flex items-center justify-center ${suitInfo.bg} ${suitInfo.border} shadow-sm shrink-0`}
-        title={suit}
+        className={`relative w-6 h-8 rounded overflow-hidden shadow-sm shrink-0 ${
+          isSecretBoardCard
+            ? `border-2 ${overrideBorder} ${tinyOverrideBg}`
+            : `border ${suitInfo.bg} ${suitInfo.border}`
+        }`}
+        title={isSecretBoardCard ? "OVERRIDE" : suit}
       >
-        <span className={`text-[10px] font-black ${suitInfo.color}`}>
+        {/* Hand Mask (Partial) */}
+        {showPartialMask && (
+          <div
+            className={`absolute top-0 left-0 right-0 h-[75%] ${SUITS.MAGENTA.bg} border-b border-fuchsia-500 flex items-center justify-center z-20`}
+          >
+            <span className={`text-[8px] font-black ${SUITS.MAGENTA.color}`}>
+              5
+            </span>
+          </div>
+        )}
+
+        {/* Exposed bottom value */}
+        <div
+          className={`absolute bottom-0 right-[2px] rotate-180 text-[7px] font-black ${suitInfo.color} z-10`}
+        >
           {displayVal}
-        </span>
+        </div>
+
+        {/* Center value (hidden if partial mask is showing) */}
+        {!showPartialMask && (
+          <div
+            className={`absolute inset-0 flex items-center justify-center text-[10px] font-black ${suitInfo.color} z-10`}
+          >
+            {/* Faint EyeOff behind the number on tiny override cards */}
+            {isSecretBoardCard && (
+              <EyeOff
+                size={10}
+                className="absolute opacity-40 text-fuchsia-400"
+              />
+            )}
+            <span className="relative z-10">{displayVal}</span>
+          </div>
+        )}
       </div>
     );
   }
@@ -348,7 +401,8 @@ const CardDisplay = ({
       onClick={onClick}
       disabled={disabled}
       className={`relative rounded-xl border-2 shadow-lg transition-all flex flex-col items-center justify-between overflow-hidden
-        ${sizeClasses} ${suitInfo.bg} ${suitInfo.border}
+        ${sizeClasses} 
+        ${isSecretBoardCard ? `${overrideBg} ${overrideBorder}` : `${suitInfo.bg} ${suitInfo.border}`}
         ${highlight ? "ring-4 ring-fuchsia-400 scale-105 z-10" : ""}
         ${
           disabled
@@ -357,33 +411,90 @@ const CardDisplay = ({
         }
       `}
     >
-      {faceDown && (
-        <div className="absolute inset-0 bg-fuchsia-600/10 flex items-center justify-center pointer-events-none">
-          <EyeOff size={48} className="text-fuchsia-500/10" />
+      {/* 1. THE PARTIAL MASK (Only visible in your hand when overriding) */}
+      {showPartialMask && (
+        <div
+          className={`absolute top-0 left-0 right-0 h-[75%] bg-fuchsia-950/95 backdrop-blur-sm border-b-2 border-fuchsia-500 z-20 flex flex-col items-center justify-between shadow-xl ${small ? "p-2" : "p-3"}`}
+        >
+          <div
+            className={`w-full flex justify-between font-black ${small ? "text-xs" : "text-lg"} ${SUITS.MAGENTA.color}`}
+          >
+            <span>5</span>
+            <Target size={small ? 12 : 16} opacity={0.3} />
+          </div>
+
+          <div className="flex flex-col items-center">
+            <Target
+              size={small ? 20 : 32}
+              className={`${SUITS.MAGENTA.color} mb-1`}
+            />
+            {!small && (
+              <span
+                className={`text-[8px] uppercase tracking-widest font-black ${SUITS.MAGENTA.color} opacity-60`}
+              >
+                MAGENTA 5
+              </span>
+            )}
+          </div>
         </div>
       )}
+
+      {/* 2. BACKGROUND ANIMATION FOR FULLY DISGUISED BOARD CARDS */}
+      {isSecretBoardCard && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+          <EyeOff
+            size={small ? 40 : 64}
+            className="text-fuchsia-500/20 animate-pulse"
+          />
+        </div>
+      )}
+
+      {/* 3. BASE CARD CONTENT */}
       <div
         className={`w-full flex justify-between font-black ${
           small ? "text-xs" : "text-lg"
-        } ${suitInfo.color}`}
+        } ${suitInfo.color} relative z-10`}
       >
         <span>{displayVal}</span>
-        <Target size={small ? 12 : 16} opacity={0.3} />
+        {/* Swap corner icon to EyeOff if it's an Override */}
+        {isSecretBoardCard ? (
+          <EyeOff size={small ? 12 : 16} opacity={0.6} />
+        ) : (
+          <Target size={small ? 12 : 16} opacity={0.3} />
+        )}
       </div>
-      <div className="flex flex-col items-center">
-        <SuitIcon size={small ? 20 : 32} className={`${suitInfo.color} mb-1`} />
+
+      <div className="flex flex-col items-center relative z-10">
+        {/* Swap main center icon to EyeOff if it's an Override */}
+        {isSecretBoardCard ? (
+          <Target
+            size={small ? 24 : 36}
+            className={`${suitInfo.color} mb-1 drop-shadow-[0_0_8px_rgba(217,70,239,0.5)]`}
+          />
+        ) : (
+          <SuitIcon
+            size={small ? 20 : 32}
+            className={`${suitInfo.color} mb-1`}
+          />
+        )}
+
         {!small && (
           <span
-            className={`text-[8px] uppercase tracking-widest font-black ${suitInfo.color} opacity-60`}
+            className={`text-[8px] uppercase tracking-widest font-black ${suitInfo.color} ${
+              isSecretBoardCard
+                ? "bg-fuchsia-950 px-2 py-0.5 rounded border border-fuchsia-500/50 shadow-md opacity-100"
+                : "opacity-60"
+            }`}
           >
-            {faceDown ? "MAGENTA 5" : suitInfo.name}
+            {isSecretBoardCard ? "OVERRIDE" : suitInfo.name}
           </span>
         )}
       </div>
+
       <div
         className={`w-full flex justify-start font-black ${
           small ? "text-xs" : "text-lg"
-        } ${suitInfo.color} rotate-180`}
+        } ${suitInfo.color} rotate-180 relative z-10`}
       >
         <span>{displayVal}</span>
       </div>
@@ -599,7 +710,7 @@ export default function SpectrumGame() {
   });
 
   const [roomCodeInput, setRoomCodeInput] = useState("");
-  
+
   const [gameState, setGameState] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -639,7 +750,7 @@ export default function SpectrumGame() {
   const handleSplashStart = () => {
     // Set a temporary session flag
     sessionStorage.setItem("splashRefreshed", "true");
-    
+
     // Force a hard browser reload to ensure a perfectly clean state
     window.location.reload();
   };
