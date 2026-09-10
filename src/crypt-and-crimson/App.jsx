@@ -906,7 +906,10 @@ export default function CryptGame() {
   if (view === "game" && gameState) {
     const pIdx = gameState.players.findIndex((p) => p.id === user.uid);
     const me = gameState.players[pIdx];
-    const myColor = me ? PLAYER_COLORS[me.colorIdx] : { bg: "bg-slate-600", border: "border-slate-500", fill: "#52525b", text: "text-slate-500" };
+    
+    if (!me) return null; // Safety check if user is mid-disconnect
+    
+    const myColor = PLAYER_COLORS[me.colorIdx] || { bg: "bg-slate-600", border: "border-slate-500", fill: "#52525b", text: "text-slate-500" };
     const isMyTurn = gameState.turnIndex === pIdx && !me.isEliminated;
 
     const totalCardsOnTable = gameState.players.reduce((sum, p) => sum + p.played.length, 0);
@@ -958,7 +961,7 @@ export default function CryptGame() {
             <div className="w-10 h-10 bg-rose-900/50 rounded-lg flex items-center justify-center border border-rose-700 ml-2 shadow-[0_0_10px_rgba(225,29,72,0.3)]"><Flower className="text-rose-500" size={20} /></div>
             <div>
               <div className="font-bold text-sm tracking-wider text-rose-100">CRYPT & CRIMSON</div>
-              <div className="text-[10px] font-mono uppercase">{gameState.status === "finished" ? <span className="text-rose-400">GAME OVER</span> : <><span className="text-slate-400">Turn:</span> <span className="text-rose-400">{gameState.players[gameState.turnIndex].name}</span></>}</div>
+              <div className="text-[10px] font-mono uppercase">{gameState.status === "finished" ? <span className="text-rose-400">GAME OVER</span> : <><span className="text-slate-400">Turn:</span> <span className="text-rose-400">{gameState.players[gameState.turnIndex]?.name || "Departed Player"}</span></>}</div>
             </div>
           </div>
           <div className="flex items-center gap-2 relative z-10">
@@ -1045,7 +1048,7 @@ export default function CryptGame() {
                  gameState.turnPhase === "DISCARD" ? "Discarding..." : "Round Ended"}
               </span>
             </div>
-            {gameState.turnPhase === "BIDDING" && gameState.highestBidder && <div className="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded uppercase">Current Bid: {gameState.currentBid} by {gameState.players.find(p=>p.id === gameState.highestBidder)?.name}</div>}
+            {gameState.turnPhase === "BIDDING" && gameState.highestBidder && <div className="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded uppercase">Current Bid: {gameState.currentBid} by {gameState.players.find(p=>p.id === gameState.highestBidder)?.name || "Departed Player"}</div>}
             {gameState.turnPhase === "REVEAL" && <div className="text-[10px] font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded uppercase">Remaining to Reveal: {gameState.cardsToReveal}</div>}
           </div>
 

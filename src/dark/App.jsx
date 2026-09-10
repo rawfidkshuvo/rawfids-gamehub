@@ -2670,6 +2670,9 @@ export default function DarkFolkloreGame() {
   if (view === "game" && gameState) {
     const meIdx = gameState.players.findIndex((p) => p.id === user.uid);
     const me = gameState.players[meIdx];
+
+    if (!me) return null; // Safety check if user is mid-disconnect
+
     const isMyTurn =
       gameState.turnIndex === meIdx && gameState.turnState !== "AMULET_PROMPT";
     const amITarget =
@@ -2974,7 +2977,7 @@ export default function DarkFolkloreGame() {
                           ? `Your Turn (${gameState.actionsLeft} Actions)`
                           : amITarget
                             ? "DEFEND YOURSELF!"
-                            : `Waiting for ${gameState.players[gameState.turnIndex].name}`}
+                            : `Waiting for ${gameState.players[gameState.turnIndex]?.name || "Departed Soul"}`}
                     </span>
                   </div>
                 </div>
@@ -3529,7 +3532,7 @@ export default function DarkFolkloreGame() {
                         Where will you place this entity?
                       </div>
                       <div className="flex flex-wrap justify-center gap-4">
-                        {gameState.players[gameState.turnIndex].tableau
+                        {(gameState.players[gameState.turnIndex]?.tableau || [])
                           .filter(
                             (s) =>
                               s.type === "SUP" &&
@@ -3681,7 +3684,7 @@ export default function DarkFolkloreGame() {
                       <div className="flex flex-wrap gap-4 justify-center mb-4 p-4 bg-slate-900/50 rounded-2xl border border-slate-800 w-full max-w-3xl">
                         {gameState.players
                           .find((p) => p.id === activeModal.targetId)
-                          .hand.map((c, i) => (
+                          ?.hand.map((c, i) => (
                             <div
                               key={i}
                               className="relative hover:-translate-y-2 transition-transform"
@@ -3691,11 +3694,14 @@ export default function DarkFolkloreGame() {
                             </div>
                           ))}
 
-                        {gameState.players.find(
+                        {(gameState.players.find(
                           (p) => p.id === activeModal.targetId,
-                        ).hand.length === 0 && (
+                        )?.hand.length === 0 ||
+                          !gameState.players.find(
+                            (p) => p.id === activeModal.targetId,
+                          )) && (
                           <div className="text-slate-500 italic py-10 font-bold uppercase tracking-widest">
-                            Their mind is empty.
+                            Their mind is empty or they have departed.
                           </div>
                         )}
                       </div>

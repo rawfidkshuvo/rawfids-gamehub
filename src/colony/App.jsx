@@ -704,15 +704,16 @@ const GameOverModal = ({ gameState, currentUserId, returnToLobby, onHide }) => {
   };
 
   const maxScore = Math.max(...gameState.players.map(getFinalScore));
-  const winners = gameState.players.filter(p => getFinalScore(p) === maxScore);
+  const winners = gameState.players.filter(
+    (p) => getFinalScore(p) === maxScore,
+  );
   const isTie = winners.length > 1;
-  const winnerNames = winners.map(w => w.name).join(" & ");
+  const winnerNames = winners.map((w) => w.name).join(" & ");
   const isHost = gameState.hostId === currentUserId;
 
   return (
     <div className="fixed inset-0 top-14 bg-black/95 z-[200] flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
       <div className="bg-slate-900 border border-orange-500/50 rounded-2xl w-full max-w-4xl flex flex-col shadow-[0_0_50px_rgba(249,115,22,0.2)] overflow-hidden max-h-[90vh] relative">
-        
         {/* Header */}
         <div className="p-8 border-b border-slate-800 bg-slate-950 flex flex-col items-center text-center relative">
           <button
@@ -723,12 +724,15 @@ const GameOverModal = ({ gameState, currentUserId, returnToLobby, onHide }) => {
             <X size={24} />
           </button>
 
-          <Trophy size={48} className="text-yellow-400 mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]" />
+          <Trophy
+            size={48}
+            className="text-yellow-400 mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]"
+          />
           <h2 className="text-3xl md:text-5xl font-black text-orange-400 uppercase tracking-widest mb-2">
-             {isTie ? "CO-OP DOMINATION" : "COLONY ESTABLISHED"}
+            {isTie ? "CO-OP DOMINATION" : "COLONY ESTABLISHED"}
           </h2>
           <h3 className="text-xl md:text-2xl font-bold text-white uppercase tracking-wider">
-             {winnerNames} {isTie ? "WIN!" : "WINS!"}
+            {winnerNames} {isTie ? "WIN!" : "WINS!"}
           </h3>
         </div>
 
@@ -738,9 +742,21 @@ const GameOverModal = ({ gameState, currentUserId, returnToLobby, onHide }) => {
             <thead>
               <tr className="text-xs text-slate-500 uppercase tracking-wider border-b border-slate-700">
                 <th className="p-3">Settler</th>
-                <th className="p-3 text-center" title="Settlements & Cities">Buildings</th>
-                <th className="p-3 text-center text-green-400" title="Revealed during the game">Played VP</th>
-                <th className="p-3 text-center text-purple-400" title="Kept secret until now">Hidden VP</th>
+                <th className="p-3 text-center" title="Settlements & Cities">
+                  Buildings
+                </th>
+                <th
+                  className="p-3 text-center text-green-400"
+                  title="Revealed during the game"
+                >
+                  Played VP
+                </th>
+                <th
+                  className="p-3 text-center text-purple-400"
+                  title="Kept secret until now"
+                >
+                  Hidden VP
+                </th>
                 <th className="p-3 text-center text-orange-400">Road</th>
                 <th className="p-3 text-center text-red-400">Army</th>
                 <th className="p-3 text-right text-yellow-400">Total</th>
@@ -755,32 +771,64 @@ const GameOverModal = ({ gameState, currentUserId, returnToLobby, onHide }) => {
                   const isWinner = finalScore === maxScore;
                   const hasRoad = gameState.longestRoad?.playerId === p.id;
                   const hasArmy = gameState.largestArmy?.playerId === p.id;
-                  
+
                   // Extract the breakdown
                   const playedVP = p.usedDevCards?.["VP"] || 0;
                   const buildingVP = p.score - playedVP; // p.score currently holds Buildings + Played VP
-                  const hiddenVP = (p.devCards?.["VP"] || 0) + (p.newDevCards?.["VP"] || 0);
+                  const hiddenVP =
+                    (p.devCards?.["VP"] || 0) + (p.newDevCards?.["VP"] || 0);
 
                   return (
-                    <tr key={p.id} className={`border-b border-slate-800 transition-colors ${isWinner ? "bg-orange-900/20" : "hover:bg-slate-800/30"}`}>
+                    <tr
+                      key={p.id}
+                      className={`border-b border-slate-800 transition-colors ${isWinner ? "bg-orange-900/20" : "hover:bg-slate-800/30"}`}
+                    >
                       <td className="p-3 font-bold flex items-center gap-2">
-                        {isWinner && <Crown size={14} className="text-yellow-400" />}
-                        <span style={{ color: PLAYER_COLORS[p.colorIdx].fill }}>{p.name}</span>
+                        {isWinner && (
+                          <Crown size={14} className="text-yellow-400" />
+                        )}
+                        <span style={{ color: PLAYER_COLORS[p.colorIdx].fill }}>
+                          {p.name}
+                        </span>
                       </td>
-                      <td className="p-3 text-center text-slate-300 font-bold">{buildingVP}</td>
-                      <td className="p-3 text-center">
-                        {playedVP > 0 ? <span className="text-green-400 font-bold">+{playedVP}</span> : <span className="text-slate-600">-</span>}
-                      </td>
-                      <td className="p-3 text-center">
-                        {hiddenVP > 0 ? <span className="text-purple-400 font-bold">+{hiddenVP}</span> : <span className="text-slate-600">-</span>}
-                      </td>
-                      <td className="p-3 text-center">
-                        {hasRoad ? <span className="text-orange-400 font-bold">+2</span> : <span className="text-slate-600">-</span>}
+                      <td className="p-3 text-center text-slate-300 font-bold">
+                        {buildingVP}
                       </td>
                       <td className="p-3 text-center">
-                        {hasArmy ? <span className="text-red-400 font-bold">+2</span> : <span className="text-slate-600">-</span>}
+                        {playedVP > 0 ? (
+                          <span className="text-green-400 font-bold">
+                            +{playedVP}
+                          </span>
+                        ) : (
+                          <span className="text-slate-600">-</span>
+                        )}
                       </td>
-                      <td className={`p-3 text-right font-black text-lg ${isWinner ? "text-yellow-400 drop-shadow-md" : "text-orange-400"}`}>
+                      <td className="p-3 text-center">
+                        {hiddenVP > 0 ? (
+                          <span className="text-purple-400 font-bold">
+                            +{hiddenVP}
+                          </span>
+                        ) : (
+                          <span className="text-slate-600">-</span>
+                        )}
+                      </td>
+                      <td className="p-3 text-center">
+                        {hasRoad ? (
+                          <span className="text-orange-400 font-bold">+2</span>
+                        ) : (
+                          <span className="text-slate-600">-</span>
+                        )}
+                      </td>
+                      <td className="p-3 text-center">
+                        {hasArmy ? (
+                          <span className="text-red-400 font-bold">+2</span>
+                        ) : (
+                          <span className="text-slate-600">-</span>
+                        )}
+                      </td>
+                      <td
+                        className={`p-3 text-right font-black text-lg ${isWinner ? "text-yellow-400 drop-shadow-md" : "text-orange-400"}`}
+                      >
                         {finalScore}
                       </td>
                     </tr>
@@ -817,7 +865,6 @@ const GameOverModal = ({ gameState, currentUserId, returnToLobby, onHide }) => {
             )}
           </div>
         </div>
-
       </div>
     </div>
   );
@@ -947,7 +994,7 @@ export default function ColonyGame() {
   });
   const [playerName, setPlayerName] = useState("");
   const [roomCode, setRoomCode] = useState("");
-  
+
   const [gameState, setGameState] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -1073,7 +1120,7 @@ export default function ColonyGame() {
   const handleSplashStart = () => {
     // Set a temporary session flag
     sessionStorage.setItem("splashRefreshed", "true");
-    
+
     // Force a hard browser reload to ensure a perfectly clean state
     window.location.reload();
   };
@@ -1690,12 +1737,14 @@ export default function ColonyGame() {
       offer: offerTokens,
       request: requestTokens,
     };
-    
+
     await updateDoc(
       doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
       {
         activeTrade: trade,
-        logs: arrayUnion(triggerLog(`${me.name} proposed a trade to ${targetPlayer.name}.`)),
+        logs: arrayUnion(
+          triggerLog(`${me.name} proposed a trade to ${targetPlayer.name}.`),
+        ),
       },
     );
     setShowTradeModal(false);
@@ -1741,15 +1790,15 @@ export default function ColonyGame() {
     } else {
       // Handle Reject or Sender Cancel
       const isCancel = active.senderId === user.uid;
-      const logMsg = isCancel 
+      const logMsg = isCancel
         ? `${me.name} canceled their trade proposal.`
         : `${me.name} rejected ${active.senderName}'s trade.`;
 
       await updateDoc(
         doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
-        { 
+        {
           activeTrade: null,
-          logs: arrayUnion(triggerLog(logMsg, "warning"))
+          logs: arrayUnion(triggerLog(logMsg, "warning")),
         },
       );
     }
@@ -2525,6 +2574,7 @@ export default function ColonyGame() {
   }
 
   if (view === "game" && gameState) {
+    if (!me) return null; // Safety check if user is mid-disconnect
     const isMyTurn = gameState.turnIndex === pIdx;
     const getHexClasses = (hId) => {
       if (gameState.turnPhase === "ROBBER" && isMyTurn)
@@ -2711,6 +2761,7 @@ export default function ColonyGame() {
               <div className="flex flex-col gap-2">
                 {popupContent.victims.map((vId) => {
                   const v = gameState.players.find((p) => p.id === vId);
+                  if (!v) return null; // Safely ignore players who left during the steal
                   return (
                     <button
                       key={v.id}
@@ -2736,12 +2787,17 @@ export default function ColonyGame() {
               <h3 className="text-xl font-black text-white mb-2 uppercase">
                 {popupContent.trade.senderName}
                 <span className="text-slate-400 text-sm block mt-1 normal-case tracking-normal">
-                  Proposes to <strong className="text-white">{popupContent.trade.targetName}</strong>
+                  Proposes to{" "}
+                  <strong className="text-white">
+                    {popupContent.trade.targetName}
+                  </strong>
                 </span>
               </h3>
               <div className="bg-black/30 p-4 rounded-xl mb-6">
                 <div className="text-xs text-orange-400 font-bold mb-1 uppercase">
-                  {popupContent.trade.targetId === user.uid ? "You Receive:" : `${popupContent.trade.targetName} Receives:`}
+                  {popupContent.trade.targetId === user.uid
+                    ? "You Receive:"
+                    : `${popupContent.trade.targetName} Receives:`}
                 </div>
                 <div className="flex justify-center gap-2 mb-4">
                   {Object.keys(popupContent.trade.offer).map(
@@ -2757,7 +2813,9 @@ export default function ColonyGame() {
                   )}
                 </div>
                 <div className="text-xs text-red-400 font-bold mb-1 uppercase">
-                  {popupContent.trade.targetId === user.uid ? "You Give:" : `${popupContent.trade.targetName} Gives:`}
+                  {popupContent.trade.targetId === user.uid
+                    ? "You Give:"
+                    : `${popupContent.trade.targetName} Gives:`}
                 </div>
                 <div className="flex justify-center gap-2">
                   {Object.keys(popupContent.trade.request).map(
@@ -2773,7 +2831,7 @@ export default function ColonyGame() {
                   )}
                 </div>
               </div>
-              
+
               {/* Conditional Buttons */}
               {popupContent.trade.targetId === user.uid ? (
                 <div className="flex gap-2">
@@ -2887,7 +2945,8 @@ export default function ColonyGame() {
                   <>
                     <span className="text-white-400">Turn:</span>{" "}
                     <span className="text-orange-400">
-                      {gameState.players[gameState.turnIndex].name}
+                      {gameState.players[gameState.turnIndex]?.name ||
+                        "Departed Settler"}
                     </span>
                   </>
                 )}
@@ -3013,7 +3072,7 @@ export default function ColonyGame() {
               >
                 {isMyTurn
                   ? getPhaseDisplayName(gameState.turnPhase)
-                  : `WAITING FOR ${gameState.players[gameState.turnIndex].name}`}
+                  : `WAITING FOR ${gameState.players[gameState.turnIndex]?.name || "Departed Settler"}`}
               </span>
             </div>
           </div>
@@ -3081,11 +3140,20 @@ export default function ColonyGame() {
                 (activeBuildMode === "ROAD" || isSpecialBuildPhase) &&
                 isValidRoad(eId);
               const showGhost = canBuild && !e.owner;
+
+              // Safe Fallback for departed players
+              const edgeOwner = e.owner
+                ? gameState.players.find((p) => p.id === e.owner)
+                : null;
+              const ownerBg = edgeOwner
+                ? PLAYER_COLORS[edgeOwner.colorIdx].bg
+                : "bg-slate-500";
+
               return (
                 <div
                   key={eId}
                   onClick={() => handleBuildEdge(eId)}
-                  className={`absolute z-30 transition-all h-3 rounded-full flex items-center justify-center ${e.owner ? PLAYER_COLORS[gameState.players.find((p) => p.id === e.owner).colorIdx].bg : ""} ${showGhost ? `bg-white/40 hover:bg-white/80 cursor-pointer shadow-[0_0_10px_white]` : ""} ${!e.owner && !showGhost ? "pointer-events-none" : ""}`}
+                  className={`absolute z-30 transition-all h-3 rounded-full flex items-center justify-center ${e.owner ? ownerBg : ""} ${showGhost ? `bg-white/40 hover:bg-white/80 cursor-pointer shadow-[0_0_10px_white]` : ""} ${!e.owner && !showGhost ? "pointer-events-none" : ""}`}
                   style={{
                     left: e.x,
                     top: e.y,
@@ -3153,6 +3221,15 @@ export default function ColonyGame() {
                 (canBuildSettlement || canBuildCity) && !n.owner;
               const showUpgradeGhost = canBuildCity && n.owner === user.uid;
 
+              // Safe Fallback for departed players
+              const nodeOwner = n.owner
+                ? gameState.players.find((p) => p.id === n.owner)
+                : null;
+              const ownerStyle = nodeOwner
+                ? PLAYER_COLORS[nodeOwner.colorIdx].bg +
+                  " border-2 border-white shadow-xl"
+                : "bg-slate-500 border-2 border-white shadow-xl";
+
               return (
                 <div
                   key={nId}
@@ -3161,7 +3238,7 @@ export default function ColonyGame() {
                 >
                   <div
                     onClick={() => handleBuildNode(nId)}
-                    className={`absolute w-8 h-8 -ml-4 -mt-4 rounded-full flex items-center justify-center transition-all ${n.owner ? PLAYER_COLORS[gameState.players.find((p) => p.id === n.owner).colorIdx].bg + " border-2 border-white shadow-xl" : ""} ${showGhost ? `bg-white/40 hover:bg-white/80 border border-white border-dashed cursor-pointer shadow-[0_0_15px_white]` : ""} ${showUpgradeGhost ? `ring-4 ring-yellow-400 cursor-pointer hover:scale-125` : ""} ${!n.owner && !showGhost ? "pointer-events-none" : ""}`}
+                    className={`absolute w-8 h-8 -ml-4 -mt-4 rounded-full flex items-center justify-center transition-all ${n.owner ? ownerStyle : ""} ${showGhost ? `bg-white/40 hover:bg-white/80 border border-white border-dashed cursor-pointer shadow-[0_0_15px_white]` : ""} ${showUpgradeGhost ? `ring-4 ring-yellow-400 cursor-pointer hover:scale-125` : ""} ${!n.owner && !showGhost ? "pointer-events-none" : ""}`}
                   >
                     {n.type === "SETTLEMENT" && (
                       <Home size={16} className="text-white" />
@@ -3229,7 +3306,7 @@ export default function ColonyGame() {
                 >
                   {isMyTurn
                     ? getPhaseDisplayName(gameState.turnPhase)
-                    : `WAITING FOR ${gameState.players[gameState.turnIndex].name}`}
+                    : `WAITING FOR ${gameState.players[gameState.turnIndex]?.name || "Departed Settler"}`}
                 </div>
               </div>
 
@@ -3283,8 +3360,20 @@ export default function ColonyGame() {
                         </button>
                         <button
                           onClick={() => {
-                            setOfferTokens({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 });
-                            setRequestTokens({ WOOD: 0, BRICK: 0, WHEAT: 0, SHEEP: 0, ORE: 0 });
+                            setOfferTokens({
+                              WOOD: 0,
+                              BRICK: 0,
+                              WHEAT: 0,
+                              SHEEP: 0,
+                              ORE: 0,
+                            });
+                            setRequestTokens({
+                              WOOD: 0,
+                              BRICK: 0,
+                              WHEAT: 0,
+                              SHEEP: 0,
+                              ORE: 0,
+                            });
                             setTradeTargetId("");
                             setShowTradeModal(true);
                           }}
