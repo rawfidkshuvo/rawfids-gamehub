@@ -413,6 +413,8 @@ const AdminPanel = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [dateRange, setDateRange] = useState("7");
   const [viewingPlayerId, setViewingPlayerId] = useState(null); // <-- ADD THIS
+  const [isManageLogsActive, setIsManageLogsActive] = useState(false); // <-- ADD THIS NEW STATE
+  const [logDisplayLimit, setLogDisplayLimit] = useState(25); // <-- ADD THIS NEW STATE
 
   // Data State
   const [gamesConfig, setGamesConfig] = useState({});
@@ -497,6 +499,19 @@ const AdminPanel = () => {
       console.error("Failed to log action", err);
     }
   };
+
+  // --- ADD THIS DELETE FUNCTION RIGHT HERE ---
+  const handleDeleteLog = async (logId) => {
+    if (!window.confirm("Are you sure you want to delete this activity log? This cannot be undone.")) return;
+    
+    try {
+      await deleteDoc(doc(db, "game_click_logs", logId));
+      logAdminAction("Activity Log Deletion", `Deleted log entry: ${logId}`);
+    } catch (err) {
+      alert("Failed to delete log: " + err.message);
+    }
+  };
+  // -------------------------------------------
 
   // --- DATA SYNC ---
   useEffect(() => {
@@ -1229,12 +1244,44 @@ const AdminPanel = () => {
                     <List size={16} className="text-indigo-500" /> Recent
                     Activity Log
                   </div>
-                  <button
-                    onClick={exportCSV}
-                    className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors flex items-center gap-2"
-                  >
-                    <Download size={12} /> Export CSV
-                  </button>
+                  {/* --- UPDATED BUTTON & SELECT GROUP --- */}
+                  <div className="flex items-center gap-2">
+                    {/* Add Display Limit Selector */}
+                    <div className="flex items-center gap-2 bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-800">
+                      <span className="text-[10px] uppercase font-bold text-slate-500 hidden sm:inline">
+                        Entries:
+                      </span>
+                      <select
+                        value={logDisplayLimit}
+                        onChange={(e) => setLogDisplayLimit(Number(e.target.value))}
+                        className="bg-transparent text-xs text-white font-medium outline-none cursor-pointer"
+                      >
+                        <option value={25} className="bg-slate-900">25</option>
+                        <option value={50} className="bg-slate-900">50</option>
+                        <option value={100} className="bg-slate-900">100</option>
+                        <option value={150} className="bg-slate-900">150</option>
+                        <option value={200} className="bg-slate-900">200</option>
+                      </select>
+                    </div>
+
+                    <button
+                      onClick={() => setIsManageLogsActive(!isManageLogsActive)}
+                      className={`text-xs px-3 py-1.5 rounded-lg border transition-colors flex items-center gap-2 ${
+                        isManageLogsActive
+                          ? "bg-red-900/20 text-red-400 border-red-900/50 hover:bg-red-900/40"
+                          : "bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700"
+                      }`}
+                    >
+                      <Settings size={12} /> {isManageLogsActive ? "Done" : "Manage"}
+                    </button>
+                    <button
+                      onClick={exportCSV}
+                      className="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition-colors flex items-center gap-2"
+                    >
+                      <Download size={12} /> Export CSV
+                    </button>
+                  </div>
+                  {/* ------------------------------------- */}
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm">
@@ -1246,10 +1293,14 @@ const AdminPanel = () => {
                         <th className="px-4 py-3">Location</th>
                         <th className="px-4 py-3">Platform</th>
                         <th className="px-4 py-3 text-right">User Hash</th>
+                        {/* Add conditional header */}
+                        {isManageLogsActive && (
+                          <th className="px-4 py-3 text-right text-red-400">Actions</th>
+                        )}
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800/50">
-                      {activityLogs.slice(0, 50).map((log) => (
+                      {activityLogs.slice(0, logDisplayLimit).map((log) => (
                         <tr
                           key={log.id}
                           className="hover:bg-slate-800/50 transition-colors"
@@ -1320,6 +1371,19 @@ const AdminPanel = () => {
                               : log.userId?.substring(0, 8)}
                             ...
                           </td>
+                          {/* --- ADD THIS CONDITIONAL DELETE COLUMN --- */}
+                          {isManageLogsActive && (
+                            <td className="px-4 py-3 text-right">
+                              <button
+                                onClick={() => handleDeleteLog(log.id)}
+                                className="p-1.5 bg-slate-800 hover:bg-red-600 text-slate-400 hover:text-white rounded-md transition-colors border border-slate-700 hover:border-red-500"
+                                title="Delete Log Entry"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </td>
+                          )}
+                          {/* ------------------------------------------ */}
                         </tr>
                       ))}
                     </tbody>
