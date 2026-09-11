@@ -159,6 +159,22 @@ const PLAYER_COLORS = [
   { bg: "bg-cyan-500", text: "text-cyan-300" },
 ];
 
+// --- ADD THIS RIGHT BELOW ---
+const TEAM_COLORS = [
+  {
+    text: "text-cyan-400",
+    badge: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
+  }, // Team 1
+  {
+    text: "text-rose-400",
+    badge: "bg-rose-500/20 text-rose-400 border-rose-500/30",
+  }, // Team 2
+  {
+    text: "text-amber-400",
+    badge: "bg-amber-500/20 text-amber-400 border-amber-500/30",
+  }, // Team 3
+];
+
 const GENERATE_DECK = () => {
   const deck = [];
   let id = 0;
@@ -259,6 +275,8 @@ const getCardVisuals = (card) => {
 };
 
 const checkWinCondition = (player) => {
+  if (!player) return false;
+  if (player.secured) return true; // They already secured their body
   return player.body.filter((o) => o.viruses.length === 0).length >= 4;
 };
 
@@ -366,7 +384,6 @@ const FeedbackOverlay = ({ type, message, subtext, icon: Icon }) => (
 const RulesModal = ({ onClose }) => (
   <div className="fixed inset-0 z-[200] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 animate-in fade-in zoom-in duration-200">
     <div className="bg-slate-900 border border-emerald-900/50 w-full max-w-5xl rounded-2xl sm:rounded-3xl shadow-2xl relative max-h-[95vh] flex flex-col overflow-hidden">
-      
       {/* Header */}
       <div className="shrink-0 p-4 sm:p-6 border-b border-white/10 flex items-center justify-between bg-black/40">
         <h2 className="text-xl sm:text-3xl font-black text-emerald-400 flex items-center gap-3 tracking-widest uppercase">
@@ -382,12 +399,15 @@ const RulesModal = ({ onClose }) => (
 
       {/* Scrolling Content */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 space-y-8 sm:space-y-12 text-slate-300">
-        
         {/* SECTION 1: Basics */}
         <section>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/50 text-emerald-400 font-black">1</div>
-            <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-widest">The Basics</h3>
+            <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/50 text-emerald-400 font-black">
+              1
+            </div>
+            <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-widest">
+              The Basics
+            </h3>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             <div className="bg-emerald-950/30 p-5 rounded-2xl border border-emerald-900/50 shadow-inner">
@@ -395,8 +415,10 @@ const RulesModal = ({ onClose }) => (
                 <Heart className="w-5 h-5" /> The Goal
               </h4>
               <p className="text-sm leading-relaxed">
-                Be the first researcher to build a body with <strong>4 different healthy organs</strong>. 
-                An organ is "healthy" if it has <span className="text-rose-400 font-bold">no viruses</span>. 
+                Be the first researcher to build a body with{" "}
+                <strong>4 different healthy organs</strong>. An organ is
+                "healthy" if it has{" "}
+                <span className="text-rose-400 font-bold">no viruses</span>.
                 Vaccinated or Immunized organs also count as healthy!
               </p>
             </div>
@@ -405,13 +427,23 @@ const RulesModal = ({ onClose }) => (
                 <Play className="w-5 h-5" /> Your Turn
               </h4>
               <p className="text-sm leading-relaxed">
-                You must do exactly <strong>one</strong> of two things on your turn:
+                You must do exactly <strong>one</strong> of two things on your
+                turn:
                 <br />
-                <span className="inline-block mt-2 font-bold text-emerald-300">• Play exactly 1 Card</span> to the board.
+                <span className="inline-block mt-2 font-bold text-emerald-300">
+                  • Play exactly 1 Card
+                </span>{" "}
+                to the board.
                 <br />
-                <span className="inline-block mt-1 font-bold text-rose-300">• Discard Cards</span> (any amount, even your whole hand).
+                <span className="inline-block mt-1 font-bold text-rose-300">
+                  • Discard Cards
+                </span>{" "}
+                (any amount, even your whole hand).
                 <br />
-                <em className="block mt-2 text-xs opacity-75 text-cyan-300">*You automatically draw back up to 3 cards at the end of your turn.</em>
+                <em className="block mt-2 text-xs opacity-75 text-cyan-300">
+                  *You automatically draw back up to 3 cards at the end of your
+                  turn.
+                </em>
               </p>
             </div>
           </div>
@@ -420,11 +452,14 @@ const RulesModal = ({ onClose }) => (
         {/* SECTION 2: Core Cards */}
         <section>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center border border-amber-500/50 text-amber-400 font-black">2</div>
-            <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-widest">Anatomy & Infection</h3>
+            <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center border border-amber-500/50 text-amber-400 font-black">
+              2
+            </div>
+            <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-widest">
+              Anatomy & Infection
+            </h3>
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            
             {/* Organs */}
             <div className="bg-slate-900 p-5 rounded-2xl border border-white/10 shadow-inner flex flex-col gap-2">
               <div className="flex items-center gap-2 text-white font-black tracking-widest bg-black/40 p-2 rounded-lg w-fit">
@@ -432,8 +467,18 @@ const RulesModal = ({ onClose }) => (
               </div>
               <ul className="text-sm space-y-2 mt-2">
                 <li>• Place in front of yourself to build your body.</li>
-                <li>• You <strong>cannot</strong> have two organs of the same color.</li>
-                <li>• <strong className="text-cyan-300">Wildcards (Multicolor):</strong> Act as any color, but you can still only have one wildcard organ.</li>
+                <li>
+                  • You <strong>cannot</strong> have two organs of the same
+                  color.
+                </li>
+                <li>
+                  •{" "}
+                  <strong className="text-cyan-300">
+                    Wildcards (Multicolor):
+                  </strong>{" "}
+                  Act as any color, but you can still only have one wildcard
+                  organ.
+                </li>
               </ul>
             </div>
 
@@ -442,11 +487,25 @@ const RulesModal = ({ onClose }) => (
               <div className="flex items-center gap-2 text-rose-400 font-black tracking-widest bg-rose-950/50 p-2 rounded-lg w-fit">
                 <Bug className="w-5 h-5" /> VIRUSES
               </div>
-              <p className="text-sm opacity-90 mb-1">Play on an opponent's organ of the <strong>same color</strong>.</p>
+              <p className="text-sm opacity-90 mb-1">
+                Play on an opponent's organ of the <strong>same color</strong>.
+              </p>
               <ul className="text-sm space-y-2">
-                <li><strong className="text-rose-300">1st Virus (Infect):</strong> Stops the organ from counting toward a win.</li>
-                <li><strong className="text-rose-300">2nd Virus (Destroy):</strong> Destroys the organ! Both viruses and the organ go to the discard pile.</li>
-                <li><strong className="text-amber-300">vs Medicine:</strong> Destroys a single medicine (vaccine). Both are discarded.</li>
+                <li>
+                  <strong className="text-rose-300">1st Virus (Infect):</strong>{" "}
+                  Stops the organ from counting toward a win.
+                </li>
+                <li>
+                  <strong className="text-rose-300">
+                    2nd Virus (Destroy):
+                  </strong>{" "}
+                  Destroys the organ! Both viruses and the organ go to the
+                  discard pile.
+                </li>
+                <li>
+                  <strong className="text-amber-300">vs Medicine:</strong>{" "}
+                  Destroys a single medicine (vaccine). Both are discarded.
+                </li>
               </ul>
             </div>
 
@@ -455,91 +514,146 @@ const RulesModal = ({ onClose }) => (
               <div className="flex items-center gap-2 text-amber-400 font-black tracking-widest bg-amber-950/50 p-2 rounded-lg w-fit">
                 <Pill className="w-5 h-5" /> MEDICINES
               </div>
-              <p className="text-sm opacity-90 mb-1">Play on your organ of the <strong>same color</strong>.</p>
+              <p className="text-sm opacity-90 mb-1">
+                Play on your organ of the <strong>same color</strong>.
+              </p>
               <ul className="text-sm space-y-2">
-                <li><strong className="text-amber-300">1st Medicine (Vaccinate):</strong> Protects the organ.</li>
-                <li><strong className="text-emerald-400">2nd Medicine (Immunize):</strong> Permanently secures the organ! It can no longer be destroyed, stolen, or swapped (except by Medical Error).</li>
-                <li><strong className="text-rose-300">vs Virus:</strong> Cures an infection. Both are discarded.</li>
+                <li>
+                  <strong className="text-amber-300">
+                    1st Medicine (Vaccinate):
+                  </strong>{" "}
+                  Protects the organ.
+                </li>
+                <li>
+                  <strong className="text-emerald-400">
+                    2nd Medicine (Immunize):
+                  </strong>{" "}
+                  Permanently secures the organ! It can no longer be destroyed,
+                  stolen, or swapped (except by Medical Error).
+                </li>
+                <li>
+                  <strong className="text-rose-300">vs Virus:</strong> Cures an
+                  infection. Both are discarded.
+                </li>
               </ul>
             </div>
-
           </div>
         </section>
 
         {/* SECTION 3: Treatments */}
         <section>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-full bg-fuchsia-500/20 flex items-center justify-center border border-fuchsia-500/50 text-fuchsia-400 font-black">3</div>
-            <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-widest">Treatment Cards</h3>
+            <div className="w-8 h-8 rounded-full bg-fuchsia-500/20 flex items-center justify-center border border-fuchsia-500/50 text-fuchsia-400 font-black">
+              3
+            </div>
+            <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-widest">
+              Treatment Cards
+            </h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            
             <div className="flex gap-3 bg-fuchsia-950/20 p-4 rounded-xl border border-fuchsia-900/30 shadow-inner">
               <Hand className="text-fuchsia-400 w-6 h-6 shrink-0 mt-0.5" />
               <div>
-                <strong className="text-fuchsia-300 block mb-1 tracking-widest uppercase">Organ Thief</strong>
-                <p className="text-xs sm:text-sm opacity-90">Steal an organ from another player. You can steal infected or vaccinated organs, but <strong>not</strong> immunized ones.</p>
+                <strong className="text-fuchsia-300 block mb-1 tracking-widest uppercase">
+                  Organ Thief
+                </strong>
+                <p className="text-xs sm:text-sm opacity-90">
+                  Steal an organ from another player. You can steal infected or
+                  vaccinated organs, but <strong>not</strong> immunized ones.
+                </p>
               </div>
             </div>
 
             <div className="flex gap-3 bg-fuchsia-950/20 p-4 rounded-xl border border-fuchsia-900/30 shadow-inner">
               <Shuffle className="text-fuchsia-400 w-6 h-6 shrink-0 mt-0.5" />
               <div>
-                <strong className="text-fuchsia-300 block mb-1 tracking-widest uppercase">Transplant</strong>
-                <p className="text-xs sm:text-sm opacity-90">Swap any two organs between any two players (including yourself). Cannot swap immunized organs.</p>
+                <strong className="text-fuchsia-300 block mb-1 tracking-widest uppercase">
+                  Transplant
+                </strong>
+                <p className="text-xs sm:text-sm opacity-90">
+                  Swap any two organs between any two players (including
+                  yourself). Cannot swap immunized organs.
+                </p>
               </div>
             </div>
 
             <div className="flex gap-3 bg-fuchsia-950/20 p-4 rounded-xl border border-fuchsia-900/30 shadow-inner">
               <Biohazard className="text-fuchsia-400 w-6 h-6 shrink-0 mt-0.5" />
               <div>
-                <strong className="text-fuchsia-300 block mb-1 tracking-widest uppercase">Contagion</strong>
-                <p className="text-xs sm:text-sm opacity-90">Move as many viruses as possible from your infected organs to valid, free organs on your opponents.</p>
+                <strong className="text-fuchsia-300 block mb-1 tracking-widest uppercase">
+                  Contagion
+                </strong>
+                <p className="text-xs sm:text-sm opacity-90">
+                  Move as many viruses as possible from your infected organs to
+                  valid, free organs on your opponents.
+                </p>
               </div>
             </div>
 
             <div className="flex gap-3 bg-fuchsia-950/20 p-4 rounded-xl border border-fuchsia-900/30 shadow-inner">
               <ShieldAlert className="text-fuchsia-400 w-6 h-6 shrink-0 mt-0.5" />
               <div>
-                <strong className="text-fuchsia-300 block mb-1 tracking-widest uppercase">Latex Glove</strong>
-                <p className="text-xs sm:text-sm opacity-90">All other players instantly discard their entire hand and miss their next turn to draw back up to 3 cards.</p>
+                <strong className="text-fuchsia-300 block mb-1 tracking-widest uppercase">
+                  Latex Glove
+                </strong>
+                <p className="text-xs sm:text-sm opacity-90">
+                  All other players instantly discard their entire hand and miss
+                  their next turn to draw back up to 3 cards.
+                </p>
               </div>
             </div>
 
             <div className="flex gap-3 bg-rose-950/40 p-4 rounded-xl border border-rose-500/50 shadow-[0_0_15px_rgba(225,29,72,0.15)] sm:col-span-2 lg:col-span-2">
               <Activity className="text-rose-400 w-6 h-6 shrink-0 mt-0.5 animate-pulse" />
               <div>
-                <strong className="text-rose-300 block mb-1 tracking-widest uppercase">Medical Error (Danger!)</strong>
-                <p className="text-xs sm:text-sm opacity-90">Swap your <strong>entire body</strong> (organs, viruses, medicines) with another player! This is the <em>only</em> card in the game that ignores immunizations.</p>
+                <strong className="text-rose-300 block mb-1 tracking-widest uppercase">
+                  Medical Error (Danger!)
+                </strong>
+                <p className="text-xs sm:text-sm opacity-90">
+                  Swap your <strong>entire body</strong> (organs, viruses,
+                  medicines) with another player! This is the <em>only</em> card
+                  in the game that ignores immunizations.
+                </p>
               </div>
             </div>
-
           </div>
         </section>
 
         {/* SECTION 4: TEAM MODE (NEW) */}
         <section>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/50 text-cyan-400 font-black">4</div>
+            <div className="w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/50 text-cyan-400 font-black">
+              4
+            </div>
             <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-widest flex items-center gap-2">
               <Users className="w-6 h-6" /> Team Protocol
             </h3>
           </div>
           <div className="bg-gradient-to-br from-cyan-950/40 to-blue-950/40 p-5 sm:p-6 rounded-2xl border border-cyan-500/30 shadow-inner space-y-4">
-            
             <p className="text-sm sm:text-base text-cyan-100 font-bold">
-              If the host toggles TEAM MODE in a 4 or 6 player lobby, new strategic rules apply:
+              If the host toggles TEAM MODE in a 4 or 6 player lobby, new
+              strategic rules apply:
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-black/40 p-4 rounded-xl border border-white/5">
-                <strong className="text-cyan-300 block mb-2 uppercase tracking-widest text-sm">Shared Victory</strong>
-                <p className="text-sm opacity-90">You only win when BOTH you and your teammate successfully complete your bodies with 4 healthy organs.</p>
+                <strong className="text-cyan-300 block mb-2 uppercase tracking-widest text-sm">
+                  Shared Victory
+                </strong>
+                <p className="text-sm opacity-90">
+                  You only win when BOTH you and your teammate successfully
+                  complete your bodies with 4 healthy organs.
+                </p>
               </div>
-              
+
               <div className="bg-black/40 p-4 rounded-xl border border-white/5">
-                <strong className="text-cyan-300 block mb-2 uppercase tracking-widest text-sm">Cross-Play</strong>
-                <p className="text-sm opacity-90">You can play Organs and Medicines directly onto your teammate's body to help them build and heal.</p>
+                <strong className="text-cyan-300 block mb-2 uppercase tracking-widest text-sm">
+                  Cross-Play
+                </strong>
+                <p className="text-sm opacity-90">
+                  You can play Organs and Medicines directly onto your
+                  teammate's body to help them build and heal.
+                </p>
               </div>
 
               <div className="bg-emerald-950/40 p-4 rounded-xl border border-emerald-500/30 md:col-span-2 relative overflow-hidden">
@@ -547,19 +661,21 @@ const RulesModal = ({ onClose }) => (
                   <ShieldAlert className="w-32 h-32 transform translate-x-4 -translate-y-4" />
                 </div>
                 <strong className="text-emerald-400 block mb-2 uppercase tracking-widest text-sm flex items-center gap-2">
-                   Body Secured (Lockdown)
+                  Body Secured (Lockdown)
                 </strong>
                 <p className="text-sm opacity-90 leading-relaxed">
-                  If you finish your body before your teammate, your body goes into lockdown. 
-                  It becomes <strong>untouchable</strong>—opponents cannot attack it with viruses, steal from it, or swap it with Medical Errors. 
-                  You will continue to take turns normally, drawing cards and playing actions/medicines to support your teammate or sabotage your enemies until your team wins!
+                  If you finish your body before your teammate, your body goes
+                  into lockdown. It becomes <strong>untouchable</strong>
+                  —opponents cannot attack it with viruses, steal from it, or
+                  swap it with Medical Errors. You will continue to take turns
+                  normally, drawing cards and playing actions/medicines to
+                  support your teammate or sabotage your enemies until your team
+                  wins!
                 </p>
               </div>
             </div>
-
           </div>
         </section>
-
       </div>
 
       {/* Footer */}
@@ -797,6 +913,7 @@ export default function ImmuneGame() {
           body: [],
           skipTurn: false,
           teamId: null,
+          secured: false, // <-- ADD THIS
         },
       ],
       deck: [],
@@ -844,6 +961,7 @@ export default function ImmuneGame() {
               body: [],
               skipTurn: false,
               teamId: null,
+              secured: false, // <-- ADD THIS
             },
           ];
           await updateDoc(ref, { players: newPlayers });
@@ -898,6 +1016,7 @@ export default function ImmuneGame() {
       ...p,
       hand: [],
       body: [],
+      secured: false, // <-- ADD THIS
       skipTurn: false,
       teamId:
         actualGameMode === "team" ? i % (gameState.players.length / 2) : null,
@@ -982,6 +1101,7 @@ export default function ImmuneGame() {
       skipTurn: false,
       wins: 0,
       teamId: null,
+      secured: false, // <-- ADD THIS
     }));
     await updateDoc(
       doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
@@ -1031,6 +1151,12 @@ export default function ImmuneGame() {
     const cardIdx = selectedCards[0];
     const card = me.hand[cardIdx];
     const isTeamMode = state.gameMode === "team";
+
+    // --- NEW: BENEFICIARY SETUP ---
+    const teammate = isTeamMode
+      ? state.players.find((p) => p.teamId === me.teamId && p.id !== me.id)
+      : null;
+    const beneficiary = me.secured && teammate ? teammate : me;
 
     try {
       if (actionType === "ORGAN") {
@@ -1151,28 +1277,32 @@ export default function ImmuneGame() {
         const tPlayer = state.players.find(
           (p) => p.id === params.targetPlayerId,
         );
-        if (checkWinCondition(tPlayer))
+        if (tPlayer.secured)
           throw new Error("Cannot steal from a secured body!");
         const tOrgan = tPlayer.body.find((o) => o.id === params.targetOrganId);
         if (tOrgan.medicines.length >= 2)
           throw new Error("Cannot steal an immunized organ!");
-        if (me.body.some((o) => o.color === tOrgan.color))
-          throw new Error("You already have an organ of that color.");
+
+        // CHECK BENEFICIARY
+        if (beneficiary.body.some((o) => o.color === tOrgan.color))
+          throw new Error(
+            `${beneficiary.name} already has an organ of that color.`,
+          );
         if (isTeamMode && tPlayer.teamId === me.teamId)
           throw new Error("Cannot steal from a teammate.");
 
         me.hand.splice(cardIdx, 1);
         tPlayer.body = tPlayer.body.filter((o) => o.id !== tOrgan.id);
-        me.body.push(tOrgan);
+
+        // GIVE TO BENEFICIARY
+        beneficiary.body.push(tOrgan);
         state.discardPile.push(card);
-        logs.push(
-          triggerLog(
-            `${me.name} stole ${tPlayer.name}'s organ!`,
-            "warning",
-            true,
-            "ORGAN STOLEN",
-          ),
-        );
+
+        const logMsg =
+          me.id === beneficiary.id
+            ? `${me.name} stole ${tPlayer.name}'s organ!`
+            : `${me.name} stole ${tPlayer.name}'s organ for ${beneficiary.name}!`;
+        logs.push(triggerLog(logMsg, "warning", true, "ORGAN STOLEN"));
       } else if (actionType === "TRANSPLANT") {
         const pA = state.players.find(
           (p) => p.id === params.organA.targetPlayerId,
@@ -1223,36 +1353,40 @@ export default function ImmuneGame() {
         const tPlayer = state.players.find(
           (p) => p.id === params.targetPlayerId,
         );
-        if (checkWinCondition(tPlayer))
+        if (tPlayer.secured)
           throw new Error("Cannot swap with a secured body!");
-        if (tPlayer.id === me.id) throw new Error("Cannot swap with yourself.");
+        if (tPlayer.id === beneficiary.id)
+          throw new Error("Cannot swap with yourself/teammate.");
         if (isTeamMode && tPlayer.teamId === me.teamId)
           throw new Error("Cannot swap with teammate.");
 
         me.hand.splice(cardIdx, 1);
-        const temp = me.body;
-        me.body = tPlayer.body;
+
+        // SWAP BENEFICIARY
+        const temp = beneficiary.body;
+        beneficiary.body = tPlayer.body;
         tPlayer.body = temp;
+
         state.discardPile.push(card);
-        logs.push(
-          triggerLog(
-            `${me.name} caused a Medical Error! Swapped bodies with ${tPlayer.name}!`,
-            "failure",
-            true,
-            "MEDICAL ERROR",
-          ),
-        );
+
+        const logMsg =
+          me.id === beneficiary.id
+            ? `${me.name} caused a Medical Error! Swapped bodies with ${tPlayer.name}!`
+            : `${me.name} caused a Medical Error! Swapped ${beneficiary.name}'s body with ${tPlayer.name}!`;
+        logs.push(triggerLog(logMsg, "failure", true, "MEDICAL ERROR"));
       } else if (actionType === "CONTAGION") {
         me.hand.splice(cardIdx, 1);
         let spreadCount = 0;
-        me.body.forEach((myOrgan) => {
+
+        // SPREAD FROM BENEFICIARY
+        beneficiary.body.forEach((myOrgan) => {
           if (myOrgan.viruses.length > 0) {
             const topVirus = myOrgan.viruses[myOrgan.viruses.length - 1];
             for (let p of state.players) {
               if (
-                p.id === me.id ||
-                (isTeamMode && p.teamId === me.teamId) ||
-                checkWinCondition(p)
+                p.id === beneficiary.id ||
+                (isTeamMode && p.teamId === beneficiary.teamId) ||
+                p.secured
               )
                 continue;
               let validOrgan = p.body.find(
@@ -1275,14 +1409,12 @@ export default function ImmuneGame() {
           }
         });
         state.discardPile.push(card);
-        logs.push(
-          triggerLog(
-            `${me.name} spread contagion! ${spreadCount} viruses moved.`,
-            "warning",
-            true,
-            "CONTAGION",
-          ),
-        );
+
+        const logMsg =
+          me.id === beneficiary.id
+            ? `${me.name} spread contagion! ${spreadCount} viruses moved.`
+            : `${me.name} spread contagion from ${beneficiary.name}! ${spreadCount} viruses moved.`;
+        logs.push(triggerLog(logMsg, "warning", true, "CONTAGION"));
       } else if (actionType === "GLOVE") {
         me.hand.splice(cardIdx, 1);
         state.players.forEach((p) => {
@@ -1302,6 +1434,37 @@ export default function ImmuneGame() {
           ),
         );
       }
+
+      // --- NEW: BODY RECIRCULATION ---
+      state.players.forEach((p) => {
+        // If they just got 4 healthy organs and aren't secured yet
+        if (
+          !p.secured &&
+          p.body.filter((o) => o.viruses.length === 0).length >= 4
+        ) {
+          p.secured = true;
+
+          // Dump all organs, medicines, and viruses into the discard pile
+          p.body.forEach((organ) => {
+            state.discardPile.push(...organ.viruses);
+            state.discardPile.push(...organ.medicines);
+            // Push the clean organ back
+            state.discardPile.push({ ...organ, viruses: [], medicines: [] });
+          });
+
+          p.body = []; // Clear their board
+
+          logs.push(
+            triggerLog(
+              `${p.name}'s body is SECURED! Their organs return to the deck.`,
+              "important",
+              true,
+              "BODY SECURED",
+            ),
+          );
+        }
+      });
+      // --------------------------------------
 
       setSelectedCards([]);
       setTransplantA(null);
@@ -1423,11 +1586,21 @@ export default function ImmuneGame() {
 
   const isTargetableForOpponent = (organ, owner, me) => {
     if (selectedCards.length !== 1) return false;
-    if (checkWinCondition(owner)) return false; // LOCKED BODY
+    if (owner.secured) return false; // LOCKED BODY
 
     const card = me.hand[selectedCards[0]];
     const isTeammate =
       gameState.gameMode === "team" && owner.teamId === me.teamId;
+
+    // --- NEW: BENEFICIARY PROXY ---
+    // If I am secured, I am making checks on behalf of my teammate
+    const teammate =
+      gameState.gameMode === "team"
+        ? gameState.players.find(
+            (p) => p.teamId === me.teamId && p.id !== me.id,
+          )
+        : null;
+    const beneficiary = me.secured && teammate ? teammate : me;
 
     if (
       card.type === "VIRUS" &&
@@ -1447,14 +1620,17 @@ export default function ImmuneGame() {
         card.color === "MULTI")
     )
       return true;
+
+    // THIEF now checks if the BENEFICIARY already has the color, not just 'me'
     if (
       card.type === "ACTION" &&
       card.action === "THIEF" &&
       !isTeammate &&
       organ.medicines.length < 2 &&
-      !me.body.some((o) => o.color === organ.color)
+      !beneficiary.body.some((o) => o.color === organ.color)
     )
       return true;
+
     if (
       card.type === "ACTION" &&
       card.action === "TRANSPLANT" &&
@@ -2091,7 +2267,7 @@ export default function ImmuneGame() {
               return (
                 <div
                   key={p.id}
-                  className={`flex flex-col w-fit min-w-[140px] sm:min-w-[180px] bg-slate-800/80 p-2.5 sm:p-3 rounded-2xl border transition-all relative overflow-hidden ${isTurn ? "border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]" : "border-white/10"} ${isTargetable ? "ring-4 ring-cyan-400 animate-pulse cursor-pointer" : ""}`}
+                  className={`flex flex-col w-fit min-w-[160px] sm:min-w-[200px] bg-slate-800/80 p-3 sm:p-4 rounded-2xl border transition-all relative overflow-hidden ${isTurn ? "border-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.3)]" : "border-white/10"} ${isTargetable ? "ring-4 ring-cyan-400 animate-pulse cursor-pointer" : ""}`}
                 >
                   {isCompleted && (
                     <div className="absolute inset-0 bg-emerald-900/30 backdrop-blur-[1px] z-30 flex items-center justify-center">
@@ -2102,7 +2278,7 @@ export default function ImmuneGame() {
                   )}
 
                   <div
-                    className="flex justify-between items-start mb-2 relative z-10"
+                    className="flex justify-between items-start mb-4 relative z-10"
                     onClick={() => {
                       if (isTargetable) handlePlayerClick(p.id);
                     }}
@@ -2113,9 +2289,9 @@ export default function ImmuneGame() {
                       >
                         {p.name}
                       </span>
-                      {gameState.gameMode === "team" && (
+                      {gameState.gameMode === "team" && p.teamId !== null && (
                         <div
-                          className={`text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded mt-1 w-fit ${p.teamId === me.teamId ? "bg-cyan-500/20 text-cyan-400" : "bg-rose-500/20 text-rose-400"}`}
+                          className={`text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded mt-1 w-fit border ${TEAM_COLORS[p.teamId]?.badge || ""}`}
                         >
                           {p.teamId === me.teamId
                             ? "TEAMMATE"
@@ -2127,25 +2303,35 @@ export default function ImmuneGame() {
                       {p.wins} Wins
                     </span>
                   </div>
+
+                  {/* FIX: Removed duplicate div, increased gap, and set dynamic columns */}
                   <div
-                    className={`grid gap-2 justify-items-center relative z-10 ${p.body.length === 5 ? "grid-cols-3" : "grid-cols-2"}`}
+                    className={`grid gap-x-3 gap-y-4 sm:gap-x-4 sm:gap-y-5 justify-items-center relative z-10 pb-2 pr-2 ${p.body.length >= 3 ? "grid-cols-3" : "grid-cols-2"}`}
                   >
-                    {p.body.map((organ) => (
-                      <OrganView
-                        key={organ.id}
-                        organ={organ}
-                        size="sm"
-                        isTargetable={isTargetableForOpponent(organ, p, me)}
-                        onClick={() => {
-                          if (isTargetableForOpponent(organ, p, me))
-                            handleBoardClick(p.id, organ.id);
-                        }}
-                      />
-                    ))}
-                    {p.body.length === 0 && (
-                      <div className="col-span-full text-[10px] sm:text-xs text-slate-500 font-bold uppercase tracking-widest italic w-full text-center py-4">
-                        No Organs
+                    {p.secured ? (
+                      <div className="col-span-full text-xs text-emerald-400 font-black uppercase tracking-widest animate-pulse py-4 text-center">
+                        BODY SECURE
                       </div>
+                    ) : (
+                      <>
+                        {p.body.map((organ) => (
+                          <OrganView
+                            key={organ.id}
+                            organ={organ}
+                            size="sm"
+                            isTargetable={isTargetableForOpponent(organ, p, me)}
+                            onClick={() => {
+                              if (isTargetableForOpponent(organ, p, me))
+                                handleBoardClick(p.id, organ.id);
+                            }}
+                          />
+                        ))}
+                        {p.body.length === 0 && (
+                          <div className="col-span-full text-[10px] sm:text-xs text-slate-500 font-bold uppercase tracking-widest italic w-full text-center py-4">
+                            No Organs
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -2162,40 +2348,48 @@ export default function ImmuneGame() {
               >
                 {isMyTurn ? "Your Turn" : "Waiting..."}
               </div>
-              {gameState.gameMode === "team" && (
-                <div className="px-4 py-2 rounded-full border border-cyan-500/30 bg-cyan-900/40 text-cyan-300 text-xs font-bold uppercase tracking-widest flex items-center shadow-lg">
-                  Team {me?.teamId + 1}
+              {gameState.gameMode === "team" && me?.teamId !== null && (
+                <div
+                  className={`px-4 py-2 rounded-full border ${TEAM_COLORS[me.teamId]?.badge || ""} text-xs font-bold uppercase tracking-widest flex items-center shadow-lg`}
+                >
+                  Team {me.teamId + 1}
                 </div>
               )}
             </div>
-
-            {isMeCompleted && (
-              <div className="px-6 py-2 rounded-full border border-emerald-500/50 bg-emerald-900/60 text-emerald-300 text-xs sm:text-sm font-black uppercase tracking-widest flex items-center shadow-[0_0_20px_rgba(16,185,129,0.4)] mt-2 animate-pulse">
-                Body Secured - Support Teammate
-              </div>
-            )}
           </div>
 
           <div
             className={`flex flex-nowrap overflow-x-auto custom-scrollbar justify-center items-center gap-3 sm:gap-6 w-full max-w-5xl mx-auto px-4 mt-auto mb-auto pt-4 pb-8 ${isMeCompleted ? "opacity-50" : ""}`}
           >
-            {me?.body.map((organ) => (
-              <div key={organ.id} className="shrink-0">
-                <OrganView
-                  organ={organ}
-                  size="md"
-                  isTargetable={isTargetableForMe(organ, me)}
-                  onClick={() => {
-                    if (isTargetableForMe(organ, me))
-                      handleBoardClick(me.id, organ.id);
-                  }}
-                />
+            {me?.secured ? (
+              <div className="text-emerald-400 font-black uppercase tracking-widest text-lg sm:text-xl border-2 border-dashed border-emerald-500/50 bg-emerald-900/20 px-12 py-8 rounded-2xl shrink-0 animate-pulse text-center">
+                Body Secure
+                <br />
+                <span className="text-sm text-emerald-200">
+                  Support your team!
+                </span>
               </div>
-            ))}
-            {me?.body.length === 0 && (
-              <div className="text-slate-600 font-bold uppercase tracking-widest text-sm sm:text-base border-2 border-dashed border-slate-700 px-12 py-8 rounded-2xl shrink-0">
-                Your Body is Empty
-              </div>
+            ) : (
+              <>
+                {me?.body.map((organ) => (
+                  <div key={organ.id} className="shrink-0">
+                    <OrganView
+                      organ={organ}
+                      size="md"
+                      isTargetable={isTargetableForMe(organ, me)}
+                      onClick={() => {
+                        if (isTargetableForMe(organ, me))
+                          handleBoardClick(me.id, organ.id);
+                      }}
+                    />
+                  </div>
+                ))}
+                {me?.body.length === 0 && (
+                  <div className="text-slate-600 font-bold uppercase tracking-widest text-sm sm:text-base border-2 border-dashed border-slate-700 px-12 py-8 rounded-2xl shrink-0">
+                    Your Body is Empty
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -2242,49 +2436,88 @@ export default function ImmuneGame() {
         {gameState.status === "finished" && (
           <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center pt-16 sm:pt-20 pb-10 px-4">
             <div className="bg-slate-900 p-6 md:p-8 rounded-3xl border border-emerald-500/50 text-center shadow-[0_0_80px_rgba(16,185,129,0.3)] animate-in zoom-in max-w-lg w-full flex flex-col relative max-h-[90vh]">
-              <div className="shrink-0 mb-4 sm:mb-6">
-                <Heart className="w-20 h-20 sm:w-24 sm:h-24 text-emerald-400 mx-auto mb-2 sm:mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(16,185,129,0.6)]" />
-                <h2 className="text-4xl sm:text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 uppercase mb-1 sm:mb-2 leading-tight drop-shadow-xl truncate px-2">
-                  {gameState.gameMode === "team"
-                    ? `Team ${gameState.players.filter(checkWinCondition)[0]?.teamId + 1} Wins!`
-                    : gameState.players
-                        .slice()
-                        .sort((a, b) => b.wins - a.wins)[0]?.name}
-                </h2>
-                <p className="text-emerald-400 font-black tracking-[0.2em] sm:tracking-[0.3em] text-xs sm:text-sm uppercase drop-shadow-md">
-                  Survives!
-                </p>
-              </div>
+              {/* Safely calculate the true winners for the UI */}
+              {(() => {
+                let winningTeamId = null;
+                let winningPlayerIds = [];
 
-              <div className="space-y-3 mb-6 sm:mb-8 overflow-y-auto custom-scrollbar flex-1 px-1">
-                {gameState.players.map((p) => {
-                  const isWinner = checkWinCondition(p);
-                  return (
-                    <div
-                      key={p.id}
-                      className={`flex justify-between items-center px-4 sm:px-6 py-3 rounded-2xl border ${isWinner ? "bg-gradient-to-r from-emerald-900/40 to-teal-900/40 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.2)]" : "bg-black/40 border-white/5 shadow-inner"}`}
-                    >
-                      <div className="flex flex-col items-start">
-                        <span className="font-black text-white text-base sm:text-xl tracking-wide truncate drop-shadow-md">
-                          {p.name}
-                        </span>
-                        {gameState.gameMode === "team" && (
-                          <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                            Team {p.teamId + 1}
-                          </span>
-                        )}
-                      </div>
-                      {isWinner && (
-                        <span className="font-black text-emerald-400 text-sm sm:text-lg shrink-0 drop-shadow-md">
-                          {gameState.gameMode === "team"
-                            ? "TEAM WINNER"
-                            : "WINNER"}
-                        </span>
-                      )}
+                if (gameState.gameMode === "team") {
+                  // Find the team where ALL members meet the win condition
+                  const teams = [
+                    ...new Set(gameState.players.map((p) => p.teamId)),
+                  ];
+                  for (let tId of teams) {
+                    const teamPlayers = gameState.players.filter(
+                      (p) => p.teamId === tId,
+                    );
+                    if (teamPlayers.every(checkWinCondition)) {
+                      winningTeamId = tId;
+                      winningPlayerIds = teamPlayers.map((p) => p.id);
+                      break;
+                    }
+                  }
+                } else {
+                  const winner = gameState.players.find(checkWinCondition);
+                  if (winner) winningPlayerIds = [winner.id];
+                }
+
+                // Determine the big title text
+                const winnerTitle =
+                  gameState.gameMode === "team"
+                    ? `Team ${winningTeamId !== null ? winningTeamId + 1 : "?"} Wins!`
+                    : gameState.players.find((p) =>
+                        winningPlayerIds.includes(p.id),
+                      )?.name || "Winner!";
+
+                return (
+                  <>
+                    <div className="shrink-0 mb-4 sm:mb-6">
+                      <Heart className="w-20 h-20 sm:w-24 sm:h-24 text-emerald-400 mx-auto mb-2 sm:mb-4 animate-bounce drop-shadow-[0_0_15px_rgba(16,185,129,0.6)]" />
+                      <h2 className="text-4xl sm:text-6xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 uppercase mb-1 sm:mb-2 leading-tight drop-shadow-xl truncate px-2">
+                        {winnerTitle}
+                      </h2>
+                      <p className="text-emerald-400 font-black tracking-[0.2em] sm:tracking-[0.3em] text-xs sm:text-sm uppercase drop-shadow-md">
+                        Survives!
+                      </p>
                     </div>
-                  );
-                })}
-              </div>
+
+                    <div className="space-y-3 mb-6 sm:mb-8 overflow-y-auto custom-scrollbar flex-1 px-1">
+                      {gameState.players.map((p) => {
+                        // Check against the true winning player array, NOT just their personal body status
+                        const isWinner = winningPlayerIds.includes(p.id);
+
+                        return (
+                          <div
+                            key={p.id}
+                            className={`flex justify-between items-center px-4 sm:px-6 py-3 rounded-2xl border ${isWinner ? "bg-gradient-to-r from-emerald-900/40 to-teal-900/40 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.2)]" : "bg-black/40 border-white/5 shadow-inner"}`}
+                          >
+                            <div className="flex flex-col items-start">
+                              <span className="font-black text-white text-base sm:text-xl tracking-wide truncate drop-shadow-md">
+                                {p.name}
+                              </span>
+                              {gameState.gameMode === "team" &&
+                                p.teamId !== null && (
+                                  <span
+                                    className={`text-[10px] font-bold uppercase tracking-widest ${TEAM_COLORS[p.teamId]?.text || "text-slate-400"}`}
+                                  >
+                                    Team {p.teamId + 1}
+                                  </span>
+                                )}
+                            </div>
+                            {isWinner && (
+                              <span className="font-black text-emerald-400 text-sm sm:text-lg shrink-0 drop-shadow-md">
+                                {gameState.gameMode === "team"
+                                  ? "TEAM WINNER"
+                                  : "WINNER"}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                );
+              })()}
 
               {gameState.hostId === user.uid ? (
                 <div className="shrink-0 pt-2">
