@@ -2481,7 +2481,7 @@ export default function DarkFolkloreGame() {
         <div className="z-10 text-center mb-12">
           <Moon
             size={64}
-            className="mx-auto mb-6 text-fuchsia-600 drop-shadow-[0_0_20px_rgba(192,38,211,0.6)]"
+            className="mx-auto mb-6 text-fuchsia-600 animate-bounce drop-shadow-[0_0_20px_rgba(192,38,211,0.6)]"
           />
           <h1 className="text-7xl font-black tracking-[0.4em] uppercase text-transparent bg-clip-text bg-gradient-to-b from-slate-100 to-slate-600 drop-shadow-xl">
             DARK

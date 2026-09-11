@@ -1576,7 +1576,7 @@ export default function ImmuneGame() {
         </nav>
         {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
         <div className="z-10 text-center mb-6 sm:mb-10 mt-6">
-          <HeartPulse className="w-20 h-20 sm:w-24 sm:h-24 text-emerald-500 mx-auto mb-2 sm:mb-4" />
+          <HeartPulse className="w-20 h-20 sm:w-24 sm:h-24 text-emerald-500 animate-bounce mx-auto mb-2 sm:mb-4" />
           <h1 className="text-6xl sm:text-7xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-emerald-400 to-teal-700 tracking-tighter drop-shadow-md">
             IMMUNE
           </h1>

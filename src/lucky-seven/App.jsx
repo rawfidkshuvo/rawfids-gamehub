@@ -1430,7 +1430,7 @@ export default function Lucky7Game() {
         </nav>
         {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
         <div className="z-10 text-center mb-8 sm:mb-10 mt-8">
-          <Zap className="w-12 h-12 sm:w-16 sm:h-16 text-cyan-500 mx-auto mb-4" />
+          <Zap className="w-12 h-12 sm:w-16 sm:h-16 text-cyan-500 animate-bounce mx-auto mb-4" />
           <h1 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-cyan-400 to-blue-600 tracking-tighter drop-shadow-md italic">
             LUCKY 7
           </h1>

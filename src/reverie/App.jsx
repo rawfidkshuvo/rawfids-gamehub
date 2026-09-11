@@ -1379,7 +1379,7 @@ export default function ReverieGame() {
         </nav>
         {showGuide && <RulesModal onClose={() => setShowGuide(false)} />}
         <div className="z-10 text-center mb-8 sm:mb-10 mt-8">
-          <Sparkles className="w-12 h-12 sm:w-16 sm:h-16 text-fuchsia-500 mx-auto mb-4" />
+          <Sparkles className="w-12 h-12 sm:w-16 sm:h-16 text-fuchsia-500 animate-pulse mx-auto mb-4" />
           <h1 className="text-5xl md:text-7xl font-thin text-transparent bg-clip-text bg-gradient-to-b from-fuchsia-400 to-indigo-600 tracking-tighter drop-shadow-md">
             REVERIE
           </h1>

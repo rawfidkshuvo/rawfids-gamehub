@@ -192,6 +192,19 @@ const DICE_ICONS = {
   4: Skull,
 };
 
+const GlobalStyles = () => (
+  <style>{`
+    @keyframes spin-slow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .animate-spin-slow {
+      animation: spin-slow 15s linear infinite;
+    }
+  `}</style>
+);
+
 const FloatingBackground = React.memo(() => {
   // useMemo ensures these random positions are calculated ONLY ONCE
   // This keeps the performance high and stops icons from resetting.
@@ -1197,6 +1210,7 @@ export default function AngryVirus() {
   if (view === "menu") {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <GlobalStyles />
         <DarkAtmosphere />
         {/* --- START OF BACK BUTTON --- */}
         <nav className="absolute top-0 left-0 w-full p-4 z-50">
@@ -1213,7 +1227,7 @@ export default function AngryVirus() {
         <div className="z-10 text-center mb-10">
           <Biohazard
             size={64}
-            className="text-green-500 mx-auto mb-4 animate-bounce md:w-20 md:h-20"
+            className="text-green-500 mx-auto mb-4 animate-spin-slow md:w-20 md:h-20"
           />
           <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-linear-to-br from-green-400 to-lime-600 uppercase tracking-tighter">
             Angry Virus
