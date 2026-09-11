@@ -77,6 +77,7 @@ import {
   Save,
   Calendar,
   Check,
+  UserPlus,
 } from "lucide-react";
 import CoverImage from "./assets/gamehub_cover.png";
 
@@ -515,6 +516,7 @@ const INITIAL_GAMES = [
     minPlayers: 4,
     maxPlayers: 6,
     hasBots: false,
+    hasTeamPlay: true,
     complexity: "Medium",
     duration: "20-40m",
     link: "./together/",
@@ -611,6 +613,7 @@ const INITIAL_GAMES = [
     minPlayers: 2,
     maxPlayers: 6,
     hasBots: false,
+    hasTeamPlay: true,
     complexity: "Medium",
     duration: "20-30m",
     link: "./immune/",
@@ -643,6 +646,7 @@ const INITIAL_GAMES = [
     minPlayers: 1,
     maxPlayers: 4,
     hasBots: false,
+    hasTeamPlay: true,
     complexity: "Hard",
     duration: "40-60m",
     link: "./outbreak/",
@@ -1079,7 +1083,13 @@ const GameCard = ({
               {game.hasBots && (
                 <div className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-medium flex items-center gap-1">
                   <Bot className="w-3 h-3" />
-                  +Bot
+                  +BOTS
+                </div>
+              )}
+              {game.hasTeamPlay && (
+                <div className="px-2 py-0.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-medium flex items-center gap-1">
+                  <UserPlus className="w-3 h-3" />
+                  TEAM PLAY
                 </div>
               )}
               {game.betaTesting && (
