@@ -328,12 +328,18 @@ const RoundSummaryModal = ({ players, onClose }) => {
           {sortedPlayers.map((player, idx) => {
             const score = calculateScore(player.cards, player.tokens);
             const groups = groupConsecutiveCards(player.cards);
+            const topPlayer = sortedPlayers[0];
+            const topScore = calculateScore(
+              topPlayer?.cards,
+              topPlayer?.tokens,
+            );
+            const topTokens = topPlayer?.tokens;
 
             return (
               <div
                 key={player.id}
                 className={`rounded-xl p-4 border ${
-                  idx === 0
+                  score === topScore && player.tokens === topTokens
                     ? "bg-green-900/10 border-green-500/50"
                     : "bg-gray-800/40 border-gray-700"
                 }`}
@@ -346,7 +352,7 @@ const RoundSummaryModal = ({ players, onClose }) => {
                     <span className="font-bold text-lg text-white">
                       {player.name}
                     </span>
-                    {idx === 0 && (
+                    {score === topScore && player.tokens === topTokens && (
                       <span className="px-2 py-0.5 rounded text-[10px] bg-green-500 text-black font-bold uppercase">
                         Cleanest
                       </span>
@@ -1535,10 +1541,10 @@ export default function AngryVirus() {
             <div className="text-2xl text-gray-300 mb-8">
               Winner:{" "}
               <span className="text-green-400 font-bold">
-                {
-                  gameState.players.find((p) => p.id === gameState.winnerId)
-                    ?.name
-                }
+                {gameState.players
+                  .filter((p) => gameState.winnerId?.includes(p.id))
+                  .map((p) => p.name)
+                  .join(" & ")}
               </span>
             </div>
 
@@ -1552,16 +1558,17 @@ export default function AngryVirus() {
 
             <div className="grid grid-cols-1 gap-3 w-full max-w-md max-h-[30vh] overflow-y-auto mb-8">
               {[...gameState.players]
-                .sort(
-                  (a, b) =>
-                    calculateScore(a.cards, a.tokens) -
-                    calculateScore(b.cards, b.tokens),
-                )
+                .sort((a, b) => {
+                  const scoreA = calculateScore(a.cards, a.tokens);
+                  const scoreB = calculateScore(b.cards, b.tokens);
+                  if (scoreA !== scoreB) return scoreA - scoreB;
+                  return b.tokens - a.tokens; // Highest vitamins wins ties
+                })
                 .map((p, i) => (
                   <div
                     key={p.id}
                     className={`flex justify-between items-center p-4 rounded-xl border ${
-                      p.id === gameState.winnerId
+                      gameState.winnerId?.includes(p.id)
                         ? "bg-green-900/30 border-green-500"
                         : "bg-gray-800 border-gray-700"
                     }`}

@@ -1992,7 +1992,7 @@ const RulesModal = ({ onClose }) => (
             </h4>
             <p className="text-sm">
               Buy illegal upgrades from the Black Market. Deep pockets, crate
-              extensions, and scanners can turn the tide. You can also discard and redraw up to 5 cards on your turn.
+              extensions, and scanners can turn the tide.
             </p>
           </div>
           <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
@@ -2323,7 +2323,6 @@ export default function ContrabandGame() {
 
   // Interaction States
   const [selectedCards, setSelectedCards] = useState([]);
-  const [isDiscarding, setIsDiscarding] = useState(false);
   const [declaredType, setDeclaredType] = useState("FOOD");
   const [bribeAmount, setBribeAmount] = useState(0);
   const [lastBribeUpdate, setLastBribeUpdate] = useState(0);
@@ -2352,6 +2351,7 @@ export default function ContrabandGame() {
   }, []);
 
   // 3. NEW FUNCTION: Handle Splash Button Click
+  // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
     // Set a temporary session flag
     sessionStorage.setItem("splashRefreshed", "true");
@@ -2359,6 +2359,16 @@ export default function ContrabandGame() {
     // Force a hard browser reload to ensure a perfectly clean state
     window.location.reload();
   };
+
+  // --- Session Restoration ---
+  // useEffect(() => {
+  //   const savedRoomId = localStorage.getItem("contraband_roomId");
+  //   if (savedRoomId) {
+  //     setRoomId(savedRoomId);
+  //   }
+  // }, []);
+
+  // --- Inside ContrabandGame component ---
 
   useEffect(() => {
     if (!roomId || !user) return;
@@ -2404,12 +2414,6 @@ export default function ContrabandGame() {
     );
     return () => unsub();
   }, [roomId, user, gameState?.feedbackTrigger?.id]); // Ensure dependencies are correct
-
-  // Reset local state when phase changes
-  useEffect(() => {
-    setSelectedCards([]);
-    setIsDiscarding(false);
-  }, [gameState?.turnState]);
 
   // --- Helpers ---
   const me = gameState?.players.find((p) => p.id === user?.uid) || {};
@@ -2466,12 +2470,10 @@ export default function ContrabandGame() {
           role: null,
           loadedCrate: null,
           ready: false,
-          hasRedrawn: false,
         },
       ],
       deck: [],
       inspectorIndex: 0,
-      marketTurnIndex: 0,
       turnState: "IDLE",
       marketEvent: EVENTS.NORMAL,
       logs: [],
@@ -2517,7 +2519,6 @@ export default function ContrabandGame() {
         role: null,
         loadedCrate: null,
         ready: false,
-        hasRedrawn: false,
       };
       await updateDoc(ref, { players: arrayUnion(newPlayer) });
       localStorage.setItem("contraband_roomId", roomCodeInput);
@@ -2569,7 +2570,7 @@ export default function ContrabandGame() {
       setTimeout(() => setIsCopied(false), 2000);
 
       // Keep your existing global feedback if needed
-      if (typeof triggerFeedback !== 'undefined' && triggerFeedback)
+      if (triggerFeedback)
         triggerFeedback("neutral", "COPIED!", "", CheckCircle);
     };
 
@@ -2598,7 +2599,6 @@ export default function ContrabandGame() {
       role: null,
       loadedCrate: null,
       ready: false,
-      hasRedrawn: false,
     }));
     await updateDoc(
       doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
@@ -2611,7 +2611,6 @@ export default function ContrabandGame() {
         winner: null,
         feedbackTrigger: null,
         marketEvent: EVENTS.NORMAL,
-        marketTurnIndex: 0,
         currentRound: 1,
         inspectorOrder: [],
         roundHistory: [],
@@ -2668,7 +2667,6 @@ export default function ContrabandGame() {
         upgrades: [],
         loadedCrate: null,
         ready: false,
-        hasRedrawn: false,
       };
     });
 
@@ -2680,7 +2678,6 @@ export default function ContrabandGame() {
         deck,
         inspectorOrder,
         inspectorIndex: firstInspectorIdx,
-        marketTurnIndex: (firstInspectorIdx + 1) % players.length,
         currentRound: 1,
         currentRoundStats: initialRoundStats,
         roundHistory: [],
@@ -2698,55 +2695,33 @@ export default function ContrabandGame() {
   };
 
   const toggleReady = async () => {
-    // LOGIC 1: Turn-based Market Phase
-    if (gameState.status === "playing" && gameState.turnState === "SHOPPING") {
-      let updatedPlayers = gameState.players.map((p) =>
-        p.id === user.uid ? { ...p, ready: true } : p
-      );
-
-      if (updatedPlayers.every((p) => p.ready)) {
-        updatedPlayers.forEach((p) => (p.ready = false));
-        await updateDoc(
-          doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
-          {
-            players: updatedPlayers,
-            turnState: "LOADING",
-            logs: arrayUnion({
-              id: Date.now().toString(),
-              text: "Loading Phase Begun.",
-              type: "neutral",
-            }),
-          }
-        );
-        return;
-      } else {
-        // Advance turn ONLY if the current market turn player is ready.
-        let nextIdx = gameState.marketTurnIndex;
-        if (updatedPlayers[nextIdx].ready) {
-           let loopCount = 0;
-           while ((updatedPlayers[nextIdx].ready || nextIdx === gameState.inspectorIndex) && loopCount < updatedPlayers.length) {
-             nextIdx = (nextIdx + 1) % updatedPlayers.length;
-             loopCount++;
-           }
-        }
-
-        await updateDoc(
-          doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
-          {
-            players: updatedPlayers,
-            marketTurnIndex: nextIdx,
-          }
-        );
-        return;
-      }
-    }
-
-    // Standard toggle for other phases
     const players = gameState.players.map((p) =>
       p.id === user.uid ? { ...p, ready: !p.ready } : p,
     );
 
-    // LOGIC 2: End of Round Summary
+    // LOGIC 1: End of Market Phase
+    if (
+      gameState.status === "playing" &&
+      gameState.turnState === "SHOPPING" &&
+      players.every((p) => p.ready)
+    ) {
+      players.forEach((p) => (p.ready = false));
+      await updateDoc(
+        doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+        {
+          players,
+          turnState: "LOADING",
+          logs: arrayUnion({
+            id: Date.now().toString(),
+            text: "Loading Phase Begun.",
+            type: "neutral",
+          }),
+        },
+      );
+      return;
+    }
+
+    // LOGIC 2: End of Round Summary (NEW)
     if (
       gameState.status === "playing" &&
       gameState.turnState === "ROUND_SUMMARY"
@@ -2764,48 +2739,6 @@ export default function ContrabandGame() {
       doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
       { players },
     );
-  };
-
-  const handleRedraw = async () => {
-    if (selectedCards.length === 0 || selectedCards.length > 5) {
-      setIsDiscarding(false);
-      return;
-    }
-    const myIdx = gameState.players.findIndex((p) => p.id === user.uid);
-    const players = [...gameState.players];
-    const hand = [...players[myIdx].hand];
-    let deck = [...gameState.deck];
-
-    const discarded = [];
-    [...selectedCards].sort((a,b)=>b-a).forEach(idx => {
-      discarded.push(hand[idx]);
-      hand.splice(idx, 1);
-    });
-
-    // Draw new cards
-    for (let i = 0; i < discarded.length; i++) {
-      const card = drawSafeCard(deck, hand);
-      if (card) hand.push(card);
-    }
-
-    // Bottom of deck
-    deck.unshift(...discarded);
-
-    players[myIdx].hand = hand;
-    players[myIdx].hasRedrawn = true;
-
-    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
-      players,
-      deck,
-      logs: arrayUnion({
-        id: Date.now().toString(),
-        text: `${me.name} discarded and redrew ${discarded.length} cards.`,
-        type: "neutral"
-      })
-    });
-
-    setSelectedCards([]);
-    setIsDiscarding(false);
   };
 
   const buyItem = async (item) => {
@@ -3394,7 +3327,7 @@ export default function ContrabandGame() {
       // 2. APPLY BONUSES TO PLAYERS
       const finalScores = gameState.players
         .map((p) => {
-          const bonusData = kqBonuses[p.id] || { income: 0, details: [] };
+          const bonusData = kqBonuses[p.id];
           // Add Cash + Stash + Bonus - Loan
           // Note: We don't add Stash Value to 'coins' here, just calculate final score.
           // The UI adds coins + stash + bonus separately.
@@ -3475,7 +3408,7 @@ export default function ContrabandGame() {
         const card = drawSafeCard(deck, hand);
         if (card) hand.push(card);
       }
-      return { ...p, hand, loadedCrate: null, ready: false, hasRedrawn: false };
+      return { ...p, hand, loadedCrate: null, ready: false };
     });
 
     await updateDoc(
@@ -3484,7 +3417,6 @@ export default function ContrabandGame() {
         players: nextPlayers,
         deck,
         inspectorIndex: nextInspectorIndex,
-        marketTurnIndex: (nextInspectorIndex + 1) % gameState.players.length,
         currentRound: nextRound,
         currentRoundStats: nextRoundStats,
         roundHistory: arrayUnion({
@@ -3591,7 +3523,7 @@ export default function ContrabandGame() {
         const card = drawSafeCard(deck, hand);
         if (card) hand.push(card);
       }
-      return { ...p, hand, loadedCrate: null, ready: false, hasRedrawn: false };
+      return { ...p, hand, loadedCrate: null, ready: false };
     });
 
     // Update Doc to skip straight to Shopping
@@ -3601,7 +3533,6 @@ export default function ContrabandGame() {
         players: nextPlayers,
         deck,
         inspectorIndex: nextInspectorIndex,
-        marketTurnIndex: (nextInspectorIndex + 1) % gameState.players.length,
         currentRound: nextRound,
         currentRoundStats: nextRoundStats,
         roundHistory: arrayUnion(historyEntry),
@@ -3956,7 +3887,6 @@ export default function ContrabandGame() {
       .filter((p) => p.id !== gameState.hostId)
       .every((p) => p.ready);
     const shopDisabled = me.ready || gameState.turnState !== "SHOPPING";
-    const isMyMarketTurn = gameState.marketTurnIndex === gameState.players.findIndex((p) => p.id === user.uid);
 
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col relative overflow-hidden font-sans">
@@ -4040,6 +3970,7 @@ export default function ContrabandGame() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Removed Shop Icon Button from Header */}
             <button
               onClick={() => setShowLogs(!showLogs)}
               className={`p-2 rounded-full ${
@@ -4278,6 +4209,7 @@ export default function ContrabandGame() {
                   <div className="text-[10px] text-slate-500 uppercase font-bold mb-1 flex items-center gap-1">
                     <Info size={10} /> Event Active
                   </div>
+                  {/* ... existing event code ... */}
                   <div className="text-sm font-bold text-yellow-500">
                     {currentEvent.name}
                   </div>
@@ -4286,6 +4218,7 @@ export default function ContrabandGame() {
                   </div>
                 </div>
 
+                {/* ... existing upgrades/stash buttons ... */}
                 <div className="mt-2 flex gap-1 flex-wrap">
                   {me.upgrades?.map((u) => {
                     const ItemIcon = SHOP_ITEMS[u].icon;
@@ -4308,70 +4241,33 @@ export default function ContrabandGame() {
                   <Briefcase size={12} /> View Stash ({me.stash.length})
                 </button>
 
+                {/* ... existing ready/shop buttons ... */}
                 {gameState.turnState === "SHOPPING" && (
-                  (isMyMarketTurn || isInspector) ? (
-                    <>
-                      {!isDiscarding && (
-                        <button
-                          onClick={() => !shopDisabled && setShowShop(true)}
-                          disabled={shopDisabled}
-                          className={`mt-2 w-full py-2 rounded text-xs border flex items-center justify-center gap-2 transition-colors ${
-                            !shopDisabled
-                              ? "bg-yellow-900/20 hover:bg-yellow-900/30 text-yellow-500 border-yellow-500/50"
-                              : "bg-slate-800 text-slate-600 border-slate-700 cursor-not-allowed"
-                          }`}
-                        >
-                          <ShoppingBag size={12} /> Open Black Market
-                        </button>
-                      )}
-
-                      {(!me.hasRedrawn && !isInspector) && (
-                        <button
-                          onClick={() => {
-                            if (isDiscarding) {
-                              if (selectedCards.length > 0) handleRedraw();
-                              else setIsDiscarding(false);
-                            } else {
-                              setSelectedCards([]);
-                              setIsDiscarding(true);
-                            }
-                          }}
-                          className={`mt-2 w-full py-2 rounded text-xs border flex items-center justify-center gap-2 transition-colors ${
-                            isDiscarding && selectedCards.length > 0
-                              ? "bg-blue-900/40 hover:bg-blue-900/60 text-blue-400 border-blue-500/50"
-                              : isDiscarding
-                                ? "bg-slate-700 hover:bg-slate-600 text-slate-400 border-slate-600"
-                                : "bg-orange-900/20 hover:bg-orange-900/30 text-orange-400 border-orange-500/50"
-                          }`}
-                        >
-                          <RotateCcw size={12} /> 
-                          {isDiscarding 
-                            ? (selectedCards.length > 0 ? `REDRAW (${selectedCards.length}/5)` : 'CANCEL DISCARD') 
-                            : 'DISCARD & REDRAW'}
-                        </button>
-                      )}
-
-                      {!isDiscarding && (
-                        <button
-                          onClick={toggleReady}
-                          disabled={me.ready}
-                          className={`mt-2 py-2 px-4 rounded font-bold transition-all ${
-                            me.ready
-                              ? "bg-green-600/50 text-white/50 cursor-not-allowed"
-                              : "bg-slate-700 text-slate-300 hover:bg-slate-600"
-                          }`}
-                        >
-                          {me.ready ? "READY" : "MARKET DONE"}
-                        </button>
-                      )}
-                    </>
-                  ) : (
-                    <div className="mt-2 p-3 border border-dashed border-slate-700 rounded-lg text-slate-500 text-xs text-center flex flex-col items-center">
-                       <Clock className="mb-2 animate-spin-slow" size={20} />
-                       Waiting for<br/>
-                       <span className="text-white font-bold">{gameState.players[gameState.marketTurnIndex]?.name}'s</span> turn...
-                    </div>
-                  )
+                  // ... existing shop button code ...
+                  <>
+                    <button
+                      onClick={() => !shopDisabled && setShowShop(true)}
+                      disabled={shopDisabled}
+                      className={`mt-2 w-full py-2 rounded text-xs border flex items-center justify-center gap-2 transition-colors ${
+                        !shopDisabled
+                          ? "bg-yellow-900/20 hover:bg-yellow-900/30 text-yellow-500 border-yellow-500/50"
+                          : "bg-slate-800 text-slate-600 border-slate-700 cursor-not-allowed"
+                      }`}
+                    >
+                      <ShoppingBag size={12} /> Open Black Market
+                    </button>
+                    <button
+                      onClick={toggleReady}
+                      disabled={me.ready}
+                      className={`mt-2 py-2 px-4 rounded font-bold transition-all ${
+                        me.ready
+                          ? "bg-green-600/50 text-white/50 cursor-not-allowed"
+                          : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                      }`}
+                    >
+                      {me.ready ? "READY" : "MARKET DONE"}
+                    </button>
+                  </>
                 )}
               </div>
 
@@ -4429,24 +4325,18 @@ export default function ContrabandGame() {
                         typeId={cId}
                         selected={selectedCards.includes(i)}
                         onClick={() => {
-                          if (gameState.turnState === "LOADING") {
-                            if (selectedCards.includes(i))
-                              setSelectedCards(
-                                selectedCards.filter((idx) => idx !== i),
-                              );
-                            else if (
-                              selectedCards.length <
-                              (me.upgrades?.includes("EXPANDED") ? 5 : 4)
-                            )
-                              setSelectedCards([...selectedCards, i]);
-                          } else if (gameState.turnState === "SHOPPING" && isDiscarding) {
-                            if (selectedCards.includes(i))
-                              setSelectedCards(
-                                selectedCards.filter((idx) => idx !== i),
-                              );
-                            else if (selectedCards.length < 5)
-                              setSelectedCards([...selectedCards, i]);
-                          }
+                          // Prevent selecting cards until the Loading Phase starts
+                          if (gameState.turnState !== "LOADING") return;
+
+                          if (selectedCards.includes(i))
+                            setSelectedCards(
+                              selectedCards.filter((idx) => idx !== i),
+                            );
+                          else if (
+                            selectedCards.length <
+                            (me.upgrades?.includes("EXPANDED") ? 5 : 4)
+                          )
+                            setSelectedCards([...selectedCards, i]);
                         }}
                       />
                     ))}
@@ -4664,7 +4554,6 @@ export default function ContrabandGame() {
                 <div className="p-6 bg-slate-950 border-t border-slate-800 flex justify-center">
                   <button
                     onClick={toggleReady}
-                    disabled={me.ready}
                     className={`px-8 py-3 rounded-xl font-bold transition-all shadow-lg flex items-center gap-2 ${
                       me.ready
                         ? "bg-green-600 text-white shadow-green-900/20"
@@ -4715,3 +4604,4 @@ export default function ContrabandGame() {
 
   return null;
 }
+//major update. new cards. card values changed. updated events. updated report with event bonus.
