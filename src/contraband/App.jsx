@@ -958,6 +958,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
               "Fine Paid",
               "Fine Collected",
               "Bribe Paid",
+              "Bribe Offered", // <--- ADD THIS
               "Bribe Accepted",
               "Bribe Returned",
               "Trap Exploded",
@@ -3077,11 +3078,18 @@ export default function ContrabandGame() {
             detail: `Passed ${target.name}`,
           },
         });
-        if (bribe > 0)
+        if (bribe > 0) {
+          // ADD THE OFFERED EXPENSE:
+          stats = getUpdatedStats(stats, target.id, {
+            expense: bribe,
+            transaction: { label: "Bribe Offered", amount: -bribe },
+          });
+          // EXISTING RETURN INCOME:
           stats = getUpdatedStats(stats, target.id, {
             income: bribe,
             transaction: { label: "Bribe Returned", amount: bribe },
           });
+        }
       }
 
       // SALES CALCULATION (Uses new Helper 1)
@@ -3109,11 +3117,18 @@ export default function ContrabandGame() {
     } else if (action === "OPEN") {
       const bribe = target.loadedCrate.bribe || 0;
       players[targetIdx].coins += bribe;
-      if (bribe > 0)
+      if (bribe > 0) {
+        // ADD THE OFFERED EXPENSE:
+        stats = getUpdatedStats(stats, target.id, {
+          expense: bribe,
+          transaction: { label: "Bribe Offered", amount: -bribe },
+        });
+        // EXISTING RETURN INCOME:
         stats = getUpdatedStats(stats, target.id, {
           income: bribe,
           transaction: { label: "Bribe Returned", amount: bribe },
         });
+      }
 
       const cards = target.loadedCrate.cards;
       const declared = target.loadedCrate.declaration;
