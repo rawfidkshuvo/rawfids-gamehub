@@ -1728,23 +1728,34 @@ const HexTile = ({
 };
 
 const FeedbackOverlay = ({ type, message, subtext, icon: Icon }) => (
-  <div className="fixed inset-0 z-[160] flex items-center justify-center pointer-events-none animate-in fade-in zoom-in duration-300">
+  <div className="fixed inset-x-0 top-20 sm:top-24 z-[160] flex justify-center pointer-events-none animate-in fade-in slide-in-from-top-8 duration-300 px-4">
     <div
-      className={`flex flex-col items-center justify-center p-8 md:p-12 rounded-3xl border-4 shadow-2xl backdrop-blur-xl max-w-sm md:max-w-xl mx-4 text-center ${type === "success" ? "bg-emerald-900/90 border-emerald-500 text-emerald-100" : type === "failure" ? "bg-red-900/90 border-red-500 text-red-100" : type === "warning" ? "bg-amber-900/90 border-amber-500 text-amber-100" : "bg-blue-900/90 border-blue-500 text-blue-100"}`}
+      className={`flex items-center gap-4 px-5 py-3 sm:px-8 sm:py-4 rounded-2xl border-2 shadow-2xl backdrop-blur-xl max-w-[90vw] sm:max-w-2xl mx-auto text-left ${
+        type === "success"
+          ? "bg-emerald-900/95 border-emerald-500 text-emerald-100"
+          : type === "failure"
+          ? "bg-red-900/95 border-red-500 text-red-100"
+          : type === "warning"
+          ? "bg-amber-900/95 border-amber-500 text-amber-100"
+          : "bg-blue-900/95 border-blue-500 text-blue-100"
+      }`}
     >
       {Icon && (
-        <div className="mb-4 p-4 bg-black/20 rounded-full">
-          <Icon size={64} className="animate-bounce" />
+        <div className="shrink-0 p-2 sm:p-3 bg-black/20 rounded-full shadow-inner">
+          {/* Note: Removed 'size={64}' in favor of Tailwind sizing classes for responsiveness */}
+          <Icon className="w-6 h-6 sm:w-8 sm:h-8 animate-bounce" />
         </div>
       )}
-      <h2 className="text-3xl md:text-5xl font-black uppercase tracking-widest drop-shadow-md mb-2">
-        {message}
-      </h2>
-      {subtext && (
-        <p className="text-lg md:text-xl font-bold opacity-90 tracking-wide">
-          {subtext}
-        </p>
-      )}
+      <div className="flex flex-col">
+        <h2 className="text-base sm:text-xl font-black uppercase tracking-widest drop-shadow-md leading-tight">
+          {message}
+        </h2>
+        {subtext && (
+          <p className="text-[10px] sm:text-sm font-bold opacity-90 tracking-wide mt-0.5">
+            {subtext}
+          </p>
+        )}
+      </div>
     </div>
   </div>
 );
