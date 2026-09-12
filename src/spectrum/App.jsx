@@ -503,85 +503,282 @@ const CardDisplay = ({
 };
 
 const RulesModal = ({ onClose }) => (
-  <div className="fixed inset-0 bg-black/95 z-170 flex items-center justify-center p-0 md:p-4">
-    <div className="bg-gray-900 md:rounded-2xl w-full max-w-4xl h-full md:h-auto md:max-h-[90vh] overflow-hidden border border-fuchsia-500/30 shadow-2xl flex flex-col">
-      <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-gray-950">
+  <div className="fixed inset-0 bg-black/95 z-[170] flex items-center justify-center p-0 md:p-4 animate-in fade-in">
+    <div className="bg-gray-950 md:rounded-2xl w-full max-w-4xl h-full md:h-auto md:max-h-[90vh] flex flex-col border border-fuchsia-500/30 shadow-[0_0_50px_rgba(217,70,239,0.15)] overflow-hidden">
+      {/* Header */}
+      <div className="p-6 border-b border-fuchsia-900/50 flex justify-between items-center bg-gray-900/50 backdrop-blur-md">
         <div className="flex flex-col">
-          <h2 className="text-2xl md:text-3xl font-black text-fuchsia-500 uppercase tracking-widest font-serif">
-            SYSTEM OVERVIEW
+          <h2 className="text-2xl md:text-3xl font-black text-fuchsia-500 uppercase tracking-widest font-serif flex items-center gap-3">
+            <BookOpen size={28} /> SYSTEM MANUAL
           </h2>
           <span className="text-gray-500 text-[10px] uppercase font-bold tracking-widest">
-            Spectrum Protocol
+            Spectrum Protocol v2.0
           </span>
         </div>
         <button
           onClick={onClose}
-          className="p-2 hover:bg-gray-800 rounded-full text-gray-400 hover:text-white transition-colors"
+          className="p-3 hover:bg-red-950/50 hover:text-red-400 rounded-full text-gray-500 transition-colors"
         >
-          <X />
+          <X size={24} />
         </button>
       </div>
-      <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 text-gray-300">
-        <div className="bg-fuchsia-950/20 p-6 rounded-xl border border-fuchsia-500/20">
-          <h3 className="text-xl font-bold text-fuchsia-400 mb-2 flex items-center gap-2 font-serif">
-            <Target size={20} /> Target: Equilibrium 25
+
+      {/* Scrollable Content */}
+      <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8 text-gray-300 scrollbar-thin scrollbar-thumb-fuchsia-900 scrollbar-track-transparent">
+        {/* Objective */}
+        <div className="bg-fuchsia-950/20 p-6 rounded-xl border border-fuchsia-500/20 shadow-inner">
+          <h3 className="text-xl font-bold text-fuchsia-400 mb-3 flex items-center gap-2 font-serif uppercase tracking-wider">
+            <Target size={20} /> Primary Objective
           </h3>
-          <p className="text-sm md:text-base leading-relaxed opacity-80">
-            Win tricks to collect cards. Your cumulative score must reach{" "}
-            <strong>25</strong>. Exceeding 25 causes a{" "}
-            <strong>System Overload (Bust)</strong>—you lose chips and forfeit
-            the round score.
+          <p className="text-sm md:text-base leading-relaxed opacity-90">
+            Compete across <strong>4 Phases (Hands)</strong>. Win tricks to
+            collect cards, aiming for your total captured value to reach exactly{" "}
+            <strong>25 (Equilibrium)</strong>. The agent with the most chips at
+            the end of Phase 4 wins.
           </p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-4">
-            <h4 className="font-bold text-white uppercase text-[10px] tracking-widest border-b border-gray-800 pb-2">
-              Trick Mechanisms
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Trick-Taking Rules */}
+          <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-800 space-y-4">
+            <h4 className="font-bold text-white uppercase text-[11px] tracking-widest border-b border-gray-700 pb-2 flex items-center gap-2">
+              <Activity size={14} className="text-blue-400" /> Trick Mechanisms
             </h4>
             <ul className="space-y-3 text-xs md:text-sm">
-              <li className="flex gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />{" "}
-                Must follow lead suit if possible.
+              <li className="flex items-start gap-2">
+                <CheckCircle
+                  size={14}
+                  className="text-green-500 mt-0.5 shrink-0"
+                />
+                <span>
+                  <strong>Following Suit:</strong> You MUST play a card matching
+                  the lead suit if you have one. If void, you may play any card.
+                </span>
               </li>
-              <li className="flex gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1.5 shrink-0" />{" "}
-                <strong>Silver</strong> is always Trump.
+              <li className="flex items-start gap-2">
+                <Zap size={14} className="text-slate-300 mt-0.5 shrink-0" />
+                <span>
+                  <strong>Trump Suit:</strong>{" "}
+                  <span className="text-slate-300 font-bold">Silver</span> is
+                  always Trump. It beats all other suits.
+                </span>
               </li>
-              <li className="flex gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-fuchsia-500 mt-1.5 shrink-0" />{" "}
-                Highest card of lead suit (or Trump) takes the trick.
+              <li className="flex items-start gap-2">
+                <Trophy size={14} className="text-yellow-500 mt-0.5 shrink-0" />
+                <span>
+                  <strong>Winning:</strong> The highest card of the lead suit
+                  (or the highest Silver card) wins the trick.
+                </span>
               </li>
             </ul>
           </div>
-          <div className="space-y-4">
-            <h4 className="font-bold text-fuchsia-400 uppercase text-[10px] tracking-widest border-b border-fuchsia-900/50 pb-2">
-              The Magenta 5 Override
+
+          {/* Scoring a Trick */}
+          <div className="bg-gray-900/50 p-5 rounded-xl border border-gray-800 space-y-4">
+            <h4 className="font-bold text-white uppercase text-[11px] tracking-widest border-b border-gray-700 pb-2 flex items-center gap-2">
+              <Layers size={14} className="text-emerald-400" /> Signal
+              Acquisition (Collecting)
             </h4>
-            <ul className="space-y-3 text-xs md:text-sm">
-              <li className="flex gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-fuchsia-500 mt-1.5 shrink-0" />{" "}
-                Any card can be played <strong>Face-Down</strong> as a Magenta
-                5.
-              </li>
-              <li className="flex gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-fuchsia-500 mt-1.5 shrink-0" />{" "}
-                Allowed only if unable to follow suit OR if it's your final card
-                of that suit.
-              </li>
-              <li className="flex gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-fuchsia-500 mt-1.5 shrink-0" />{" "}
-                Only <strong>one</strong> Magenta 5 per trick.
-              </li>
-            </ul>
+            <p className="text-sm opacity-90">
+              When you win a trick, you take all cards played. However,{" "}
+              <strong>
+                you only score the specific card you played to win the trick.
+              </strong>
+            </p>
+            <p className="text-sm opacity-90 text-gray-400 italic bg-black/40 p-3 rounded border-l-2 border-emerald-500">
+              Example: If you win a trick with a Blue 12, only the 12 is added
+              to your Equilibrium total. The other cards are discarded.
+            </p>
           </div>
         </div>
+
+        {/* The Magenta Override */}
+        <div className="bg-black/40 p-6 rounded-xl border border-fuchsia-900/50 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-10">
+            <EyeOff size={100} />
+          </div>
+          <h4 className="font-bold text-fuchsia-400 uppercase text-sm tracking-widest border-b border-fuchsia-900/50 pb-2 mb-4 flex items-center gap-2 relative z-10">
+            <EyeOff size={16} /> The Magenta 5 Override (Face-Down)
+          </h4>
+          <p className="text-sm mb-4 relative z-10">
+            Instead of playing a card normally, you may play it{" "}
+            <strong>face-down</strong>. The back of every card acts as a{" "}
+            <strong>Magenta 5</strong>.
+          </p>
+          <ul className="space-y-2 text-sm relative z-10">
+            <li className="flex items-start gap-2">
+              <AlertTriangle
+                size={14}
+                className="text-yellow-500 mt-0.5 shrink-0"
+              />
+              <span>
+                <strong>Condition:</strong> You may ONLY Override if you are
+                completely out of the lead suit, OR if the card you are playing
+                is your <em>absolute last card</em> of the lead suit.
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <AlertTriangle
+                size={14}
+                className="text-yellow-500 mt-0.5 shrink-0"
+              />
+              <span>
+                <strong>Limit:</strong> Only ONE face-down Magenta 5 is allowed
+                per trick. If someone else already overrode, you cannot.
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        {/* Scoring, Payouts & System Overload */}
+        <div className="bg-gray-900/50 rounded-xl border border-gray-800 overflow-hidden shadow-inner">
+          {/* Top Half: Scoring & Payouts */}
+          <div className="p-5 md:p-6 border-b border-gray-800">
+            <h4 className="font-bold text-white uppercase text-[12px] tracking-widest pb-3 flex items-center gap-2">
+              <Battery size={16} className="text-yellow-400" /> End of Phase
+              Scoring & Payouts
+            </h4>
+            <p className="text-sm opacity-90 mb-5 text-gray-300">
+              After all tricks are played, sum the values of your collected
+              face-up cards. You are ranked by how close your total is to{" "}
+              <strong>25</strong> (without going over).
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Payout Table */}
+              <div className="space-y-2">
+                <h5 className="text-[10px] text-gray-500 uppercase font-black tracking-widest mb-2">
+                  Base Chip Rewards
+                </h5>
+                <div className="bg-black/40 rounded-lg border border-gray-800 p-3 text-sm font-mono">
+                  <div className="flex justify-between border-b border-gray-800 pb-2 mb-2 text-gray-500 text-[10px] uppercase font-bold tracking-widest">
+                    <span>Rank</span>
+                    <span>4-Player</span>
+                    <span>3-Player</span>
+                  </div>
+                  <div className="flex justify-between py-1.5">
+                    <span className="text-yellow-400 font-bold">1st Place</span>
+                    <span className="text-white">3 Chips</span>
+                    <span className="text-white">2 Chips</span>
+                  </div>
+                  <div className="flex justify-between py-1.5">
+                    <span className="text-slate-300 font-bold">2nd Place</span>
+                    <span className="text-white">2 Chips</span>
+                    <span className="text-white">1 Chip</span>
+                  </div>
+                  <div className="flex justify-between py-1.5">
+                    <span className="text-orange-400 font-bold">3rd Place</span>
+                    <span className="text-white">1 Chip</span>
+                    <span className="text-gray-600">0 Chips</span>
+                  </div>
+                  <div className="flex justify-between py-1.5">
+                    <span className="text-gray-600 font-bold">4th Place</span>
+                    <span className="text-gray-600">0 Chips</span>
+                    <span className="text-gray-600">-</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Ties & Bonuses */}
+              <div className="space-y-4">
+                <h5 className="text-[10px] text-gray-500 uppercase font-black tracking-widest">
+                  Modifiers & Ties
+                </h5>
+                <ul className="space-y-3 text-xs md:text-sm opacity-90">
+                  <li className="flex items-start gap-3 bg-fuchsia-950/20 p-2.5 rounded border border-fuchsia-900/30">
+                    <Target
+                      size={16}
+                      className="text-fuchsia-400 shrink-0 mt-0.5"
+                    />
+                    <span>
+                      <strong>Perfect Sync:</strong> Hitting <em>exactly</em> 25
+                      awards a flat <strong>+1 Chip Bonus</strong> on top of
+                      your rank reward.
+                    </span>
+                  </li>
+                  <li className="flex items-start gap-3 p-2.5">
+                    <Layers
+                      size={16}
+                      className="text-blue-400 shrink-0 mt-0.5"
+                    />
+                    <span>
+                      <strong>Tie-Breakers:</strong> Tied players receive the
+                      same payout, but consume subsequent rank slots. <br />
+                      <br />
+                      <em className="text-gray-500 block border-l-2 border-gray-700 pl-2">
+                        Example: If two players tie for 1st, they both get 3
+                        chips. The next closest player is ranked 3rd and gets 1
+                        chip.
+                      </em>
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Half: System Overload (Bust) */}
+          <div className="p-5 md:p-6 bg-red-950/10 relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+              <AlertTriangle size={120} />
+            </div>
+            <h4 className="font-bold text-red-400 uppercase text-[12px] tracking-widest mb-4 flex items-center gap-2 relative z-10">
+              <AlertTriangle size={16} /> System Overload (Busting & The
+              Reserve)
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
+              <ul className="space-y-3 text-sm opacity-90">
+                <li className="flex items-start gap-2">
+                  <span className="text-red-500 font-bold mt-0.5 shrink-0">
+                    1.
+                  </span>
+                  <span>
+                    If your collected total reaches{" "}
+                    <strong>26 or higher</strong>, your system overloads.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-red-500 font-bold mt-0.5 shrink-0">
+                    2.
+                  </span>
+                  <span>
+                    Busted players automatically rank last, receive{" "}
+                    <strong>0 rank chips</strong>, and must pay a{" "}
+                    <strong>1-chip penalty</strong> into the central Reserve.
+                  </span>
+                </li>
+              </ul>
+              <div className="bg-black/40 p-4 rounded-lg border border-red-900/30 text-sm">
+                <strong className="text-yellow-500 block mb-1 uppercase tracking-widest text-[10px]">
+                  Capturing the Reserve
+                </strong>
+                <p className="text-gray-300 opacity-90 leading-relaxed">
+                  The <strong>sole 1st place winner</strong> of a phase captures
+                  all penalty chips currently stored in the central Reserve. If
+                  1st place is tied among multiple players, the Reserve is
+                  locked and rolls over to the next phase, growing larger!
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tie Breaker Note */}
+        <div className="bg-gray-900/50 p-4 rounded-xl border border-gray-800 text-xs md:text-sm text-gray-400">
+          <strong className="text-gray-300">Tie-Breaker Protocol:</strong> If
+          players end Phase 4 tied for the most chips, the tie is broken by
+          whoever's final-round score was closest to 25 (without busting). If
+          still identical, victory is shared.
+        </div>
       </div>
-      <div className="p-6 bg-gray-950 border-t border-gray-800 text-center">
+
+      {/* Footer / Close */}
+      <div className="p-6 bg-gray-950 border-t border-fuchsia-900/30 text-center">
         <button
           onClick={onClose}
-          className="w-full md:w-auto bg-fuchsia-700 hover:bg-fuchsia-600 text-white px-16 py-4 rounded-xl font-bold uppercase tracking-widest shadow-lg shadow-fuchsia-900/20"
+          className="w-full md:w-auto bg-fuchsia-700 hover:bg-fuchsia-600 text-white px-16 py-4 rounded-xl font-bold uppercase tracking-[0.2em] shadow-[0_0_20px_rgba(217,70,239,0.3)] transition-all"
         >
-          Engage
+          Acknowledge
         </button>
       </div>
     </div>
@@ -1192,8 +1389,11 @@ export default function SpectrumGame() {
     const isFinal = results.isFinal;
 
     // Determine Winner for Final Screen
-    const winner = players.find((p) => p.id === results.winnerId) || players[0];
-    const isMeWinner = winner?.id === myId;
+    const winners = players.filter((p) =>
+      results.finalWinnerIds?.includes(p.id),
+    );
+    const isMeWinner = winners.some((w) => w.id === myId);
+    const winnerNames = winners.map((w) => w.name).join(" & ");
 
     return (
       <div className="fixed inset-0 z-200 flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl animate-in fade-in duration-500">
@@ -1213,12 +1413,14 @@ export default function SpectrumGame() {
                   size={64}
                   className="text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.6)] mb-4 animate-bounce"
                 />
-                <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-linear-to-b from-yellow-200 to-yellow-600 font-serif tracking-[0.2em] uppercase mb-2">
-                  {winner.name}
+                <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-linear-to-b from-yellow-200 to-yellow-600 font-serif tracking-[0.2em] uppercase mb-2 text-center break-words leading-tight px-4 w-full">
+                  {winnerNames}
                 </h1>
                 <div className="inline-flex items-center gap-2 bg-yellow-950/40 border border-yellow-500/30 px-6 py-2 rounded-full">
                   <span className="text-yellow-500 font-bold tracking-widest text-xs uppercase">
-                    Mission Accomplished
+                    {winners.length > 1
+                      ? "Shared Victory"
+                      : "Mission Accomplished"}
                   </span>
                 </div>
               </div>
@@ -1556,8 +1758,38 @@ export default function SpectrumGame() {
       // --- FIX STARTS HERE ---
       // Determine the TRUE chip leader separately
       // (Sort purely by chips, ignoring bust status)
-      const trueLeader = [...finalPlayers].sort((a, b) => b.chips - a.chips)[0];
-      // --- FIX ENDS HERE ---
+      // --- TIE-BREAKER LOGIC STARTS HERE ---
+      const maxChips = Math.max(...finalPlayers.map((p) => p.chips));
+      const tiedLeaders = finalPlayers.filter((p) => p.chips === maxChips);
+
+      let finalWinnerIds = [];
+      if (tiedLeaders.length === 1) {
+        finalWinnerIds = [tiedLeaders[0].id];
+      } else {
+        // TIE-BREAKER: Closest to 25 without busting in this final hand
+        tiedLeaders.sort((a, b) => {
+          // Non-busted players always beat busted players in a tie
+          if (a.busted !== b.busted) return a.busted ? 1 : -1;
+
+          // If both share the same bust status, sort by closest to 25
+          const diffA = Math.abs(25 - a.scoreTotal);
+          const diffB = Math.abs(25 - b.scoreTotal);
+          return diffA - diffB;
+        });
+
+        const bestBusted = tiedLeaders[0].busted;
+        const bestDiff = Math.abs(25 - tiedLeaders[0].scoreTotal);
+
+        // Find all tied leaders who match the absolute best tie-breaker stats (Shared Victory)
+        finalWinnerIds = tiedLeaders
+          .filter(
+            (p) =>
+              p.busted === bestBusted &&
+              Math.abs(25 - p.scoreTotal) === bestDiff,
+          )
+          .map((p) => p.id);
+      }
+      // --- TIE-BREAKER LOGIC ENDS HERE ---
 
       // Check Final Game State
       const gameFinished =
@@ -1567,17 +1799,17 @@ export default function SpectrumGame() {
       await updateDoc(
         doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
         {
-          players: finalPlayers, // This saves the updated history!
+          players: finalPlayers,
           trick: [],
           leadSuit: null,
           turnIndex: null,
-          status: "playing", // Keep playing to show modal
+          status: "playing",
           reserve: nextReserve,
           roundResult: {
             breakdown,
             reserve: nextReserve,
             isFinal: gameFinished,
-            winnerId: gameFinished ? trueLeader.id : null, // Pass winner ID for the modal
+            finalWinnerIds: gameFinished ? finalWinnerIds : null, // Pass the array of winners
           },
           logs: arrayUnion(...newLogs, {
             text: `--- Phase ${gameState.roundCount} Complete ---`,
@@ -1935,7 +2167,13 @@ export default function SpectrumGame() {
     const allGuestsReady = gameState.players
       .filter((p) => p.id !== gameState.hostId)
       .every((p) => p.ready);
-    const victor = [...gameState.players].sort((a, b) => b.chips - a.chips)[0];
+    const tieBreakWinners = gameState.roundResult?.finalWinnerIds
+      ? gameState.players.filter((p) =>
+          gameState.roundResult.finalWinnerIds.includes(p.id),
+        )
+      : [[...gameState.players].sort((a, b) => b.chips - a.chips)[0]]; // Fallback
+
+    const victorNames = tieBreakWinners.map((w) => w.name).join(" & ");
 
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col relative overflow-hidden font-sans">
@@ -2286,7 +2524,7 @@ export default function SpectrumGame() {
             <div className="bg-fuchsia-950/40 border border-fuchsia-500/30 px-6 py-2 rounded-full mb-12">
               <p className="text-fuchsia-400 font-mono text-xs tracking-[0.2em] uppercase font-black">
                 Protocol_Victor:{" "}
-                <span className="text-white ml-2">{victor?.name}</span>
+                <span className="text-white ml-2">{victorNames}</span>
               </p>
             </div>
 

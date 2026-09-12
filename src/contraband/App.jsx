@@ -4606,6 +4606,7 @@ export default function ContrabandGame() {
                   {!isHost ? (
                     <button
                       onClick={toggleReady}
+                      disabled={me.ready}
                       className={`px-8 py-3 rounded-xl font-bold transition-all ${
                         me.ready
                           ? "bg-green-600 text-white"

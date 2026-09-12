@@ -1736,6 +1736,7 @@ export default function ProtocolGame() {
                       {/* Guest Ready Button */}
                       <button
                         onClick={toggleReady}
+                        disabled={me.ready}
                         className={`w-full py-3 rounded-xl font-bold text-lg shadow-lg transition-all mb-2 ${
                           me.ready
                             ? "bg-green-600/20 border border-green-500 text-green-400"

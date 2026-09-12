@@ -3053,6 +3053,7 @@ export default function PaperOceans() {
                   <div className="flex flex-col items-center gap-2">
                     <button
                       onClick={toggleReady}
+                      disabled={gameState.players.find((p) => p.id === user.uid)?.ready}
                       className={`w-full py-4 rounded-full font-bold text-lg shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${
                         gameState.players.find((p) => p.id === user.uid)?.ready
                           ? "bg-slate-700 text-emerald-400 hover:bg-slate-600"

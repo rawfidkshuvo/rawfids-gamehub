@@ -2129,7 +2129,7 @@ export default function FructoseFury() {
                   </button>
                 ) : (
                   <button
-                    onClick={toggleReady}
+                    
                     className="w-full py-3 bg-gray-700 hover:bg-gray-600 rounded-xl font-bold text-green-400 border border-green-500/50"
                   >
                     Waiting for others...

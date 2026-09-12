@@ -502,6 +502,7 @@ const RoundSummary = ({
           ) : (
             <button
               onClick={onToggleReady}
+              disabled={me?.ready}
               className={`px-8 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg w-full md:w-auto justify-center ${
                 me?.ready
                   ? "bg-green-600/20 text-green-400 border border-green-500/50 hover:bg-green-600/30"
@@ -705,6 +706,7 @@ const GameOverModal = ({
             ) : (
               <button
                 onClick={onToggleReady}
+                disabled={me?.ready}
                 className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg ${me?.ready ? "bg-green-600/20 text-green-400 border border-green-500/50" : "bg-cyan-600 hover:bg-cyan-500 text-white animate-pulse"}`}
               >
                 <CheckCircle size={18} />{" "}

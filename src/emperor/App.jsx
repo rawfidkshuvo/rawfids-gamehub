@@ -210,12 +210,12 @@ const DarkAtmosphere = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
     {/* Clean, deep gradient background (No hazy overlays) */}
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
-    
+
     {/* Crisp Particles */}
     {[...Array(25)].map((_, i) => {
       // Calculate individual random drifts using CSS variables
       const driftX = `${Math.random() * 40 - 20}px`;
-      
+
       return (
         <div
           key={i}
@@ -280,7 +280,7 @@ const FloatingBackground = React.memo(() => {
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
       {/* Dark Gradient Layer */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-yellow-900/20 via-gray-950 to-black" />
-      
+
       {/* Floating Icons Layer */}
       <div className="absolute top-0 left-0 w-full h-full opacity-10">
         {backgroundIcons}
@@ -883,7 +883,7 @@ export default function EmperorGame() {
   const handleSplashStart = () => {
     // Set a temporary session flag
     sessionStorage.setItem("splashRefreshed", "true");
-    
+
     // Force a hard browser reload to ensure a perfectly clean state
     window.location.reload();
   };
@@ -2066,9 +2066,10 @@ export default function EmperorGame() {
               ) : (
                 <button
                   onClick={toggleReady}
+                  disabled={isReady}
                   className={`px-4 py-1.5 rounded text-sm font-bold flex items-center gap-2 transition-all ${
                     isReady
-                      ? "bg-green-700 text-white"
+                      ? "bg-green-700 text-white opacity-90 cursor-default"
                       : "bg-gray-700 text-gray-300 hover:bg-gray-600"
                   }`}
                 >
@@ -2594,9 +2595,10 @@ export default function EmperorGame() {
                   <>
                     <button
                       onClick={toggleReady}
+                      disabled={isReady}
                       className={`w-full py-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2 ${
                         isReady
-                          ? "bg-green-700 hover:bg-green-600 text-white"
+                          ? "bg-green-700 text-white opacity-90 cursor-default"
                           : "bg-gray-700 hover:bg-gray-600 text-white"
                       }`}
                     >
