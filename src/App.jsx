@@ -78,6 +78,7 @@ import {
   Calendar,
   Check,
   UserPlus,
+  Edit2,
 } from "lucide-react";
 import CoverImage from "./assets/gamehub_cover.png";
 
@@ -1394,6 +1395,7 @@ const UserProfileModal = ({ isOpen, onClose }) => {
     localStorage.getItem("gameHub_playerName") || "Anonymous",
   );
   const [savedStatus, setSavedStatus] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (!isOpen || !auth.currentUser) return;
@@ -1514,47 +1516,81 @@ const UserProfileModal = ({ isOpen, onClose }) => {
             <div className="w-12 h-12 md:w-16 md:h-16 bg-slate-800 rounded-full flex items-center justify-center border border-slate-700 shadow-inner shrink-0">
               <User size={24} />
             </div>
+
             <div className="flex-1 min-w-0 w-full">
               <div className="text-[10px] md:text-xs uppercase tracking-wider font-bold text-slate-500 mb-1 flex items-center gap-2 truncate">
                 Your Player Card
               </div>
-              <div className="relative flex w-full gap-2">
-                <input
-                  type="text"
-                  value={localName}
-                  onChange={(e) => setLocalName(e.target.value)}
-                  placeholder="Enter Nickname"
-                  className={`flex-1 min-w-0 w-full bg-slate-950 border rounded-lg px-3 py-1.5 text-white font-bold focus:outline-none transition-all duration-300 text-sm ${
-                    savedStatus
-                      ? "border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)]"
-                      : "border-slate-800 focus:border-indigo-500"
-                  }`}
-                />
-                <button
-                  onClick={handleSaveName}
-                  disabled={savedStatus}
-                  className={`px-3 shrink-0 rounded-lg flex items-center justify-center transition-all duration-300 ${
-                    savedStatus
-                      ? "bg-green-500 text-white scale-105"
-                      : "bg-indigo-600 hover:bg-indigo-500 text-white active:scale-95"
-                  }`}
-                >
-                  {savedStatus ? (
-                    <Check size={16} className="animate-in zoom-in" />
-                  ) : (
-                    <Save size={16} />
-                  )}
-                </button>
 
-                {/* Floating "Saved" Indicator */}
-                {savedStatus && (
-                  <div className="absolute -top-8 right-0 bg-green-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-lg animate-in slide-in-from-bottom-2 fade-in duration-300 pointer-events-none flex items-center gap-1">
-                    <Check size={10} /> Saved!
-                  </div>
+              <div className="relative flex w-full gap-2 items-center">
+                {isEditing ? (
+                  /* --- EDIT MODE --- */
+                  <>
+                    <input
+                      type="text"
+                      value={localName}
+                      onChange={(e) => setLocalName(e.target.value)}
+                      placeholder="Enter Nickname"
+                      autoFocus
+                      className={`flex-1 min-w-0 w-full bg-slate-950 border rounded-lg px-3 py-1.5 text-white font-bold focus:outline-none transition-all duration-300 text-sm ${
+                        savedStatus
+                          ? "border-green-500 shadow-[0_0_15px_rgba(34,197,94,0.2)]"
+                          : "border-slate-800 focus:border-indigo-500"
+                      }`}
+                    />
+                    <button
+                      onClick={() => {
+                        handleSaveName();
+                        // Delay exiting edit mode so the user can see the "Saved" button state
+                        setTimeout(() => {
+                          setIsEditing(false);
+                        }, 1000); // 1000ms = 1 second delay
+                      }}
+                      disabled={savedStatus}
+                      className={`px-4 py-1.5 shrink-0 rounded-lg flex items-center gap-1.5 justify-center transition-all duration-300 ${
+                        savedStatus
+                          ? "bg-green-500 text-white scale-105"
+                          : "bg-indigo-600 hover:bg-indigo-500 text-white active:scale-95"
+                      }`}
+                    >
+                      {savedStatus ? (
+                        <>
+                          <Check size={16} className="animate-in zoom-in" />
+                          <span className="text-xs font-bold uppercase tracking-wider">
+                            Saved
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <Save size={16} />
+                          <span className="text-xs font-bold uppercase tracking-wider">
+                            Save
+                          </span>
+                        </>
+                      )}
+                    </button>
+                  </>
+                ) : (
+                  /* --- VIEW MODE --- */
+                  <>
+                    <div className="flex-1 min-w-0 truncate text-lg md:text-xl font-black text-white">
+                      {localName || "Unnamed Player"}
+                    </div>
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="px-3 py-1.5 shrink-0 rounded-lg flex items-center gap-1.5 justify-center transition-all duration-300 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 active:scale-95"
+                    >
+                      <Edit2 size={14} />
+                      <span className="text-xs font-bold uppercase tracking-wider">
+                        Edit
+                      </span>
+                    </button>
+                  </>
                 )}
               </div>
             </div>
           </div>
+
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
