@@ -1993,7 +1993,8 @@ const RulesModal = ({ onClose }) => (
             </h4>
             <p className="text-sm">
               Buy illegal upgrades from the Black Market. Deep pockets, crate
-              extensions, and scanners can turn the tide. You can also discard and redraw up to 5 cards on your turn.
+              extensions, and scanners can turn the tide. You can also discard
+              and redraw up to 5 cards on your turn.
             </p>
           </div>
           <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700">
@@ -2570,7 +2571,7 @@ export default function ContrabandGame() {
       setTimeout(() => setIsCopied(false), 2000);
 
       // Keep your existing global feedback if needed
-      if (typeof triggerFeedback !== 'undefined' && triggerFeedback)
+      if (typeof triggerFeedback !== "undefined" && triggerFeedback)
         triggerFeedback("neutral", "COPIED!", "", CheckCircle);
     };
 
@@ -2702,7 +2703,7 @@ export default function ContrabandGame() {
     // LOGIC 1: Turn-based Market Phase
     if (gameState.status === "playing" && gameState.turnState === "SHOPPING") {
       let updatedPlayers = gameState.players.map((p) =>
-        p.id === user.uid ? { ...p, ready: true } : p
+        p.id === user.uid ? { ...p, ready: true } : p,
       );
 
       if (updatedPlayers.every((p) => p.ready)) {
@@ -2717,18 +2718,22 @@ export default function ContrabandGame() {
               text: "Loading Phase Begun.",
               type: "neutral",
             }),
-          }
+          },
         );
         return;
       } else {
         // Advance turn ONLY if the current market turn player is ready.
         let nextIdx = gameState.marketTurnIndex;
         if (updatedPlayers[nextIdx].ready) {
-           let loopCount = 0;
-           while ((updatedPlayers[nextIdx].ready || nextIdx === gameState.inspectorIndex) && loopCount < updatedPlayers.length) {
-             nextIdx = (nextIdx + 1) % updatedPlayers.length;
-             loopCount++;
-           }
+          let loopCount = 0;
+          while (
+            (updatedPlayers[nextIdx].ready ||
+              nextIdx === gameState.inspectorIndex) &&
+            loopCount < updatedPlayers.length
+          ) {
+            nextIdx = (nextIdx + 1) % updatedPlayers.length;
+            loopCount++;
+          }
         }
 
         await updateDoc(
@@ -2736,7 +2741,7 @@ export default function ContrabandGame() {
           {
             players: updatedPlayers,
             marketTurnIndex: nextIdx,
-          }
+          },
         );
         return;
       }
@@ -2778,10 +2783,12 @@ export default function ContrabandGame() {
     let deck = [...gameState.deck];
 
     const discarded = [];
-    [...selectedCards].sort((a,b)=>b-a).forEach(idx => {
-      discarded.push(hand[idx]);
-      hand.splice(idx, 1);
-    });
+    [...selectedCards]
+      .sort((a, b) => b - a)
+      .forEach((idx) => {
+        discarded.push(hand[idx]);
+        hand.splice(idx, 1);
+      });
 
     // Draw new cards
     for (let i = 0; i < discarded.length; i++) {
@@ -2795,15 +2802,18 @@ export default function ContrabandGame() {
     players[myIdx].hand = hand;
     players[myIdx].hasRedrawn = true;
 
-    await updateDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId), {
-      players,
-      deck,
-      logs: arrayUnion({
-        id: Date.now().toString(),
-        text: `${me.name} discarded and redrew ${discarded.length} cards.`,
-        type: "neutral"
-      })
-    });
+    await updateDoc(
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+      {
+        players,
+        deck,
+        logs: arrayUnion({
+          id: Date.now().toString(),
+          text: `${me.name} discarded and redrew ${discarded.length} cards.`,
+          type: "neutral",
+        }),
+      },
+    );
 
     setSelectedCards([]);
     setIsDiscarding(false);
@@ -3410,28 +3420,34 @@ export default function ContrabandGame() {
       const finalScores = gameState.players
         .map((p) => {
           const bonusData = kqBonuses[p.id] || { income: 0, details: [] };
-          // Add Cash + Stash + Bonus - Loan
-          // Note: We don't add Stash Value to 'coins' here, just calculate final score.
-          // The UI adds coins + stash + bonus separately.
-          // However, for the 'winner' logic, we need the total.
 
-          const stashTotal = p.stash.reduce(
-            (acc, c) => acc + (GOODS[c]?.val || 0),
-            0,
-          );
-          const finalTotal = Math.floor(
-            p.coins + stashTotal - BANK_LOAN + bonusData.income,
-          );
+          // Fix: Do not double-count stash. p.coins already includes sold items.
+          const finalTotal = Math.floor(p.coins - BANK_LOAN + bonusData.income);
+
+          // Add tie-breaker counters
+          let legalCount = 0;
+          let illegalCount = 0;
+          (p.stash || []).forEach((c) => {
+            if (GOODS[c]?.type === "LEGAL") legalCount++;
+            else if (GOODS[c]?.type === "ILLEGAL") illegalCount++;
+          });
 
           return {
             ...p,
-            finalScore: finalTotal, // Used for sorting winner
-            kqDetails: bonusData.details, // IMPORTANT: Save details for UI
-            kqIncome: bonusData.income, // IMPORTANT: Save income for UI
+            finalScore: finalTotal,
+            legalCount, // Added for tie-breaker
+            illegalCount, // Added for tie-breaker
+            kqDetails: bonusData.details,
+            kqIncome: bonusData.income,
             ready: false,
           };
         })
-        .sort((a, b) => b.finalScore - a.finalScore);
+        .sort((a, b) => {
+          // Fix: Apply exact same tie-breakers as the ReportCard
+          if (b.finalScore !== a.finalScore) return b.finalScore - a.finalScore;
+          if (b.legalCount !== a.legalCount) return b.legalCount - a.legalCount;
+          return b.illegalCount - a.illegalCount;
+        });
 
       // 3. SAVE TO DB
       await updateDoc(
@@ -3530,25 +3546,34 @@ export default function ContrabandGame() {
 
       const finalScores = players
         .map((p) => {
-          const bonusData = kqBonuses[p.id] || { income: 0, details: [] }; // Safety fallback
-
-          // SAFE STASH CALCULATION
-          const stashTotal = (p.stash || []).reduce(
-            (acc, c) => acc + (GOODS[c]?.val || 0), // ?.val is crucial here
-            0,
-          );
+          const bonusData = kqBonuses[p.id] || { income: 0, details: [] };
 
           const finalTotal = Math.floor(p.coins - BANK_LOAN + bonusData.income);
+
+          // Add tie-breaker counters
+          let legalCount = 0;
+          let illegalCount = 0;
+          (p.stash || []).forEach((c) => {
+            if (GOODS[c]?.type === "LEGAL") legalCount++;
+            else if (GOODS[c]?.type === "ILLEGAL") illegalCount++;
+          });
 
           return {
             ...p,
             finalScore: finalTotal,
+            legalCount, // Added for tie-breaker
+            illegalCount, // Added for tie-breaker
             kqDetails: bonusData.details,
             kqIncome: bonusData.income,
             ready: false,
           };
         })
-        .sort((a, b) => b.finalScore - a.finalScore);
+        .sort((a, b) => {
+          // Fix: Apply exact same tie-breakers as the ReportCard
+          if (b.finalScore !== a.finalScore) return b.finalScore - a.finalScore;
+          if (b.legalCount !== a.legalCount) return b.legalCount - a.legalCount;
+          return b.illegalCount - a.illegalCount;
+        });
 
       await updateDoc(
         doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
@@ -3971,7 +3996,9 @@ export default function ContrabandGame() {
       .filter((p) => p.id !== gameState.hostId)
       .every((p) => p.ready);
     const shopDisabled = me.ready || gameState.turnState !== "SHOPPING";
-    const isMyMarketTurn = gameState.marketTurnIndex === gameState.players.findIndex((p) => p.id === user.uid);
+    const isMyMarketTurn =
+      gameState.marketTurnIndex ===
+      gameState.players.findIndex((p) => p.id === user.uid);
 
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col relative overflow-hidden font-sans">
@@ -4323,8 +4350,8 @@ export default function ContrabandGame() {
                   <Briefcase size={12} /> View Stash ({me.stash.length})
                 </button>
 
-                {gameState.turnState === "SHOPPING" && (
-                  (isMyMarketTurn || isInspector) ? (
+                {gameState.turnState === "SHOPPING" &&
+                  (isMyMarketTurn || isInspector ? (
                     <>
                       {!isDiscarding && (
                         <button
@@ -4340,7 +4367,7 @@ export default function ContrabandGame() {
                         </button>
                       )}
 
-                      {(!me.hasRedrawn && !isInspector) && (
+                      {!me.hasRedrawn && !isInspector && (
                         <button
                           onClick={() => {
                             if (isDiscarding) {
@@ -4359,10 +4386,12 @@ export default function ContrabandGame() {
                                 : "bg-orange-900/20 hover:bg-orange-900/30 text-orange-400 border-orange-500/50"
                           }`}
                         >
-                          <RotateCcw size={12} /> 
-                          {isDiscarding 
-                            ? (selectedCards.length > 0 ? `REDRAW (${selectedCards.length}/5)` : 'CANCEL DISCARD') 
-                            : 'DISCARD & REDRAW'}
+                          <RotateCcw size={12} />
+                          {isDiscarding
+                            ? selectedCards.length > 0
+                              ? `REDRAW (${selectedCards.length}/5)`
+                              : "CANCEL DISCARD"
+                            : "DISCARD & REDRAW"}
                         </button>
                       )}
 
@@ -4382,12 +4411,15 @@ export default function ContrabandGame() {
                     </>
                   ) : (
                     <div className="mt-2 p-3 border border-dashed border-slate-700 rounded-lg text-slate-500 text-xs text-center flex flex-col items-center">
-                       <Clock className="mb-2 animate-spin-slow" size={20} />
-                       Waiting for<br/>
-                       <span className="text-white font-bold">{gameState.players[gameState.marketTurnIndex]?.name}'s</span> turn...
+                      <Clock className="mb-2 animate-spin-slow" size={20} />
+                      Waiting for
+                      <br />
+                      <span className="text-white font-bold">
+                        {gameState.players[gameState.marketTurnIndex]?.name}'s
+                      </span>{" "}
+                      turn...
                     </div>
-                  )
-                )}
+                  ))}
               </div>
 
               {/* Hand / Main Action Area */}
@@ -4454,7 +4486,10 @@ export default function ContrabandGame() {
                               (me.upgrades?.includes("EXPANDED") ? 5 : 4)
                             )
                               setSelectedCards([...selectedCards, i]);
-                          } else if (gameState.turnState === "SHOPPING" && isDiscarding) {
+                          } else if (
+                            gameState.turnState === "SHOPPING" &&
+                            isDiscarding
+                          ) {
                             if (selectedCards.includes(i))
                               setSelectedCards(
                                 selectedCards.filter((idx) => idx !== i),
