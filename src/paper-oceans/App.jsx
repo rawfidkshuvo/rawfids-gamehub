@@ -2863,7 +2863,15 @@ export default function PaperOceans() {
               <div className="flex-1 overflow-y-auto custom-scrollbar bg-slate-900/50 rounded-2xl border border-white/10 p-4 mb-4 shadow-inner">
                 <div className="space-y-4">
                   {[...gameState.players]
-                    .sort((a, b) => b.score - a.score)
+                    .sort((a, b) => {
+                      // FIX: Force the actual game winner to the top of the list
+                      if (gameState.status === "finished") {
+                        if (a.id === gameState.winnerId) return -1;
+                        if (b.id === gameState.winnerId) return 1;
+                      }
+                      // Otherwise, sort by score
+                      return b.score - a.score;
+                    })
                     .map((p, i) => {
                       // --- SCORE CALCULATION LOGIC ---
                       // --- SCORE CALCULATION LOGIC FOR UI ---
@@ -2946,8 +2954,9 @@ export default function PaperOceans() {
                               <span className="font-bold text-lg">
                                 {p.name}
                               </span>
-                              {gameState.status === "finished" && i === 0 && (
-                                <Crown size={16} className="text-yellow-500" />
+                              {/* FIX: Crown the actual winnerId, not just index 0 */}
+                              {gameState.status === "finished" && p.id === gameState.winnerId && (
+                                <Crown size={16} className="text-yellow-500 animate-bounce" />
                               )}
                             </div>
                             <div className="flex items-center gap-3">

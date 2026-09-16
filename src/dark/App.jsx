@@ -1206,21 +1206,30 @@ export default function DarkFolkloreGame() {
 
       // 4. Check if everyone has taken their final turn
       if (isFinal && players.every((pl) => pl.finalTurnTaken)) {
-        // Identify Winner
+        // Identify Winner(s)
         const sorted = [...players].sort((a, b) => b.score - a.score);
+        const topScore = sorted[0].score;
+        
+        // Find everyone who tied for the top score
+        const winners = sorted.filter(p => p.score === topScore);
+        const winnerIds = winners.map(w => w.id); // Array of tied IDs
+        const winnerNames = winners.map(w => w.name).join(" & ");
+
         const updates = {
           players,
           turnState: "FINISHED",
           status: "finished",
           deck,
           isFinalRound: true,
-          winnerId: sorted[0].id,
+          winnerId: winnerIds, // Save the array!
+          winnerNames: winnerNames, // Save formatted names
         };
 
-        updates.logs = log(
-          `${sorted[0].name} commands the shadows and wins!`,
-          "success",
-        );
+        const winLog = winners.length > 1 
+          ? `A tie! ${winnerNames} share the shadows.` 
+          : `${winnerNames} commands the shadows and wins!`;
+
+        updates.logs = log(winLog, "success");
 
         return updates;
       }
@@ -4600,11 +4609,8 @@ export default function DarkFolkloreGame() {
                   className="text-yellow-500 mx-auto mb-4 animate-bounce drop-shadow-[0_0_20px_rgba(234,179,8,0.8)]"
                 />
                 <h2 className="text-3xl md:text-5xl font-black uppercase tracking-[0.2em] text-white mb-2 drop-shadow-md">
-                  {
-                    gameState.players.find((p) => p.id === gameState.winnerId)
-                      ?.name
-                  }{" "}
-                  Wins!
+                  {gameState.winnerNames || gameState.players.find((p) => p.id === gameState.winnerId)?.name}{" "}
+                  {Array.isArray(gameState.winnerId) && gameState.winnerId.length > 1 ? "Win!" : "Wins!"}
                 </h2>
                 <p className="text-slate-400 uppercase tracking-widest text-sm md:text-lg font-bold">
                   The shadows bow to them.
@@ -4613,11 +4619,22 @@ export default function DarkFolkloreGame() {
 
               {/* Player Breakdown (Scrollable) */}
               <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 text-left pr-2 mb-6">
-                {gameState.players
-                  .slice()
-                  .sort((a, b) => b.score - a.score)
-                  .map((p, i) => {
-                    const isWinner = p.id === gameState.winnerId;
+                {(() => {
+                  // 1. Sort the players first
+                  const sortedPlayers = gameState.players.slice().sort((a, b) => b.score - a.score);
+                  let currentRank = 1;
+
+                  return sortedPlayers.map((p, i) => {
+                    // 2. Calculate rank (Allows ties like 1, 1, 3 instead of 1, 2, 3)
+                    if (i > 0 && p.score !== sortedPlayers[i - 1].score) {
+                      currentRank = i + 1;
+                    }
+
+                    // 3. Check if they are in the winners array
+                    const isWinner = Array.isArray(gameState.winnerId)
+                      ? gameState.winnerId.includes(p.id)
+                      : p.id === gameState.winnerId;
+
                     return (
                       <div
                         key={p.id}
@@ -4635,7 +4652,7 @@ export default function DarkFolkloreGame() {
                                 isWinner ? "text-yellow-500" : "text-slate-500"
                               }`}
                             >
-                              #{i + 1}
+                              #{currentRank}
                             </span>
                             <span className="font-black text-xl text-slate-200 uppercase tracking-widest flex items-center gap-2">
                               {p.name}
@@ -4649,8 +4666,7 @@ export default function DarkFolkloreGame() {
                               isWinner ? "text-yellow-400" : "text-fuchsia-400"
                             }`}
                           >
-                            {p.score}{" "}
-                            <span className="text-sm text-slate-500">Pts</span>
+                            {p.score} <span className="text-sm text-slate-500">Pts</span>
                           </span>
                         </div>
 
@@ -4697,7 +4713,8 @@ export default function DarkFolkloreGame() {
                         </div>
                       </div>
                     );
-                  })}
+                  });
+                })()}
               </div>
 
               {/* Footer / Controls */}

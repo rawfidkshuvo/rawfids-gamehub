@@ -1776,6 +1776,28 @@ const RulesModal = ({ onClose }) => (
         {/* LANDSCAPE SECTION (Unchanged) */}
         <section>
           <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
+            <Crown className="text-amber-500" /> Win Conditions
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-300">
+            
+            <div className="bg-slate-800 p-4 rounded-xl border border-emerald-900/30">
+              
+              <ul className="list-disc pl-4 text-xs space-y-1">
+                <li>Place landscape tokens to create patterns and score points.</li>
+                <li>Place animals by creating their patterns and score points.</li>
+                <li>Points are scored at the end of the game based on the landscape and animal patterns you have created.</li>
+                <li>The player with the <strong>Most Points</strong> at the end of the game wins.</li>
+                <li>If there is a tie, the player with the <strong>Most Animals</strong> wins.</li>
+              </ul>
+            </div>
+            
+            
+            
+          </div>
+        </section>
+        {/* LANDSCAPE SECTION (Unchanged) */}
+        <section>
+          <h3 className="text-xl font-bold text-white mb-2 flex items-center gap-2">
             <Hexagon className="text-emerald-500" /> Landscape Scoring
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-300">
@@ -3881,26 +3903,35 @@ export default function Equilibrium() {
                       (p.landscapeScore || 0) -
                       (p.penalties || 0) * 2;
 
-                    // Re-sort for list display
-                    const sortedPlayers = [...gameState.players].sort(
-                      (a, b) => getNetScore(b) - getNetScore(a),
-                    );
-                    const topScore = getNetScore(sortedPlayers[0]);
+                    // 1. Move this helper up so it can be used for sorting
+                    const getAnimalsPlaced = (pl) =>
+                      pl.animals.reduce(
+                        (sum, card) => sum + card.slotsFilled,
+                        0,
+                      );
+
+                    // 2. Re-sort for list display with the tie-breaker included
+                    const sortedPlayers = [...gameState.players].sort((a, b) => {
+                      const scoreA = getNetScore(a);
+                      const scoreB = getNetScore(b);
+                      if (scoreB !== scoreA) return scoreB - scoreA;
+                      
+                      // Tie-breaker: animals placed
+                      return getAnimalsPlaced(b) - getAnimalsPlaced(a);
+                    });
+
+                    // 3. Define the absolute top metrics
+                    const topPlayer = sortedPlayers[0];
+                    const topScore = getNetScore(topPlayer);
+                    const topAnimals = getAnimalsPlaced(topPlayer);
 
                     return sortedPlayers.map((p, i) => {
                       const penaltyPoints = (p.penalties || 0) * 2;
                       const totalScore = getNetScore(p);
-                      const isWinner = totalScore === topScore;
-
-                      // Note: Logic simplified for display loop, keeping original sorting logic in header is fine
-                      // Or you can lift the sort out. Keeping it contained here to minimize diffs.
-
-                      const getAnimalsPlaced = (pl) =>
-                        pl.animals.reduce(
-                          (sum, card) => sum + card.slotsFilled,
-                          0,
-                        );
                       const animalsPlacedCount = getAnimalsPlaced(p);
+
+                      // 4. Update the winner check to include the tie-breaker
+                      const isWinner = totalScore === topScore && animalsPlacedCount === topAnimals;
 
                       return (
                         <div

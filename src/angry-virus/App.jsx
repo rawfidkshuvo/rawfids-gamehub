@@ -457,7 +457,8 @@ const GameGuideModal = ({ onClose }) => (
           <p className="text-sm">
             Avoid collecting high-value Virus cards. Your score is the sum of
             your viruses minus your vitamins.{" "}
-            <strong>Lowest score wins!</strong>
+            <strong>Lowest score wins!</strong>{" "}
+            If tied, the player with the <strong>most Vitamin tokens wins!</strong>
           </p>
         </section>
 

@@ -1039,19 +1039,23 @@ const ReportCard = ({ players, roundData, isFinal }) => {
       });
 
       // Updated Final Sorting logic with Tie-Breakers
+      // Updated Final Sorting logic with Tie-Breakers
       displayData.sort((a, b) => {
         if (b.total !== a.total) return b.total - a.total;
         if (b.legalCount !== a.legalCount) return b.legalCount - a.legalCount;
         return b.illegalCount - a.illegalCount;
       });
 
-      // Mark All Valid Winners (Joint winner support)
+      // Mark All Valid Winners AND Calculate Ranks
       if (displayData.length > 0) {
         const topTotal = displayData[0].total;
         const topLegal = displayData[0].legalCount;
         const topIllegal = displayData[0].illegalCount;
 
-        displayData.forEach((d) => {
+        let currentRank = 1;
+
+        displayData.forEach((d, index) => {
+          // Check for joint winners
           if (
             d.total === topTotal &&
             d.legalCount === topLegal &&
@@ -1059,6 +1063,19 @@ const ReportCard = ({ players, roundData, isFinal }) => {
           ) {
             d.isWinner = true;
           }
+
+          // Calculate standard competition ranking (1, 1, 1, 4)
+          if (index > 0) {
+            const prev = displayData[index - 1];
+            if (
+              d.total !== prev.total ||
+              d.legalCount !== prev.legalCount ||
+              d.illegalCount !== prev.illegalCount
+            ) {
+              currentRank = index + 1;
+            }
+          }
+          d.rank = currentRank; // Save the rank to the display object
         });
       }
     } else {
@@ -1185,7 +1202,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                               : "bg-slate-800 text-slate-500"
                           }`}
                         >
-                          {i + 1}
+                          {d.rank} {/* <-- CHANGED FROM {i + 1} */}
                         </div>
                         <span
                           className={`font-medium ${
@@ -3443,11 +3460,25 @@ export default function ContrabandGame() {
           };
         })
         .sort((a, b) => {
-          // Fix: Apply exact same tie-breakers as the ReportCard
-          if (b.finalScore !== a.finalScore) return b.finalScore - a.finalScore;
-          if (b.legalCount !== a.legalCount) return b.legalCount - a.legalCount;
-          return b.illegalCount - a.illegalCount;
-        });
+        if (b.finalScore !== a.finalScore) return b.finalScore - a.finalScore;
+        if (b.legalCount !== a.legalCount) return b.legalCount - a.legalCount;
+        return b.illegalCount - a.illegalCount;
+      });
+
+      // --- NEW: Find all joint winners for the banner ---
+      const topTotal = finalScores[0].finalScore;
+      const topLegal = finalScores[0].legalCount;
+      const topIllegal = finalScores[0].illegalCount;
+
+      const winners = finalScores.filter(
+        (p) =>
+          p.finalScore === topTotal &&
+          p.legalCount === topLegal &&
+          p.illegalCount === topIllegal
+      );
+
+      const winnerNames = winners.map((w) => w.name).join(" & ");
+      const winText = winners.length > 1 ? "Tie Game!" : `${winnerNames} wins!`;
 
       // 3. SAVE TO DB
       await updateDoc(
@@ -3456,12 +3487,12 @@ export default function ContrabandGame() {
           players: finalScores,
           status: "finished",
           turnState: "IDLE",
-          winner: finalScores[0].name,
+          winner: winnerNames, // Now contains all tied names
           feedbackTrigger: {
             id: Date.now(),
             type: "success",
             message: "GAME OVER",
-            subtext: `${finalScores[0].name} wins!`,
+            subtext: winText, // Grammatically correct subtext
           },
         },
       );
@@ -3569,11 +3600,25 @@ export default function ContrabandGame() {
           };
         })
         .sort((a, b) => {
-          // Fix: Apply exact same tie-breakers as the ReportCard
-          if (b.finalScore !== a.finalScore) return b.finalScore - a.finalScore;
-          if (b.legalCount !== a.legalCount) return b.legalCount - a.legalCount;
-          return b.illegalCount - a.illegalCount;
-        });
+        if (b.finalScore !== a.finalScore) return b.finalScore - a.finalScore;
+        if (b.legalCount !== a.legalCount) return b.legalCount - a.legalCount;
+        return b.illegalCount - a.illegalCount;
+      });
+
+      // --- NEW: Find all joint winners for the banner ---
+      const topTotal = finalScores[0].finalScore;
+      const topLegal = finalScores[0].legalCount;
+      const topIllegal = finalScores[0].illegalCount;
+
+      const winners = finalScores.filter(
+        (p) =>
+          p.finalScore === topTotal &&
+          p.legalCount === topLegal &&
+          p.illegalCount === topIllegal
+      );
+
+      const winnerNames = winners.map((w) => w.name).join(" & ");
+      const winText = winners.length > 1 ? "Tie Game!" : `${winnerNames} wins!`;
 
       await updateDoc(
         doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
@@ -3584,12 +3629,12 @@ export default function ContrabandGame() {
           roundHistory: arrayUnion(historyEntry),
           status: "finished", // Game Over State
           turnState: "IDLE",
-          winner: finalScores[0].name,
+          winner: winnerNames, // Now contains all tied names
           feedbackTrigger: {
             id: Date.now(),
             type: "success",
             message: "GAME OVER",
-            subtext: `${finalScores[0].name} wins!`,
+            subtext: winText, // Grammatically correct subtext
           },
         },
       );

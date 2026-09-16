@@ -492,7 +492,7 @@ const GameGuideModal = ({ onClose }) => (
             <span className="text-yellow-400 font-bold">1 Coin</span>. The
             number of coins needed to win the game depends on the crew size:
           </p>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-4">
             <div className="bg-black/40 border border-yellow-500/20 rounded-lg p-3 text-center">
               <div className="text-xs text-gray-400 uppercase tracking-wider mb-1">
                 2-3 Players
@@ -518,8 +518,10 @@ const GameGuideModal = ({ onClose }) => (
               <div className="text-xl font-bold text-yellow-400">3 Coins</div>
             </div>
           </div>
+          <p className="text-sm md:text-lg leading-relaxed mb-4">
+            If multiple players are tied, <strong>the last player to complete their turn wins</strong>.
+          </p>
         </div>
-
         <div>
           <h3 className="text-xl md:text-2xl font-bold text-white mb-6 flex items-center gap-3">
             <User className="text-red-400" size={24} /> The Crew (Cards)

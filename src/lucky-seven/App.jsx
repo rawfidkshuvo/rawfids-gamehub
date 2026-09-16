@@ -419,10 +419,14 @@ const RulesModal = ({ onClose }) => (
           <h3 className="text-lg sm:text-xl font-bold text-white mb-2 flex items-center gap-2">
             <Sparkles className="text-cyan-400 w-5 h-5" /> Objective
           </h3>
-          <p className="bg-slate-800 p-3 sm:p-4 rounded-xl border border-cyan-900/30">
+          <p className="bg-slate-800 p-3 sm:p-4 rounded-xl border border-cyan-900/30 mb-2">
             Push your luck by flipping cards from the deck. Bank your points
             before you bust. The first player to reach{" "}
             <strong>200 points</strong> wins!
+          </p>
+          <p className="bg-cyan-900/20 p-3 sm:p-4 rounded-xl border border-cyan-500/50 text-cyan-100 font-bold">
+            Sudden Death: If 2 or more players reach same score above 200 points, all of them get one final turn to try and beat the top score! 
+            Continues until one clear winner emerges.
           </p>
         </section>
         <section>
