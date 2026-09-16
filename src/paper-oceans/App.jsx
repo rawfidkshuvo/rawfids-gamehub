@@ -58,6 +58,7 @@ import {
   ChessKnight,
   Loader,
   Coins,
+  Layers,
 } from "lucide-react";
 import CoverImage from "./assets/paper_cover.png";
 
@@ -639,13 +640,12 @@ const HowToPlayModal = ({ onClose, winPoints }) => {
           <X size={24} />
         </button>
 
-        <div className="text-center mb-6 shrink-0">
+        <div className="text-center mb-6 shrink-0 mt-4 md:mt-0">
           <h2 className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-cyan-400 to-blue-500 tracking-widest uppercase mb-2">
             Captain's Guide
           </h2>
           <p className="text-slate-400 text-sm">
-            Reach <strong>{winPoints} points</strong> to win. 4 Mermaids wins
-            instantly.
+            Reach <strong>{winPoints} points</strong> (scales with player count) to win the game.
           </p>
         </div>
 
@@ -757,35 +757,109 @@ const HowToPlayModal = ({ onClose, winPoints }) => {
             </div>
           </div>
 
-          {/* --- SECTION 4: GAME FLOW --- */}
-          <div>
+          {/* --- SECTION 4: ROUND END & BETTING --- */}
+          <div className="mb-8">
             <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2 border-b border-slate-700 pb-2">
-              <Anchor className="text-emerald-500" size={18} />
-              Game Flow
+              <Hand className="text-amber-500" size={18} />
+              Ending the Round
+              <span className="text-xs font-normal text-slate-400 ml-auto">
+                Requires {STOP_THRESHOLD} points
+              </span>
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-              <div className="bg-slate-800 p-4 rounded-xl">
-                <strong className="text-cyan-400 block text-sm mb-1">
-                  1. DRAW
-                </strong>
-                Draw 2, Keep 1 <br /> OR <br /> Take 1 from Discard.
+            <div className="grid md:grid-cols-2 gap-4">
+              {/* STOP */}
+              <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                <div className="font-bold text-emerald-400 mb-2 flex items-center gap-2">
+                  <Hand size={16} /> STOP (Safe Play)
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  The round ends immediately. Everyone scores the standard points for the cards they currently hold in their hand and tableau. Safe and predictable.
+                </p>
               </div>
-              <div className="bg-slate-800 p-4 rounded-xl">
-                <strong className="text-purple-400 block text-sm mb-1">
-                  2. PLAY (Optional)
-                </strong>
-                Play Duo pairs to trigger effects. They score points even if you
-                keep them in hand, but effects only happen if played.
+              {/* LAST CHANCE */}
+              <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                <div className="font-bold text-orange-400 mb-2 flex items-center gap-2">
+                  <AlertTriangle size={16} /> LAST CHANCE (Betting)
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  You bet that you currently have the highest score. Every opponent gets <strong>one final turn</strong> to try and beat you. High risk, high reward!
+                </p>
               </div>
-              <div className="bg-slate-800 p-4 rounded-xl">
-                <strong className="text-yellow-400 block text-sm mb-1">
-                  3. END ROUND
-                </strong>
-                Reach {STOP_THRESHOLD} pts to call <strong>STOP</strong> (Safe)
-                or <strong>LAST CHANCE</strong> (Bet).
+              {/* EMPTY DECK */}
+              <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700/50">
+                <div className="font-bold text-red-400 mb-2 flex items-center gap-2">
+                  <Layers size={16} /> EMPTY DECK
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  The round ends immediately when the deck is empty. Everyone scores the standard points for the cards they currently hold in their hand and tableau. No betting allowed.
+                </p>
               </div>
             </div>
           </div>
+
+          {/* --- SECTION 5: SCORING RULES & BET RESOLUTION --- */}
+          <div className="mb-8">
+            <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2 border-b border-slate-700 pb-2">
+              <Coins className="text-yellow-400" size={18} />
+              Bet Resolution & Scoring Rules
+            </h3>
+            <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 text-sm">
+              <p className="text-slate-300 mb-3 text-xs">
+                When "Last Chance" is called, scoring depends on a penalty metric called the <strong className="text-cyan-300">Color Bonus</strong> (1 point per card of your most abundant color).
+              </p>
+              <div className="space-y-3">
+                <div className="bg-emerald-900/20 border border-emerald-500/30 p-3 rounded-lg">
+                  <strong className="text-emerald-400 block mb-1 flex items-center gap-2">
+                    <CheckCircle size={14} /> If the Bettor Wins:
+                  </strong>
+                  <ul className="list-disc pl-5 text-xs text-slate-300 space-y-1">
+                    <li><strong>Bettor:</strong> Scores Standard Points + Color Bonus.</li>
+                    <li><strong>Opponents:</strong> Score ONLY their Color Bonus (Standard points are lost!).</li>
+                  </ul>
+                </div>
+                <div className="bg-red-900/20 border border-red-500/30 p-3 rounded-lg">
+                  <strong className="text-red-400 block mb-1 flex items-center gap-2">
+                    <AlertTriangle size={14} /> If the Bettor Loses:
+                  </strong>
+                  <ul className="list-disc pl-5 text-xs text-slate-300 space-y-1">
+                    <li><strong>Bettor:</strong> Scores ONLY their Color Bonus (Punished for a bad bet!).</li>
+                    <li><strong>Opponents:</strong> Score their standard accumulated points.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* --- SECTION 6: WINNING THE GAME & TIEBREAKERS --- */}
+          <div className="mb-4">
+            <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2 border-b border-slate-700 pb-2">
+              <Crown className="text-yellow-500" size={18} />
+              Victory & Tiebreakers
+            </h3>
+            <div className="grid md:grid-cols-3 gap-4">
+              <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+                <strong className="text-cyan-400 block text-sm mb-1">Point Goal & Forced Stop</strong>
+                <p className="text-[11px] text-slate-300">
+                  Reach the target threshold to win. If your current score hits this during a round, you are <strong>forced</strong> to call a Safe Stop on your turn to end the game.
+                </p>
+              </div>
+              <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+                <strong className="text-fuchsia-400 block text-sm mb-1">Instant Win</strong>
+                <p className="text-[11px] text-slate-300">
+                  If any player successfully collects all <strong>4 Mermaids</strong>, the game ends instantly and they are declared the winner, regardless of current points!
+                </p>
+              </div>
+              <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
+                <strong className="text-yellow-400 block text-sm mb-1">Tiebreakers</strong>
+                <p className="text-[11px] text-slate-300 mb-1">If players tie above the winning goal:</p>
+                <ol className="list-decimal pl-4 text-[11px] text-slate-400 space-y-0.5">
+                  <li>Most points scored in the final round.</li>
+                  <li>Player who took their turn latest in the final round (turn order distance).</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <div className="text-center pt-4 border-t border-slate-800 shrink-0 mt-4">
@@ -793,7 +867,7 @@ const HowToPlayModal = ({ onClose, winPoints }) => {
             onClick={onClose}
             className="bg-cyan-600 hover:bg-cyan-500 text-white px-10 py-3 rounded-full font-bold shadow-lg transition-transform active:scale-95"
           >
-            Set Sail
+            Acknowledge
           </button>
         </div>
       </div>

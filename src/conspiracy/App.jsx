@@ -319,7 +319,7 @@ const RulesModal = ({ onClose }) => {
               </h3>
               <ul className="list-disc pl-5 space-y-2 text-sm md:text-base">
                 <li>
-                  Start with <strong>2 Cards</strong> (Lives) and{" "}
+                  Start with <strong>2 Cards / 3 Cards</strong> (Lives) and{" "}
                   <strong>2 Coins</strong>.
                 </li>
                 <li>

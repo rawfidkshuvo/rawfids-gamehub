@@ -1785,7 +1785,7 @@ const RulesModal = ({ onClose }) => (
               <ul className="list-disc pl-4 text-xs space-y-1">
                 <li>Place landscape tokens to create patterns and score points.</li>
                 <li>Place animals by creating their patterns and score points.</li>
-                <li>Points are scored at the end of the game based on the landscape and animal patterns you have created.</li>
+                <li>Points are scored at the end of the game based on the landscape and animals you have placed.</li>
                 <li>The player with the <strong>Most Points</strong> at the end of the game wins.</li>
                 <li>If there is a tie, the player with the <strong>Most Animals</strong> wins.</li>
               </ul>

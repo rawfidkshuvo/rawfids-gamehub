@@ -840,7 +840,7 @@ const RulesModal = ({ onClose }) => (
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {/* 1. Data Cache (New Separate Box) */}
+            {/* 1. Data Cache */}
             <div className="bg-slate-800/40 p-3 rounded-lg border-l-4 border-orange-500 flex flex-col gap-2">
               <div className="flex justify-between items-start">
                 <span className="font-bold text-white text-sm">Data Cache</span>
@@ -850,22 +850,22 @@ const RulesModal = ({ onClose }) => (
                 Raw data files. Come in 3 sizes.
               </div>
               <div className="flex justify-between items-center bg-black/40 p-2 rounded mt-auto">
-                <div className="text-center">
+                <div className="text-center pl-10">
                   <div className="text-slate-400 font-black text-xs">1</div>
                   <div className="text-[10px] text-slate-600">TB</div>
                 </div>
-                <div className="text-center border-l border-slate-700 pl-4">
+                <div className="text-center border-l border-slate-700 pl-10">
                   <div className="text-orange-400 font-black text-xs">2</div>
                   <div className="text-[10px] text-slate-600">TB</div>
                 </div>
-                <div className="text-center border-l border-slate-700 pl-4">
+                <div className="text-center border-l border-slate-700 pl-10">
                   <div className="text-yellow-400 font-black text-xs">3</div>
                   <div className="text-[10px] text-slate-600">TB</div>
                 </div>
               </div>
             </div>
 
-            {/* 2. Exploit (New Separate Box) */}
+            {/* 2. Exploit */}
             <div className="bg-slate-800/40 p-3 rounded-lg border-l-4 border-yellow-500 flex flex-col gap-2">
               <div className="flex justify-between items-start">
                 <span className="font-bold text-white text-sm">
@@ -952,21 +952,36 @@ const RulesModal = ({ onClose }) => (
               </div>
               <div className="text-xs text-slate-400">
                 Collect strictly for strength. <br />
-                Values: 1, 2, or 3. <br />
-                <span className="text-red-400">Total Strength</span> wins.
+                Values: 1, 2, or 3. 
+                <span className="text-red-400">Total Strength</span> wins. <br />
+                If tied, both players get 3 TB each.
               </div>
               <div className="flex gap-2 text-xs text-center font-mono mt-auto">
                 <div className="bg-black/40 p-2 rounded flex-1">
                   <div className="text-red-400 font-bold">Most</div>6 TB
                 </div>
                 <div className="bg-black/40 p-2 rounded flex-1">
-                  <div className="text-red-300 font-bold">2nd</div>3 TB
+                  <div className="text-red-300 font-bold">2nd Most</div>3 TB
                 </div>
               </div>
             </div>
 
-            {/* 7. Backdoor */}
-            <div className="bg-slate-800/40 p-3 rounded-lg border-l-4 border-pink-500 flex flex-col gap-2 md:col-span-2 lg:col-span-3">
+            {/* 7. Proxy Server (NEW) */}
+            <div className="bg-slate-800/40 p-3 rounded-lg border-l-4 border-cyan-400 flex flex-col gap-2">
+              <div className="flex justify-between items-start">
+                <span className="font-bold text-white text-sm">Proxy Server</span>
+                <Repeat size={16} className="text-cyan-200" />
+              </div>
+              <div className="text-xs text-slate-400">
+                Deploy normally. On a future turn, use the <strong className="text-cyan-400">Use Proxy Protocol</strong> to swap it back into the stream to pick <strong>2 cards</strong> instead of 1.
+              </div>
+              <div className="bg-black/40 p-2 rounded text-center font-mono text-xs text-cyan-200 mt-auto">
+                Swap 1 Proxy for 2 Cards
+              </div>
+            </div>
+
+            {/* 8. Backdoor */}
+            <div className="bg-slate-800/40 p-3 rounded-lg border-l-4 border-pink-500 flex flex-col gap-2 md:col-span-2 lg:col-span-2">
               <div className="flex justify-between items-start">
                 <span className="font-bold text-white text-sm">
                   Backdoor Access
@@ -976,7 +991,7 @@ const RulesModal = ({ onClose }) => (
               <div className="text-xs text-slate-400">
                 Kept until{" "}
                 <span className="text-pink-400 font-bold">Game End</span>. Watch
-                out for the penalty!
+                out for the penalty! No penalty in 2-player games.
               </div>
               <div className="flex gap-2 text-xs text-center font-mono mt-auto">
                 <div className="bg-black/40 p-2 rounded flex-1 border border-green-900/50">
