@@ -57,7 +57,7 @@ import {
   Sparkles,
   Loader2,
   ChevronRight,
-  PlayCircle,
+  PlayCircle, // Added icon
   Loader,
   Play,
 } from "lucide-react";
@@ -272,10 +272,14 @@ const calculateWinGoal = (playerCount) => {
 // ---------------------------------------------------------------------------
 const DarkAtmosphere = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    {/* Clean, deep gradient background (No hazy overlays) */}
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
 
+    {/* Crisp Particles */}
     {[...Array(25)].map((_, i) => {
+      // Calculate individual random drifts using CSS variables
       const driftX = `${Math.random() * 40 - 20}px`;
+
       return (
         <div
           key={i}
@@ -288,8 +292,8 @@ const DarkAtmosphere = React.memo(() => (
             backgroundColor: Math.random() > 0.5 ? "#301dda" : "#8b5cf6",
             animationDuration: `${10 + Math.random() * 20}s`,
             animationDelay: `${Math.random() * -20}s`,
-            boxShadow: "0 0 12px 2px rgba(217,70,239,0.8)",
-            "--driftX": driftX,
+            boxShadow: "0 0 12px 2px rgba(217,70,239,0.8)", // Brighter glow
+            "--driftX": driftX, // Passes individual random drift to CSS
           }}
         />
       );
@@ -302,7 +306,7 @@ const DarkAtmosphere = React.memo(() => (
         } 
         50% { 
           transform: translate(var(--driftX), -60px) scale(1.5); 
-          opacity: 1;
+          opacity: 1; /* Shines at full brightness */
         } 
       } 
       .animate-float { 
@@ -313,6 +317,8 @@ const DarkAtmosphere = React.memo(() => (
 ));
 
 const FloatingBackground = React.memo(() => {
+  // useMemo ensures these random positions are calculated ONLY ONCE
+  // This keeps the performance high and stops icons from resetting.
   const backgroundIcons = React.useMemo(() => {
     return [...Array(20)].map((_, i) => {
       const iconKeys = Object.keys(CARDS);
@@ -336,10 +342,14 @@ const FloatingBackground = React.memo(() => {
 
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      {/* Dark Gradient Layer */}
       <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-yellow-900/20 via-gray-950 to-black" />
+
+      {/* Floating Icons Layer */}
       <div className="absolute top-0 left-0 w-full h-full opacity-10">
         {backgroundIcons}
       </div>
+
       <style>{`
         @keyframes float {
           0%, 100% { transform: translateY(0) rotate(0deg); }
@@ -382,10 +392,11 @@ const FeedbackOverlay = ({ type, message, subtext, icon: Icon }) => (
   </div>
 );
 
+// --- GLOBAL ACTION BROADCAST ---
 const ActionBroadcast = ({ event, onClose }) => {
   useEffect(() => {
     if (event) {
-      const timer = setTimeout(onClose, 4000);
+      const timer = setTimeout(onClose, 4000); // Auto close after 4s
       return () => clearTimeout(timer);
     }
   }, [event, onClose]);
@@ -396,11 +407,13 @@ const ActionBroadcast = ({ event, onClose }) => {
   const isDiscard = event.type === "DISCARD";
   const isAction = event.type === "PLAY";
 
+  // Resolve Card Data
   const card = event.cardId ? CARDS[event.cardId] : null;
 
   return (
     <div className="fixed inset-0 z-180 flex items-center justify-center pointer-events-none px-4">
       <div className="bg-gray-900/95 backdrop-blur-xl border-2 border-purple-500/50 shadow-[0_0_50px_rgba(168,85,247,0.4)] rounded-2xl w-full max-w-sm overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300 pointer-events-auto">
+        {/* HEADER: Actor Name */}
         <div className="bg-linear-to-r from-gray-900 via-purple-900 to-gray-900 p-3 text-center border-b border-purple-500/30">
           <h3 className="font-bold text-lg text-white tracking-widest uppercase flex items-center justify-center gap-2">
             <User size={18} className="text-purple-400" />
@@ -415,7 +428,9 @@ const ActionBroadcast = ({ event, onClose }) => {
           </div>
         </div>
 
+        {/* BODY: The Content */}
         <div className="p-6 flex flex-col items-center">
+          {/* Card or Icon Display */}
           <div className="mb-6 scale-110">
             {isAction && card ? (
               <CardDisplay
@@ -435,6 +450,7 @@ const ActionBroadcast = ({ event, onClose }) => {
             )}
           </div>
 
+          {/* Outcomes List */}
           <div className="w-full space-y-2">
             {event.outcomes.map((text, i) => (
               <div
@@ -485,6 +501,7 @@ const CardDisplay = ({
     );
   }
 
+  // --- MOBILE OPTIMIZED SIZES ---
   const sizeClasses = small
     ? "w-20 h-28 p-1.5"
     : "w-24 h-40 md:w-32 md:h-48 p-2";
@@ -509,6 +526,7 @@ const CardDisplay = ({
         }
       `}
     >
+      {/* HEADER: Type & Cost */}
       <div className="w-full flex justify-between items-center font-bold text-gray-300">
         <span
           className={`${small ? "text-[8px]" : "text-[10px]"} ${
@@ -524,6 +542,7 @@ const CardDisplay = ({
         )}
       </div>
 
+      {/* ICON */}
       <div className="flex-1 flex items-center justify-center my-1 relative">
         <card.icon className={`${card.color}`} size={iconSize} />
         {turnsLeft !== undefined && (
@@ -536,6 +555,7 @@ const CardDisplay = ({
         )}
       </div>
 
+      {/* FOOTER: Name & Desc */}
       <div className="w-full text-center">
         <div
           className={`font-bold text-white leading-tight mb-1 line-clamp-1 ${titleSize}`}
@@ -686,6 +706,8 @@ const GuideModal = ({ onClose }) => (
   </div>
 );
 
+// --- INLINE REPORT COMPONENTS ---
+
 const MorningReportInline = ({ report }) => {
   if (!report) return null;
   return (
@@ -747,20 +769,29 @@ const EveningReportInline = ({ report }) => {
   );
 };
 
+// --- UPDATED SPLASH SCREEN (With Loading Indicator) ---
 const SplashScreen = ({ onStart }) => {
   const [hasSession, setHasSession] = useState(false);
+
+  // State 1: Image is downloaded and ready to show
   const [isLoaded, setIsLoaded] = useState(false);
+  // State 2: Button is ready to slide in (after zoom)
   const [showButton, setShowButton] = useState(false);
 
   useEffect(() => {
+    // 1. Check Session immediately
     const saved = localStorage.getItem("guildofshadows_roomId");
     setHasSession(!!saved);
 
+    // 2. Preload the image
     const img = new Image();
     img.src = CoverImage;
 
     img.onload = () => {
+      // Image is downloaded. Start the show.
       setIsLoaded(true);
+
+      // Start the 2-second timer for the button *after* image loads
       setTimeout(() => {
         setShowButton(true);
       }, 2000);
@@ -769,6 +800,8 @@ const SplashScreen = ({ onStart }) => {
 
   return (
     <div className="fixed inset-0 z-[200] bg-slate-950 flex flex-col items-center justify-end pb-20 md:justify-center md:pb-0 font-sans overflow-hidden">
+      {/* --- NEW: LOADING INDICATOR --- */}
+      {/* This shows only while the image is NOT loaded yet */}
       {!isLoaded && (
         <div className="absolute inset-0 flex flex-col items-center justify-center z-50 text-purple-500/50">
           <Loader size={48} className="animate-spin mb-4" />
@@ -778,6 +811,8 @@ const SplashScreen = ({ onStart }) => {
         </div>
       )}
 
+      {/* Background Image Container */}
+      {/* Opacity 0 -> 100 ensures a smooth fade-in once loaded */}
       <div
         className={`absolute inset-0 z-0 overflow-hidden transition-opacity duration-1000 ${isLoaded ? "opacity-100" : "opacity-0"}`}
       >
@@ -787,10 +822,13 @@ const SplashScreen = ({ onStart }) => {
           }`}
           style={{ backgroundImage: `url(${CoverImage})` }}
         />
+        {/* Dark Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/40" />
       </div>
 
+      {/* Content */}
       <div className="relative z-10 flex flex-col items-center gap-8 animate-in fade-in slide-in-from-bottom-10 duration-1000">
+        {/* Pulsing Action Button */}
         <div
           className={`transform transition-all duration-1000 ease-out ${
             showButton
@@ -802,6 +840,7 @@ const SplashScreen = ({ onStart }) => {
             onClick={onStart}
             className="group relative px-12 py-5 bg-purple-600/20 hover:bg-purple-600/40 border border-purple-500/50 hover:border-purple-400 text-purple-300 font-black text-2xl tracking-widest rounded-none transform transition-all hover:scale-105 hover:shadow-[0_0_30px_rgba(34,211,238,0.4)] backdrop-blur-md overflow-hidden"
           >
+            {/* Animated Scanline overlay */}
             <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-400/10 to-transparent translate-y-[-100%] animate-[scan_2s_infinite_linear]" />
 
             <span className="relative z-10 flex items-center gap-3 animate-pulse">
@@ -838,13 +877,15 @@ const SplashScreen = ({ onStart }) => {
 
 export default function GuildOfShadows() {
   const [user, setUser] = useState(null);
+  // Change these two state initializations:
   const [view, setView] = useState(() => {
     return sessionStorage.getItem("splashRefreshed") ? "menu" : "splash";
   });
 
   const [roomId, setRoomId] = useState(() => {
+    // If we just refreshed via the splash screen, auto-load the room ID
     if (sessionStorage.getItem("splashRefreshed")) {
-      sessionStorage.removeItem("splashRefreshed");
+      sessionStorage.removeItem("splashRefreshed"); // Clear the flag
       return localStorage.getItem("guildofshadows_roomId") || "";
     }
     return "";
@@ -856,6 +897,9 @@ export default function GuildOfShadows() {
   const [error, setError] = useState("");
 
   const [loading, setLoading] = useState(false);
+
+  // PERSISTENCE FIX: Load room ID from local storage
+
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
@@ -865,25 +909,31 @@ export default function GuildOfShadows() {
   const [showGuide, setShowGuide] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
-  const [targetMode, setTargetMode] = useState(null);
+  const [targetMode, setTargetMode] = useState(null); // PLAYER, CARD, OPTION, SCOUT, DISCARD
   const [selectedTargetPlayerId, setSelectedTargetPlayerId] = useState(null);
   const [peekCard, setPeekCard] = useState(null);
+
+  // New state for Doppelganger confirmation
   const [doppelgangerConfirm, setDoppelgangerConfirm] = useState(null);
 
+  // Global Action Notification State
   const [activeEvent, setActiveEvent] = useState(null);
   const lastEventIdRef = useRef(0);
 
+  // Local Report States (To prevent showing other people's reports if game state updates)
   const [morningReportData, setMorningReportData] = useState(null);
   const [eveningReportData, setEveningReportData] = useState(null);
 
+  //read and fill global name
   const [playerName, setPlayerName] = useState(
     () => localStorage.getItem("gameHub_playerName") || "",
   );
-
+  //set global name for all game
   useEffect(() => {
     if (playerName) localStorage.setItem("gameHub_playerName", playerName);
   }, [playerName]);
 
+  // --- AUTH & SYNC ---
   useEffect(() => {
     const initAuth = async () => {
       if (typeof __initial_auth_token !== "undefined" && __initial_auth_token) {
@@ -896,8 +946,13 @@ export default function GuildOfShadows() {
     return onAuthStateChanged(auth, setUser);
   }, []);
 
+  // 3. NEW FUNCTION: Handle Splash Button Click
+  // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
+    // Set a temporary session flag
     sessionStorage.setItem("splashRefreshed", "true");
+
+    // Force a hard browser reload to ensure a perfectly clean state
     window.location.reload();
   };
 
@@ -920,6 +975,7 @@ export default function GuildOfShadows() {
 
           setGameState(data);
 
+          // --- CHECK FOR NEW PUBLIC EVENT ---
           if (
             data.latestPublicEvent &&
             data.latestPublicEvent.id > lastEventIdRef.current
@@ -928,6 +984,8 @@ export default function GuildOfShadows() {
             setActiveEvent(data.latestPublicEvent);
           }
 
+          // --- REPORT CAPTURE ---
+          // 1. Morning Report
           if (
             data.status === "playing" &&
             data.turnReport &&
@@ -935,9 +993,10 @@ export default function GuildOfShadows() {
             !data.turnReport.seen
           ) {
             setMorningReportData(data.turnReport);
-            setEveningReportData(null);
+            setEveningReportData(null); // Clear evening if morning arrives
           }
 
+          // 2. Evening Report
           if (
             data.status === "playing" &&
             data.eveningReport &&
@@ -945,7 +1004,7 @@ export default function GuildOfShadows() {
             !data.eveningReport.seen
           ) {
             setEveningReportData(data.eveningReport);
-            setMorningReportData(null);
+            setMorningReportData(null); // Clear morning if evening arrives
           }
 
           if (data.status === "lobby") setView("lobby");
@@ -971,6 +1030,8 @@ export default function GuildOfShadows() {
     return () => unsub();
   }, []);
 
+  // --- ACTIONS ---
+
   const triggerFeedback = (type, msg, sub, icon) => {
     setFeedback({ type, message: msg, subtext: sub, icon });
     setTimeout(() => setFeedback(null), 2500);
@@ -978,7 +1039,9 @@ export default function GuildOfShadows() {
 
   const createRoom = async () => {
     if (!playerName) return setError("Enter Alias");
+
     setLoading(true);
+
     try {
       const chars = "123456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
       let newId = "";
@@ -1008,11 +1071,11 @@ export default function GuildOfShadows() {
           lastAction: null,
           turnReport: null,
           eveningReport: null,
-          latestPublicEvent: null,
+          latestPublicEvent: null, // Init
         },
       );
       setRoomId(newId);
-      localStorage.setItem("guildofshadows_roomId", newId);
+      localStorage.setItem("guildofshadows_roomId", newId); // Persist
     } catch (e) {
       console.error(e);
       setError("Failed to create room.");
@@ -1023,7 +1086,9 @@ export default function GuildOfShadows() {
 
   const joinRoom = async () => {
     if (!roomCode || !playerName) return setError("Enter Info");
+
     setLoading(true);
+
     try {
       const ref = doc(
         db,
@@ -1063,7 +1128,7 @@ export default function GuildOfShadows() {
         ],
       });
       setRoomId(roomCode);
-      localStorage.setItem("guildofshadows_roomId", roomCode);
+      localStorage.setItem("guildofshadows_roomId", roomCode); // Persist
     } catch (e) {
       console.error(e);
       setError("Failed to join room.");
@@ -1086,6 +1151,7 @@ export default function GuildOfShadows() {
   const handleLeaveRoom = async () => {
     if (!gameState) return;
     if (gameState.hostId === user.uid) {
+      // Host leaves -> Delete Room
       await deleteDoc(
         doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
       );
@@ -1106,9 +1172,13 @@ export default function GuildOfShadows() {
 
   const copyToClipboard = () => {
     const textToCopy = gameState.roomId;
+
+    // Logic to show the popup and hide it after 2 seconds
     const handleSuccess = () => {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
+
+      // Keep your existing global feedback if needed
       if (triggerFeedback)
         triggerFeedback("neutral", "COPIED!", "", CheckCircle);
     };
@@ -1117,6 +1187,7 @@ export default function GuildOfShadows() {
       navigator.clipboard.writeText(textToCopy);
       handleSuccess();
     } catch (e) {
+      // Fallback for older browsers
       const el = document.createElement("textarea");
       el.value = textToCopy;
       document.body.appendChild(el);
@@ -1138,6 +1209,7 @@ export default function GuildOfShadows() {
       ready: false,
     }));
 
+    // 2. Calculate Random Start Index
     const randomStartIndex = Math.floor(Math.random() * players.length);
 
     await updateDoc(
@@ -1147,7 +1219,7 @@ export default function GuildOfShadows() {
         deck,
         players,
         turnIndex: randomStartIndex,
-        totalTurns: 0,
+        totalTurns: 0, // <--- ADD THIS LINE (Initialize global turn counter)
         logs: [
           {
             text: "The struggle for the Guild begins...",
@@ -1190,7 +1262,6 @@ export default function GuildOfShadows() {
         deck: [],
         discardPile: [],
         winnerId: null,
-        winnerIds: null, // Clear multi-winners
         logs: [],
         players,
         latestPublicEvent: null,
@@ -1198,6 +1269,8 @@ export default function GuildOfShadows() {
     );
     setShowLeaveConfirm(false);
   };
+
+  // --- GAMEPLAY ENGINE ---
 
   const getTaxAmount = (players, actorId) => {
     let tax = 0;
@@ -1230,9 +1303,13 @@ export default function GuildOfShadows() {
   ) => {
     let nextIdx = (gameState.turnIndex + 1) % updatedPlayers.length;
     let nextPlayer = updatedPlayers[nextIdx];
+
+    // --- CALCULATE GLOBAL TURN COUNT ---
+    // Default to 0 if undefined (for backward compatibility)
     const currentTotalTurns = gameState.totalTurns || 0;
     const newTotalTurns = currentTotalTurns + 1;
 
+    // --- AGENT DECAY LOGIC ---
     const expiredAgents = [];
     const survivedAgents = [];
 
@@ -1247,14 +1324,21 @@ export default function GuildOfShadows() {
     });
     nextPlayer.tableau = survivedAgents;
 
+    // --- INCOME ---
     let totalIncome = 0;
     const incomeBreakdown = [];
 
+    // 1. Guild Stipend
+    // LOGIC CHANGE: Only give stipend if we are past the first round of turns.
+    // e.g., if 2 players:
+    // Turn 0 (P1) -> Next is Turn 1 (P2). 1 < 2, No Stipend.
+    // Turn 1 (P2) -> Next is Turn 2 (P1). 2 >= 2, Stipend Active.
     if (newTotalTurns >= updatedPlayers.length) {
       incomeBreakdown.push({ source: "Guild Stipend", amount: 1 });
       totalIncome += 1;
     }
 
+    // 2. Merchants
     nextPlayer.tableau.forEach((c) => {
       if (c.cardId === "MERCHANT") {
         incomeBreakdown.push({ source: "Silk Trader", amount: 1 });
@@ -1262,6 +1346,7 @@ export default function GuildOfShadows() {
       }
     });
 
+    // 3. Pity Bonus
     if (nextPlayer.gold === 0) {
       incomeBreakdown.push({ source: "Pity Bonus", amount: 1 });
       totalIncome += 1;
@@ -1269,6 +1354,7 @@ export default function GuildOfShadows() {
 
     nextPlayer.gold += totalIncome;
 
+    // --- LOGS & REPORT ---
     if (expiredAgents.length > 0) {
       logs.push({
         text: `${nextPlayer.name} lost ${expiredAgents.length} agents to time.`,
@@ -1292,23 +1378,16 @@ export default function GuildOfShadows() {
 
     // --- WIN CHECK ---
     const goal = calculateWinGoal(updatedPlayers.length);
-    const qualifyingPlayers = updatedPlayers.filter((p) => p.gold >= goal);
-
-    if (qualifyingPlayers.length > 0) {
-      const maxGold = Math.max(...qualifyingPlayers.map((p) => p.gold));
-      const winners = qualifyingPlayers.filter((p) => p.gold === maxGold);
+    if (nextPlayer.gold >= goal) {
       const finalPlayers = updatedPlayers.map((p) => ({ ...p, ready: false }));
-      const winnerNames = winners.map((w) => w.name).join(" & ");
-
       await updateDoc(
         doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
         {
           players: finalPlayers,
           status: "finished",
-          winnerIds: winners.map((w) => w.id),
-          winnerId: winners[0].id, // fallback for safety
+          winnerId: nextPlayer.id,
           logs: arrayUnion({
-            text: `🏆 ${winnerNames} ${winners.length > 1 ? "have" : "has"} bought the Guild!`,
+            text: `🏆 ${nextPlayer.name} has bought the Guild!`,
             type: "success",
             id: Date.now() + 2,
           }),
@@ -1317,6 +1396,7 @@ export default function GuildOfShadows() {
       return;
     }
 
+    // --- DRAW ---
     if (deck.length === 0) {
       if (discardPile.length > 0) {
         deck = shuffle([...discardPile]);
@@ -1342,12 +1422,12 @@ export default function GuildOfShadows() {
         deck,
         discardPile,
         turnIndex: nextIdx,
-        totalTurns: newTotalTurns,
+        totalTurns: newTotalTurns, // <--- ADD THIS LINE (Save the new count)
         logs: arrayUnion(...logs),
         lastAction: lastAction !== null ? lastAction : gameState.lastAction,
         turnReport,
         eveningReport: eveningReport,
-        latestPublicEvent: publicEvent,
+        latestPublicEvent: publicEvent, // SAVE GLOBAL EVENT
       },
     );
   };
@@ -1370,6 +1450,7 @@ export default function GuildOfShadows() {
     const publicOutcomes = [];
     let netChange = -(card.cost + tax);
 
+    // Pay Cost
     me.gold -= card.cost + tax;
 
     if (card.type === "ACTION") payPoliticians(players, me.id);
@@ -1571,23 +1652,16 @@ export default function GuildOfShadows() {
 
     // --- IMMEDIATE WIN CHECK ---
     const goal = calculateWinGoal(players.length);
-    const qualifyingPlayers = players.filter((p) => p.gold >= goal);
-
-    if (qualifyingPlayers.length > 0) {
-      const maxGold = Math.max(...qualifyingPlayers.map((p) => p.gold));
-      const winners = qualifyingPlayers.filter((p) => p.gold === maxGold);
+    if (me.gold >= goal) {
       const finalPlayers = players.map((p) => ({ ...p, ready: false }));
-      const winnerNames = winners.map((w) => w.name).join(" & ");
-
       await updateDoc(
         doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
         {
           players: finalPlayers,
           status: "finished",
-          winnerIds: winners.map((w) => w.id),
-          winnerId: winners[0].id, // fallback
+          winnerId: me.id,
           logs: arrayUnion({
-            text: `🏆 ${winnerNames} ${winners.length > 1 ? "have" : "has"} bought the Guild!`,
+            text: `🏆 ${me.name} has bought the Guild!`,
             type: "success",
             id: Date.now() + 2,
           }),
@@ -1638,6 +1712,7 @@ export default function GuildOfShadows() {
     const discardPile = [...gameState.discardPile];
     const logs = [];
 
+    // Discard chosen card
     const discarded = me.hand.splice(handIdx, 1)[0];
     discardPile.push(discarded);
 
@@ -1705,6 +1780,7 @@ export default function GuildOfShadows() {
       return;
     }
 
+    // Logic for Doppelganger Confirmation
     if (cardId === "DOPPELGANGER") {
       const lastAction = gameState.lastAction;
       let targetCard = null;
@@ -1791,9 +1867,11 @@ export default function GuildOfShadows() {
     const discardPile = [...gameState.discardPile];
     const logs = [];
 
+    // Discard chosen card
     const discarded = me.hand.splice(handIdx, 1)[0];
     discardPile.push(discarded);
 
+    // Draw replacement
     if (deck.length > 0) {
       me.hand.push(deck.pop());
     }
@@ -1844,6 +1922,7 @@ export default function GuildOfShadows() {
   const getDoppelEffectText = (cardId) => {
     if (cardId === "URCHIN") return "Effect: Gain +2 Gold";
     if (cardId === "HEIST") return "Effect: 50% chance to gain +5 Gold";
+    // All other cards result in simple mimic gold gain in this version
     return "Effect: Gain +3 Gold (Mimic Bonus)";
   };
 
@@ -1861,7 +1940,10 @@ export default function GuildOfShadows() {
             The Guild Hall is dark. The masters are deliberating.
           </p>
         </div>
+        {/* Add Spacing Between Boxes */}
         <div className="h-8"></div>
+
+        {/* Clickable Second Card */}
         <a href={import.meta.env.BASE_URL}>
           <div className="flex items-center justify-center gap-3 mb-2">
             <div className="text-center pb-12 animate-pulse">
@@ -1877,6 +1959,8 @@ export default function GuildOfShadows() {
     );
   }
 
+  // --- RENDER HELPERS ---
+
   if (!user)
     return (
       <div className="min-h-screen bg-slate-950 flex items-center justify-center text-purple-500 animate-pulse">
@@ -1884,6 +1968,7 @@ export default function GuildOfShadows() {
       </div>
     );
 
+  // RECONNECTING STATE
   if (roomId && !gameState && !error) {
     return (
       <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center text-white p-4">
@@ -1899,6 +1984,7 @@ export default function GuildOfShadows() {
     );
   }
 
+  // 4. CHANGE: Add Splash Screen Render Condition
   if (view === "splash") {
     return <SplashScreen onStart={handleSplashStart} />;
   }
@@ -1907,15 +1993,18 @@ export default function GuildOfShadows() {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans">
         <DarkAtmosphere />
+        {/* --- START OF BACK BUTTON --- */}
         <nav className="absolute top-0 left-0 w-full p-4 z-50">
           <a
             href={import.meta.env.BASE_URL}
             className="flex items-center gap-2 text-purple-800 rounded-lg font-bold shadow-md hover:text-purple-400 transition-colors w-fit animate-pulse"
           >
+            {/* Arrow Icon */}
             <StepBack />
             <span>Back to Gamehub</span>
           </a>
         </nav>
+        {/* --- END OF BACK BUTTON --- */}
 
         <div className="z-10 text-center mb-10">
           <Ghost
@@ -1997,21 +2086,25 @@ export default function GuildOfShadows() {
         <LogoBig />
         <div className="z-10 w-full max-w-md bg-slate-900/90 backdrop-blur p-6 rounded-2xl border border-purple-900/50 shadow-2xl">
           <div className="flex justify-between items-center mb-6 border-b border-slate-800 pb-4">
+            {/* Grouping Title and Copy Button together on the left */}
             <div>
               <h2 className="text-lg md:text-xl text-purple-400 font-bold uppercase">
                 Shadow Hall
               </h2>
 
+              {/* Flex container to align ID and Button side-by-side */}
               <div className="flex items-center gap-3 mt-1">
                 <div className="text-2xl md:text-3xl font-mono text-white font-black">
                   {gameState.roomId}
                 </div>
 
+                {/* 2. Container set to relative for positioning the popup */}
                 <div className="relative">
                   <button
                     onClick={copyToClipboard}
                     className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-white"
                   >
+                    {/* Optional: Change icon to checkmark when copied */}
                     {isCopied ? (
                       <CheckCircle size={16} className="text-green-500" />
                     ) : (
@@ -2019,6 +2112,7 @@ export default function GuildOfShadows() {
                     )}
                   </button>
 
+                  {/* 3. The Copied Popup */}
                   {isCopied && (
                     <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 bg-purple-500 text-white text-xs font-bold px-2 py-1 rounded shadow-lg animate-fade-in-up whitespace-nowrap">
                       Copied!
@@ -2086,6 +2180,7 @@ export default function GuildOfShadows() {
             </div>
           )}
         </div>
+        {/* ADD THIS HERE: */}
         {showLeaveConfirm && (
           <div className="fixed inset-0 z-200 bg-black/90 flex items-center justify-center p-4">
             <div className="bg-gray-800 p-6 rounded-2xl w-full max-w-sm text-center border border-gray-700 shadow-2xl">
@@ -2116,6 +2211,7 @@ export default function GuildOfShadows() {
     );
   }
 
+  // --- GAME VIEW ---
   const meIdx = gameState.players.findIndex((p) => p.id === user.uid);
   const me = gameState.players[meIdx];
   const isMyTurn = gameState.turnIndex === meIdx;
@@ -2124,19 +2220,23 @@ export default function GuildOfShadows() {
   const taxAmount = getTaxAmount(gameState.players, me.id);
   const winGoal = calculateWinGoal(gameState.players.length);
 
+  // Check if I have Lookout agent for UI button logic
   const hasLookout = me.tableau.some((c) => c.cardId === "LOOKOUT");
 
   return (
     <div className="h-dvh bg-gray-950 text-white overflow-hidden flex flex-col relative font-sans">
       <DarkAtmosphere />
 
+      {/* --- NOTIFICATIONS --- */}
       {feedback && <FeedbackOverlay {...feedback} />}
 
+      {/* --- ACTION BROADCAST --- */}
       <ActionBroadcast
         event={activeEvent}
         onClose={() => setActiveEvent(null)}
       />
 
+      {/* RENDER LOGIC: Ensure Mutual Exclusivity and Proper Layering */}
       {peekCard && (
         <div
           className="fixed inset-0 z-200 flex items-center justify-center bg-black/80 backdrop-blur"
@@ -2156,6 +2256,7 @@ export default function GuildOfShadows() {
         </div>
       )}
 
+      {/* DOPPELGANGER CONFIRMATION MODAL */}
       {doppelgangerConfirm && (
         <div className="fixed inset-0 z-190 bg-black/90 flex items-center justify-center p-4">
           <div className="bg-gray-800 border-2 border-cyan-500 rounded-2xl w-full max-w-sm flex flex-col items-center p-6 shadow-[0_0_30px_rgba(34,211,238,0.2)] animate-in zoom-in-95">
@@ -2204,6 +2305,7 @@ export default function GuildOfShadows() {
         </div>
       )}
 
+      {/* --- TOP BAR --- */}
       <div className="h-14 bg-slate-900/90 border-b border-slate-800 flex items-center justify-between px-4 z-160 shrink-0 shadow-md">
         <div className="flex items-center gap-2">
           <span className="font-serif text-purple-500 font-bold hidden md:inline text-lg">
@@ -2239,7 +2341,9 @@ export default function GuildOfShadows() {
         </div>
       </div>
 
+      {/* --- MAIN AREA --- */}
       <div className="flex-1 relative overflow-hidden flex flex-col">
+        {/* OPPONENTS SCROLL VIEW */}
         <div className="flex-1 overflow-y-auto p-4 pb-4">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {gameState.players.map((p, i) => {
@@ -2269,6 +2373,7 @@ export default function GuildOfShadows() {
                         ${isSelected ? "ring-2 ring-red-500 bg-red-900/20" : ""}
                       `}
                 >
+                  {/* PLAYING STATUS BADGE */}
                   {isActive && (
                     <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-purple-600 text-purple-100 text-[9px] px-2 py-0.5 rounded-full font-bold shadow-lg animate-pulse z-10 whitespace-nowrap flex items-center gap-1">
                       <PlayCircle size={8} /> PLAYING
@@ -2297,6 +2402,7 @@ export default function GuildOfShadows() {
                     </div>
                   </div>
 
+                  {/* Tableau */}
                   <div className="flex flex-wrap gap-1.5 min-h-[32px]">
                     {p.tableau.map((c, idx) => (
                       <div
@@ -2329,6 +2435,7 @@ export default function GuildOfShadows() {
             })}
           </div>
 
+          {/* Logs Preview - Floating */}
           <div className="mt-6 flex flex-col items-center space-y-1.5 pointer-events-none opacity-80">
             {gameState.logs
               .slice(-3)
@@ -2348,8 +2455,11 @@ export default function GuildOfShadows() {
           </div>
         </div>
 
+        {/* --- BOTTOM PLAYER AREA (Flex Column for No Overlap) --- */}
         <div className="bg-gray-950 border-t border-purple-900/30 pb-safe z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.8)] flex flex-col shrink-0">
+          {/* 0. REPORT AREA (PERSISTENT & INLINE ABOVE STATUS) */}
           <div className="w-full bg-black/20">
+            {/* YOUR TURN BANNER */}
             {isMyTurn && (
               <div className="w-full bg-green-600/20 border-y border-green-500/30 py-1 flex items-center justify-center animate-pulse">
                 <span className="text-green-400 font-bold tracking-[0.3em] text-[10px] md:text-xs uppercase flex items-center gap-2">
@@ -2365,6 +2475,7 @@ export default function GuildOfShadows() {
             ) : null}
           </div>
 
+          {/* 1. Status Bar */}
           <div className="flex justify-between items-center px-4 py-2 bg-gray-900 border-b border-gray-800">
             <div className="flex items-center gap-3">
               <div className="text-yellow-400 font-black text-2xl flex items-center gap-2 drop-shadow-md">
@@ -2386,6 +2497,7 @@ export default function GuildOfShadows() {
             </div>
           </div>
 
+          {/* 2. Controls / Action Prompts (Middle Layer) */}
           <div className="min-h-[50px] flex items-center justify-center py-2 px-4">
             {isMyTurn && !targetMode && selectedCardIdx === null && (
               <div className="flex gap-3 w-full justify-center">
@@ -2424,6 +2536,7 @@ export default function GuildOfShadows() {
               </div>
             )}
 
+            {/* Mode Messages */}
             {targetMode === "SCOUT" && (
               <div className="flex items-center gap-3 bg-blue-900/30 border border-blue-500/30 px-4 py-2 rounded-full">
                 <span className="text-blue-300 text-sm font-bold flex items-center gap-2">
@@ -2475,6 +2588,7 @@ export default function GuildOfShadows() {
               </button>
             )}
 
+            {/* Sub-modes */}
             {targetMode === "CARD" && (
               <div className="bg-black/60 px-4 py-2 rounded-full text-sm font-bold border border-red-500/50 text-red-200">
                 Select Agent to Destroy
@@ -2498,6 +2612,7 @@ export default function GuildOfShadows() {
             )}
           </div>
 
+          {/* 3. Hand (Bottom Layer - Horizontal Scroll) */}
           <div className="flex overflow-x-auto px-4 pb-4 gap-3 no-scrollbar snap-x snap-mandatory min-h-[180px] items-center">
             {me.hand.length === 0 && (
               <div className="text-gray-600 text-sm italic w-full text-center py-8 border-2 border-dashed border-gray-800 rounded-xl">
@@ -2525,11 +2640,13 @@ export default function GuildOfShadows() {
                 />
               </div>
             ))}
+            {/* Spacer for right padding in scroll view */}
             <div className="w-2 shrink-0"></div>
           </div>
         </div>
       </div>
 
+      {/* --- MODALS --- */}
       {showLogs && (
         <div className="fixed top-16 right-4 w-64 max-h-60 bg-gray-900/95 border border-gray-700 rounded-xl z-155 overflow-y-auto p-2 shadow-2xl">
           <div className="flex justify-between items-center mb-4">
@@ -2596,28 +2713,12 @@ export default function GuildOfShadows() {
         <div className="fixed inset-0 top-14 z-150 bg-black/90 flex flex-col items-center justify-center p-6 text-center animate-in fade-in">
           <Trophy size={80} className="text-yellow-400 mb-6 animate-bounce" />
           <h2 className="text-4xl font-black text-white mb-2">GAME OVER</h2>
+          <p className="text-2xl text-purple-400 font-serif mb-8">
+            {gameState.players.find((p) => p.id === gameState.winnerId)?.name}{" "}
+            is the new Guild Master!
+          </p>
 
-          {(() => {
-            const winners = gameState.winnerIds
-              ? gameState.players.filter((p) =>
-                  gameState.winnerIds.includes(p.id),
-                )
-              : [
-                  gameState.players.find((p) => p.id === gameState.winnerId),
-                ].filter(Boolean);
-            const winnerNames = winners.map((w) => w.name).join(" & ");
-            const isPlural = winners.length > 1;
-
-            return (
-              <p className="text-2xl text-purple-400 font-serif mb-8">
-                {winnerNames}{" "}
-                {isPlural
-                  ? "are the new Guild Masters!"
-                  : "is the new Guild Master!"}
-              </p>
-            );
-          })()}
-
+          {/* FINAL SCOREBOARD */}
           <div className="bg-gray-800/80 p-5 rounded-2xl mb-6 w-full max-w-sm border border-gray-700 shadow-xl">
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4 border-b border-gray-700 pb-2">
               Final Standings
@@ -2625,43 +2726,39 @@ export default function GuildOfShadows() {
             <div className="space-y-3">
               {[...gameState.players]
                 .sort((a, b) => b.gold - a.gold)
-                .map((p, i) => {
-                  const isWinner = gameState.winnerIds
-                    ? gameState.winnerIds.includes(p.id)
-                    : p.id === gameState.winnerId;
-
-                  return (
-                    <div
-                      key={p.id}
-                      className="flex justify-between items-center bg-black/30 p-2 rounded"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`
-                              w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
-                              ${
-                                i === 0 || isWinner
-                                  ? "bg-yellow-500 text-black"
-                                  : "bg-gray-700 text-gray-300"
-                              }
-                            `}
-                        >
-                          {i + 1}
-                        </div>
-                        <span
-                          className={`font-bold ${
-                            isWinner ? "text-yellow-400" : "text-white"
-                          }`}
-                        >
-                          {p.name}
-                        </span>
+                .map((p, i) => (
+                  <div
+                    key={p.id}
+                    className="flex justify-between items-center bg-black/30 p-2 rounded"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`
+                            w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold
+                            ${
+                              i === 0
+                                ? "bg-yellow-500 text-black"
+                                : "bg-gray-700 text-gray-300"
+                            }
+                         `}
+                      >
+                        {i + 1}
                       </div>
-                      <div className="font-mono text-yellow-500 font-bold flex items-center gap-1">
-                        {p.gold} <Coins size={12} />
-                      </div>
+                      <span
+                        className={`font-bold ${
+                          p.id === gameState.winnerId
+                            ? "text-yellow-400"
+                            : "text-white"
+                        }`}
+                      >
+                        {p.name}
+                      </span>
                     </div>
-                  );
-                })}
+                    <div className="font-mono text-yellow-500 font-bold flex items-center gap-1">
+                      {p.gold} <Coins size={12} />
+                    </div>
+                  </div>
+                ))}
             </div>
           </div>
 
