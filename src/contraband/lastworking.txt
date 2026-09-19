@@ -96,8 +96,8 @@ const db = getFirestore(app);
 const APP_ID = typeof __app_id !== "undefined" ? __app_id : "contraband";
 const GAME_ID = "12";
 // --- Game Constants ---
-const STARTING_COINS = 1000;
-const BANK_LOAN = 1000;
+const STARTING_COINS = 500;
+const BANK_LOAN = 500;
 
 const ROLES = {
   DIPLOMAT: {
@@ -159,6 +159,7 @@ const EVENTS = {
       "ROYAL_3_MEDS",
     ],
   },
+  // --- NEW EVENTS ---
   INDUSTRIAL_REV: {
     id: "INDUSTRIAL_REV",
     name: "Industrial Boom",
@@ -177,15 +178,16 @@ const EVENTS = {
     name: "Market Recession",
     desc: "Contraband value -20%.",
     multiplier: 0.8,
-    target: "ALL_ILLEGAL", 
+    target: "ALL_ILLEGAL", // Special keyword we will handle
   },
   DEFLATION: {
     id: "DEFLATION",
     name: "Deflation",
     desc: "Legal Goods value -20%.",
     multiplier: 0.8,
-    target: "ALL_LEGAL", 
+    target: "ALL_LEGAL", // Special keyword we will handle
   },
+  // ------------------
   CRACKDOWN: {
     id: "CRACKDOWN",
     name: "Police Crackdown",
@@ -338,8 +340,8 @@ const GOODS = {
     type: "ILLEGAL",
     icon: Cross,
     color: "text-cyan-300",
-    legalType: "MEDS", 
-    legalCount: 2, 
+    legalType: "MEDS", // Counts as Meds
+    legalCount: 2, // Counts as 3 Meds
   },
   ROYAL_2_TEXTILE: {
     id: "ROYAL_2_TEXTILE",
@@ -382,8 +384,8 @@ const GOODS = {
     type: "ILLEGAL",
     icon: Cross,
     color: "text-yellow-300",
-    legalType: "MEDS", 
-    legalCount: 3, 
+    legalType: "MEDS", // Counts as Meds
+    legalCount: 3, // Counts as 3 Meds
   },
   ROYAL_3_TEXTILE: {
     id: "ROYAL_3_TEXTILE",
@@ -431,8 +433,10 @@ const ContrabandLogoBig = () => (
 const generateDeck = (playerCount, gameLength = "SHORT") => {
   let deck = [];
 
+  // CHANGE: Apply multiplier only if game is LONG *AND* there are more than 4 players
   const multiplier = gameLength === "LONG" && playerCount > 4 ? 1.5 : 1;
 
+  // Base counts per player (Balanced for game length)
   const counts = {
     MEDS: 8 * playerCount * multiplier,
     FOOD: 6 * playerCount * multiplier,
@@ -444,6 +448,7 @@ const generateDeck = (playerCount, gameLength = "SHORT") => {
     CHIP: 2 * playerCount * multiplier,
     SPICE: 2 * playerCount * multiplier,
 
+    // Royal Goods
     ROYAL_2_MEDS: 2 * multiplier,
     ROYAL_2_FOOD: 2 * multiplier,
     ROYAL_2_TEXTILE: 2 * multiplier,
@@ -453,10 +458,12 @@ const generateDeck = (playerCount, gameLength = "SHORT") => {
     ROYAL_3_TEXTILE: 2 * multiplier,
   };
 
+  // Add standard cards
   Object.entries(counts).forEach(([type, count]) => {
     for (let i = 0; i < count; i++) deck.push(type);
   });
 
+  // Add Traps (1 per player * multiplier)
   for (let i = 0; i < playerCount; i++) deck.push("TRAP");
 
   return deck;
@@ -476,6 +483,7 @@ const shuffle = (array) => {
   return array;
 };
 
+// Helper: Draw a card but prevent more than 1 Trap in hand
 const drawSafeCard = (deck, currentHand) => {
   if (deck.length === 0) return null;
   let rejected = [];
@@ -494,6 +502,7 @@ const drawSafeCard = (deck, currentHand) => {
   return card;
 };
 
+// Helper: Assign random roles
 const assignRandomRoles = (players) => {
   const rolesKeys = Object.keys(ROLES);
   const pool = [...rolesKeys];
@@ -502,6 +511,7 @@ const assignRandomRoles = (players) => {
   return players.map((p, i) => ({ ...p, role: ROLES[shuffledRoles[i]].id }));
 };
 
+// Helper to update detailed round stats with RICH transactions
 const getUpdatedStats = (currentStats, playerId, updates) => {
   const playerStats = currentStats[playerId] || {
     income: 0,
@@ -511,39 +521,44 @@ const getUpdatedStats = (currentStats, playerId, updates) => {
     isInspector: false,
     marketItems: [],
     roleBonus: 0,
-    eventImpact: 0, 
+    eventImpact: 0, // Initialize new field
   };
 
-  let newTransactions = playerStats.transactions || [];
-  if (updates.transaction) newTransactions = [...newTransactions, updates.transaction];
-  if (updates.transactions) newTransactions = [...newTransactions, ...updates.transactions];
-
-  const { transaction, transactions, marketItem, ...restUpdates } = updates;
-
-  const newMarketItems = marketItem
-    ? [...(playerStats.marketItems || []), marketItem]
+  const newTransactions = updates.transaction
+    ? [...(playerStats.transactions || []), updates.transaction]
+    : playerStats.transactions || [];
+  const newMarketItems = updates.marketItem
+    ? [...(playerStats.marketItems || []), updates.marketItem]
     : playerStats.marketItems || [];
 
   return {
     ...currentStats,
     [playerId]: {
       ...playerStats,
-      ...restUpdates,
-      income: (playerStats.income || 0) + (restUpdates.income || 0),
-      expense: (playerStats.expense || 0) + (restUpdates.expense || 0),
-      roleBonus: (playerStats.roleBonus || 0) + (restUpdates.roleBonus || 0),
-      eventImpact: (playerStats.eventImpact || 0) + (restUpdates.eventImpact || 0),
+      ...updates,
+      income: (playerStats.income || 0) + (updates.income || 0),
+      expense: (playerStats.expense || 0) + (updates.expense || 0),
+      roleBonus: (playerStats.roleBonus || 0) + (updates.roleBonus || 0),
+      // Aggregate the event impact
+      eventImpact: (playerStats.eventImpact || 0) + (updates.eventImpact || 0),
       transactions: newTransactions,
       marketItems: newMarketItems,
     },
   };
 };
 
+// --- Sub-Components ---
+
 const DarkAtmosphere = React.memo(() => (
   <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    {/* Clean, deep gradient background (No hazy overlays) */}
     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-fuchsia-950/40 via-slate-950 to-black" />
+
+    {/* Crisp Particles */}
     {[...Array(25)].map((_, i) => {
+      // Calculate individual random drifts using CSS variables
       const driftX = `${Math.random() * 40 - 20}px`;
+
       return (
         <div
           key={i}
@@ -556,8 +571,8 @@ const DarkAtmosphere = React.memo(() => (
             backgroundColor: Math.random() > 0.5 ? "#00ff99" : "#00fe44",
             animationDuration: `${10 + Math.random() * 20}s`,
             animationDelay: `${Math.random() * -20}s`,
-            boxShadow: "0 0 12px 2px rgba(18, 252, 135, 0.8)", 
-            "--driftX": driftX, 
+            boxShadow: "0 0 12px 2px rgba(18, 252, 135, 0.8)", // Brighter glow
+            "--driftX": driftX, // Passes individual random drift to CSS
           }}
         />
       );
@@ -570,7 +585,7 @@ const DarkAtmosphere = React.memo(() => (
         } 
         50% { 
           transform: translate(var(--driftX), -60px) scale(1.5); 
-          opacity: 1; 
+          opacity: 1; /* Shines at full brightness */
         } 
       } 
       .animate-float { 
@@ -580,6 +595,51 @@ const DarkAtmosphere = React.memo(() => (
   </div>
 ));
 
+const FloatingBackground = React.memo(() => {
+  // useMemo ensures these random positions are calculated ONLY ONCE
+  // This keeps the performance high and stops icons from resetting.
+  const backgroundIcons = React.useMemo(() => {
+    return [...Array(20)].map((_, i) => {
+      const iconKeys = Object.keys(GOODS);
+      const Icon = GOODS[iconKeys[i % iconKeys.length]].icon;
+      return (
+        <div
+          key={i}
+          className="absolute animate-float text-white/60"
+          style={{
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            animationDuration: `${10 + Math.random() * 20}s`,
+            transform: `scale(${0.5 + Math.random()})`,
+          }}
+        >
+          <Icon size={32} />
+        </div>
+      );
+    });
+  }, []);
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+      {/* Dark Gradient Layer */}
+      <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,var(--tw-gradient-stops))] from-yellow-900/20 via-gray-950 to-black" />
+
+      {/* Floating Icons Layer */}
+      <div className="absolute top-0 left-0 w-full h-full opacity-10">
+        {backgroundIcons}
+      </div>
+
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0) rotate(0deg); }
+          50% { transform: translateY(-20px) rotate(10deg); }
+        }
+        .animate-float { animation: float infinite ease-in-out; }
+      `}</style>
+    </div>
+  );
+});
+
 const CardIcon = ({ typeId, size = 12 }) => {
   const info = GOODS[typeId];
   if (!info) return null;
@@ -587,15 +647,19 @@ const CardIcon = ({ typeId, size = 12 }) => {
 };
 
 const ReportCard = ({ players, roundData, isFinal }) => {
+  // 1. Add "STASH" to the initial active tab logic if preferred, or keep FINAL
   const [activeTab, setActiveTab] = useState(
     isFinal ? "FINAL" : Math.max(0, roundData.length - 1),
   );
 
+  // 2. Update Tabs to include STASH
   const tabs = isFinal
     ? ["FINAL", "STASH", ...roundData.map((_, i) => `ROUND ${i + 1}`)]
     : [];
 
+  // --- NEW: Helper to render the detailed Stash View ---
   const renderStashView = () => {
+    // Sort players by final score and apply tie-breaker rules
     const sortedPlayers = [...players].sort((a, b) => {
       const scoreDiff = (b.finalScore || 0) - (a.finalScore || 0);
       if (scoreDiff !== 0) return scoreDiff;
@@ -608,6 +672,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
     const topLegal = sortedPlayers[0]?.legalCount;
     const topIllegal = sortedPlayers[0]?.illegalCount;
 
+    // Helper to determine if a player is among the winners
     const isWinner = (p) =>
       p.finalScore !== undefined &&
       p.finalScore === topScore &&
@@ -617,6 +682,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
     return (
       <div className="flex flex-row gap-4 p-6 bg-slate-900/50 overflow-x-auto pb-8 snap-x">
         {sortedPlayers.map((p, i) => {
+          // Categorize and Count Items
           const legal = [];
           const royal = [];
           const royalTwo = [];
@@ -659,6 +725,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                   : "border-slate-700"
               } overflow-hidden`}
             >
+              {/* Player Header */}
               <div className="p-3 bg-black/20 w-full flex flex-row justify-between items-center border-b border-slate-700">
                 <div>
                   <div className="font-bold text-md text-white">{p.name}</div>
@@ -670,12 +737,15 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                 )}
               </div>
 
+              {/* Exports Section */}
               <div className="flex-1 p-3 flex flex-col gap-4">
+                {/* Section 1: Exports Inventory */}
                 <div className="space-y-3 flex-1">
                   <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-700 pb-1">
                     Exports Manifest
                   </h4>
 
+                  {/* Legal Goods */}
                   {legal.length > 0 && (
                     <div>
                       <span className="text-[9px] text-emerald-500 font-bold uppercase mb-1 block">
@@ -697,6 +767,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                     </div>
                   )}
 
+                  {/* Royal Goods */}
                   {royal.length > 0 && (
                     <div>
                       <span className="text-[9px] text-yellow-500 font-bold uppercase mb-1 block">
@@ -729,6 +800,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                     </div>
                   )}
 
+                  {/* Contraband */}
                   {contraband.length > 0 && (
                     <div>
                       <span className="text-[9px] text-red-500 font-bold uppercase mb-1 block">
@@ -759,6 +831,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                     )}
                 </div>
 
+                {/* Section 2: King/Queen Bonuses */}
                 <div className="bg-black/20 -mx-3 -mb-3 p-3 border-t border-slate-700 mt-auto">
                   <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">
                     Titles & Honors
@@ -796,6 +869,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                     </div>
                   )}
 
+                  {/* Total Bonus Cash Display */}
                   <div className="flex justify-between items-center border-t border-slate-700 pt-2">
                     <span className="text-[10px] text-slate-500 uppercase">
                       Bonus Payout
@@ -826,6 +900,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
       displayData = players.map((p) => {
         let stashBonus = 0;
 
+        // Accumulators
         let totalRoleBonus = 0;
         let bonusBreakdown = [];
 
@@ -838,13 +913,16 @@ const ReportCard = ({ players, roundData, isFinal }) => {
         let totalMarketSpend = 0;
         let marketBreakdown = [];
 
+        // King/Queen Data SAFE ACCESS
         const kqIncome = p.kqIncome || 0;
         const kqDetails = p.kqDetails || [];
         const stash = p.stash || [];
 
+        // Aggregate per-round stats
         roundData.forEach((r, i) => {
           const rStats = r.stats[p.id];
           if (rStats) {
+            // 1. Role Bonus
             if (rStats.roleBonus > 0) {
               totalRoleBonus += rStats.roleBonus;
               bonusBreakdown.push(
@@ -852,15 +930,17 @@ const ReportCard = ({ players, roundData, isFinal }) => {
               );
             }
 
+            // 2. Event Impact
             if (rStats.eventImpact && rStats.eventImpact !== 0) {
               totalEventImpact += rStats.eventImpact;
               eventBreakdown.push(
                 `R${i + 1} (${r.event?.name}): ${
-                  rStats.eventImpact < 0 ? "-" : "+"
-                }$${Math.abs(rStats.eventImpact)}`,
+                  rStats.eventImpact > 0 ? "+" : ""
+                }$${rStats.eventImpact}`,
               );
             }
 
+            // 3. Black Market Purchases
             if (rStats.marketItems && rStats.marketItems.length > 0) {
               rStats.marketItems.forEach((itemId) => {
                 const item = SHOP_ITEMS[itemId];
@@ -873,11 +953,12 @@ const ReportCard = ({ players, roundData, isFinal }) => {
               });
             }
 
+            // 4. Inspection Impact
             const inspectionLabels = [
               "Fine Paid",
               "Fine Collected",
               "Bribe Paid",
-              "Bribe Offered", 
+              "Bribe Offered", // <--- ADD THIS
               "Bribe Accepted",
               "Bribe Returned",
               "Trap Exploded",
@@ -888,14 +969,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
 
             if (rStats.transactions) {
               rStats.transactions.forEach((t) => {
-                if (t.visualOnly) {
-                  const formattedAmount = `≈${t.amount < 0 ? '-' : ''}$${Math.abs(t.amount)}`;
-                  if (t.category === "ROLE_BONUS") {
-                    bonusBreakdown.push(`R${i + 1}: ${t.label} (${formattedAmount})`);
-                  } else if (t.category === "EVENT_IMPACT") {
-                    eventBreakdown.push(`R${i + 1}: ${t.label} (${formattedAmount})`);
-                  }
-                } else if (inspectionLabels.includes(t.label)) {
+                if (inspectionLabels.includes(t.label)) {
                   totalInspectionNet += t.amount;
                   if (Math.abs(t.amount) > 0) {
                     let label = t.label;
@@ -916,11 +990,13 @@ const ReportCard = ({ players, roundData, isFinal }) => {
           }
         });
 
+        // 1. SAFE STASH CALCULATION
         const stashTotal = stash.reduce(
           (acc, c) => acc + (GOODS[c]?.val || 0),
           0,
         );
 
+        // 2. TIE-BREAKER COUNTERS
         let legalCount = 0;
         let illegalCount = 0;
         stash.forEach((c) => {
@@ -928,6 +1004,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
           else if (GOODS[c]?.type === "ILLEGAL") illegalCount++;
         });
 
+        // 3. SAFE TOTAL CALCULATION
         const total = Math.floor(p.coins - BANK_LOAN + kqIncome);
 
         return {
@@ -961,12 +1038,15 @@ const ReportCard = ({ players, roundData, isFinal }) => {
         };
       });
 
+      // Updated Final Sorting logic with Tie-Breakers
+      // Updated Final Sorting logic with Tie-Breakers
       displayData.sort((a, b) => {
         if (b.total !== a.total) return b.total - a.total;
         if (b.legalCount !== a.legalCount) return b.legalCount - a.legalCount;
         return b.illegalCount - a.illegalCount;
       });
 
+      // Mark All Valid Winners AND Calculate Ranks
       if (displayData.length > 0) {
         const topTotal = displayData[0].total;
         const topLegal = displayData[0].legalCount;
@@ -975,6 +1055,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
         let currentRank = 1;
 
         displayData.forEach((d, index) => {
+          // Check for joint winners
           if (
             d.total === topTotal &&
             d.legalCount === topLegal &&
@@ -983,6 +1064,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
             d.isWinner = true;
           }
 
+          // Calculate standard competition ranking (1, 1, 1, 4)
           if (index > 0) {
             const prev = displayData[index - 1];
             if (
@@ -993,10 +1075,11 @@ const ReportCard = ({ players, roundData, isFinal }) => {
               currentRank = index + 1;
             }
           }
-          d.rank = currentRank; 
+          d.rank = currentRank; // Save the rank to the display object
         });
       }
     } else {
+      // Existing Round View Logic
       const roundIdx =
         typeof activeTab === "string"
           ? parseInt(activeTab.split(" ")[1]) - 1
@@ -1024,19 +1107,6 @@ const ReportCard = ({ players, roundData, isFinal }) => {
       displayData = Object.keys(stats).map((pid) => {
         const pStat = stats[pid];
         const pName = players.find((pl) => pl.id === pid)?.name || "Unknown";
-
-        let visualRoleBonus = 0;
-        let visualEventImpact = 0;
-
-        if (pStat.transactions) {
-          pStat.transactions.forEach(t => {
-            if (t.visualOnly) {
-              if (t.category === "ROLE_BONUS") visualRoleBonus += t.amount;
-              if (t.category === "EVENT_IMPACT") visualEventImpact += t.amount;
-            }
-          });
-        }
-
         return {
           id: pid,
           name: pName,
@@ -1044,9 +1114,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
           isInspector: pStat.isInspector,
           marketItems: pStat.marketItems || [],
           roleBonus: pStat.roleBonus || 0,
-          visualRoleBonus,
           eventImpact: pStat.eventImpact || 0,
-          visualEventImpact,
           transactions: pStat.transactions || [],
           income: pStat.income,
           expense: pStat.expense,
@@ -1067,9 +1135,6 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                   <th className="px-6 py-3 border-b border-slate-800 text-right">
                     Cash
                   </th>
-                  <th className="px-6 py-3 border-b border-slate-800 text-right text-red-400">
-                    Loan
-                  </th>
                   <th className="px-6 py-3 border-b border-slate-800 text-right text-emerald-300">
                     Stash
                   </th>
@@ -1088,7 +1153,9 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                   <th className="px-6 py-3 border-b border-slate-800 text-right text-yellow-200">
                     King/Queen
                   </th>
-                  
+                  <th className="px-6 py-3 border-b border-slate-800 text-right text-red-400">
+                    Loan
+                  </th>
                   <th className="px-6 py-3 border-b border-slate-800 text-right text-white">
                     Final Score
                   </th>
@@ -1135,7 +1202,7 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                               : "bg-slate-800 text-slate-500"
                           }`}
                         >
-                          {d.rank} 
+                          {d.rank} {/* <-- CHANGED FROM {i + 1} */}
                         </div>
                         <span
                           className={`font-medium ${
@@ -1151,9 +1218,6 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                     </td>
                     <td className="px-6 py-4 text-right font-mono text-slate-400 align-top">
                       ${d.cash}
-                    </td>
-                    <td className="px-6 py-4 text-right font-mono text-red-400 align-top">
-                      {d.loan}
                     </td>
                     <td className="px-6 py-4 text-right font-mono text-emerald-300 align-top">
                       ${d.stashVal}
@@ -1264,7 +1328,9 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                         ))}
                       </div>
                     </td>
-                    
+                    <td className="px-6 py-4 text-right font-mono text-red-400 align-top">
+                      {d.loan}
+                    </td>
                     <td className="px-6 py-4 text-right font-mono font-bold text-white text-lg align-top">
                       ${d.total}
                     </td>
@@ -1297,33 +1363,20 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                           </div>
                         </div>
                       )}
-                      <div className="flex flex-col gap-1">
-                        {d.eventImpact !== 0 && (
-                          <span
-                            className={`font-mono text-xs font-bold px-1.5 py-0.5 rounded w-fit ${
-                              d.eventImpact > 0
-                                ? "text-emerald-400 bg-emerald-900/20"
-                                : "text-red-400 bg-red-900/20"
-                            }`}
-                          >
-                            {d.eventImpact > 0 ? "+" : ""}{d.eventImpact}
-                          </span>
-                        )}
-                        {d.visualEventImpact !== 0 && (
-                          <span
-                            className={`font-mono text-xs font-bold px-1.5 py-0.5 rounded w-fit ${
-                              d.visualEventImpact > 0
-                                ? "text-emerald-400 bg-emerald-900/20"
-                                : "text-red-400 bg-red-900/20"
-                            }`}
-                          >
-                            ≈{d.visualEventImpact < 0 ? "-" : ""}${Math.abs(d.visualEventImpact)}
-                          </span>
-                        )}
-                        {d.eventImpact === 0 && d.visualEventImpact === 0 && (
-                          <span className="text-slate-600 text-xs">-</span>
-                        )}
-                      </div>
+                      {d.eventImpact !== 0 ? (
+                        <span
+                          className={`font-mono text-xs font-bold px-1.5 py-0.5 rounded ${
+                            d.eventImpact > 0
+                              ? "text-emerald-400 bg-emerald-900/20"
+                              : "text-red-400 bg-red-900/20"
+                          }`}
+                        >
+                          {d.eventImpact > 0 ? "+" : ""}
+                          {d.eventImpact}
+                        </span>
+                      ) : (
+                        <span className="text-slate-600 text-xs">-</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 align-top">
                       {d.marketItems.length > 0 ? (
@@ -1348,21 +1401,13 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                       )}
                     </td>
                     <td className="px-6 py-4 align-top">
-                      <div className="flex flex-col gap-1">
-                        {d.roleBonus !== 0 && (
-                          <span className="text-yellow-400 font-mono text-xs">
-                            +${d.roleBonus}
-                          </span>
-                        )}
-                        {d.visualRoleBonus !== 0 && (
-                          <span className="text-yellow-400 font-mono text-xs">
-                            ≈${Math.abs(d.visualRoleBonus)}
-                          </span>
-                        )}
-                        {d.roleBonus === 0 && d.visualRoleBonus === 0 && (
-                          <span className="text-slate-600 text-xs">-</span>
-                        )}
-                      </div>
+                      {d.roleBonus > 0 ? (
+                        <span className="text-yellow-400 font-mono text-xs">
+                          +${d.roleBonus}
+                        </span>
+                      ) : (
+                        <span className="text-slate-600 text-xs">-</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 align-top">
                       <div className="space-y-2">
@@ -1387,9 +1432,8 @@ const ReportCard = ({ players, roundData, isFinal }) => {
                                       : "text-red-400"
                                   }`}
                                 >
-                                  {t.visualOnly
-                                    ? `≈${t.amount < 0 ? "-" : ""}$${Math.abs(t.amount)}`
-                                    : `${t.amount >= 0 ? "+" : ""}${t.amount}`}
+                                  {t.amount >= 0 ? "+" : ""}
+                                  {t.amount}
                                 </span>
                               </div>
                               {t.items && t.items.length > 0 && (
@@ -2800,11 +2844,6 @@ export default function ContrabandGame() {
     let stats = getUpdatedStats(gameState.currentRoundStats, user.uid, {
       expense: item.cost,
       marketItem: item.id,
-      transaction: {
-        label: "Market Purchase",
-        amount: -item.cost,
-        detail: item.name
-      }
     });
 
     const players = gameState.players.map((p) => {
@@ -2995,7 +3034,7 @@ export default function ContrabandGame() {
       }
     };
 
-    // --- REST OF LOGIC ---
+    // --- REST OF LOGIC (Unchanged) ---
     if (action === "PEEK") {
       if (target.loadedCrate.scanned) return;
       const randomCard =
@@ -3086,25 +3125,18 @@ export default function ContrabandGame() {
       );
       players[targetIdx].coins += saleValue;
 
-      let saleTxs = [
-        {
-          label: "Goods Sold",
-          amount: saleValue - impact,
-          items: target.loadedCrate.cards,
-        }
-      ];
-      if (impact !== 0) {
-        saleTxs.push({
-          label: "Event Impact",
-          amount: impact,
-          detail: currentEvent.name
-        });
-      }
-
       stats = getUpdatedStats(stats, target.id, {
         income: saleValue,
         eventImpact: impact,
-        transactions: saleTxs,
+        transaction: {
+          label: "Goods Sold",
+          amount: saleValue,
+          items: target.loadedCrate.cards,
+          detail:
+            impact !== 0
+              ? `Event Impact: ${impact > 0 ? "+" : ""}$${impact}`
+              : "",
+        },
       });
 
       players[targetIdx].stash.push(...target.loadedCrate.cards);
@@ -3155,27 +3187,19 @@ export default function ContrabandGame() {
         const { total: saleValue, impact } = calculateSaleStats(remainingCards);
         players[targetIdx].coins += saleValue;
 
-        let saleTxs = [
-          {
-            label: "Survivors Sold",
-            amount: saleValue - impact,
-            items: remainingCards,
-          }
-        ];
-        if (impact !== 0) {
-          saleTxs.push({
-            label: "Event Impact",
-            amount: impact,
-            detail: currentEvent.name
-          });
-        }
-
         stats = getUpdatedStats(stats, target.id, {
           income: saleValue,
           eventImpact: impact,
-          transactions: saleTxs,
+          transaction: {
+            label: "Survivors Sold",
+            amount: saleValue,
+            items: remainingCards,
+            detail:
+              impact !== 0
+                ? `Event Impact: ${impact > 0 ? "+" : ""}$${impact}`
+                : "",
+          },
         });
-
         players[targetIdx].stash.push(...remainingCards);
         applyGoodsBonus(targetIdx, remainingCards);
 
@@ -3220,44 +3244,22 @@ export default function ContrabandGame() {
           players[inspectorIdx].coins -= penalty;
           players[targetIdx].coins += penalty;
 
-          let inspTx = [
-            {
+          stats = getUpdatedStats(stats, inspector.id, {
+            expense: penalty,
+            transaction: {
               label: "Wrongful Search",
               amount: -penalty,
               detail: `Compensated ${legalCards.length} legal goods`,
-            }
-          ];
-          if (eventImpact !== 0) {
-            inspTx.push({
-              label: "Event Impact",
-              amount: eventImpact,
-              visualOnly: true,
-              category: "EVENT_IMPACT"
-            });
-          }
-          stats = getUpdatedStats(stats, inspector.id, {
-            expense: penalty,
-            transactions: inspTx,
+            },
           });
-
-          let targetTx = [
-            {
+          stats = getUpdatedStats(stats, target.id, {
+            income: penalty,
+            eventImpact: eventImpact,
+            transaction: {
               label: "Clean Bonus",
               amount: penalty,
               detail: "Compensation received",
-            }
-          ];
-          if (eventImpact !== 0) {
-            targetTx.push({
-              label: "Event Impact",
-              amount: -eventImpact,
-              visualOnly: true,
-              category: "EVENT_IMPACT"
-            });
-          }
-          stats = getUpdatedStats(stats, target.id, {
-            income: penalty,
-            transactions: targetTx,
+            },
           });
 
           // All cards (including the hidden item) still pass through and are sold
@@ -3265,25 +3267,18 @@ export default function ContrabandGame() {
             calculateSaleStats(cards);
           players[targetIdx].coins += saleValue;
 
-          let saleTxs = [
-            {
-              label: "Goods Sold",
-              amount: saleValue - saleImpact,
-              items: cards,
-            }
-          ];
-          if (saleImpact !== 0) {
-            saleTxs.push({
-              label: "Event Impact",
-              amount: saleImpact,
-              detail: currentEvent.name
-            });
-          }
-
           stats = getUpdatedStats(stats, target.id, {
             income: saleValue,
             eventImpact: saleImpact,
-            transactions: saleTxs,
+            transaction: {
+              label: "Goods Sold",
+              amount: saleValue,
+              items: cards,
+              detail:
+                saleImpact !== 0
+                  ? `Event Impact: ${saleImpact > 0 ? "+" : ""}$${saleImpact}`
+                  : "",
+            },
           });
 
           players[targetIdx].stash.push(...cards);
@@ -3324,80 +3319,43 @@ export default function ContrabandGame() {
           players[targetIdx].coins -= finalFine;
           players[inspectorIdx].coins += finalFine;
 
-          let targetTx = [
-            {
+          stats = getUpdatedStats(stats, target.id, {
+            expense: finalFine,
+            roleBonus: roleSavings,
+            eventImpact: eventImpact,
+            transaction: {
               label: "Fine Paid",
               amount: -finalFine,
               detail: `Seized: ${seized.length} items`,
-            }
-          ];
-          if (roleSavings > 0) {
-            targetTx.push({
-              label: "Diplomat Savings",
-              amount: roleSavings,
-              visualOnly: true,
-              category: "ROLE_BONUS"
-            });
-          }
-          if (eventImpact !== 0) {
-            targetTx.push({
-              label: "Event Impact",
-              amount: eventImpact,
-              visualOnly: true,
-              category: "EVENT_IMPACT"
-            });
-          }
-          stats = getUpdatedStats(stats, target.id, {
-            expense: finalFine,
-            transactions: targetTx,
+            },
           });
-
-          let inspTx = [
-            {
+          stats = getUpdatedStats(stats, inspector.id, {
+            income: finalFine,
+            transaction: {
               label: "Fine Collected",
               amount: finalFine,
               items: seized,
-            }
-          ];
-          if (eventImpact !== 0) {
-            inspTx.push({
-              label: "Event Impact",
-              amount: -eventImpact,
-              visualOnly: true,
-              category: "EVENT_IMPACT"
-            });
-          }
-          stats = getUpdatedStats(stats, inspector.id, {
-            income: finalFine,
-            transactions: inspTx,
+            },
           });
 
           const { total: saleValue, impact: saleImpact } =
             calculateSaleStats(kept);
           players[targetIdx].coins += saleValue;
 
-          if (saleValue > 0) {
-            let saleTxs = [
-              {
-                label: "Kept Goods Sold",
-                amount: saleValue - saleImpact,
-                items: kept,
-              }
-            ];
-            if (saleImpact !== 0) {
-              saleTxs.push({
-                label: "Event Impact",
-                amount: saleImpact,
-                detail: currentEvent.name
-              });
-            }
-
+          if (saleValue > 0)
             stats = getUpdatedStats(stats, target.id, {
               income: saleValue,
               eventImpact: saleImpact,
-              transactions: saleTxs,
+              transaction: {
+                label: "Kept Goods Sold",
+                amount: saleValue,
+                items: kept,
+                detail:
+                  saleImpact !== 0
+                    ? `Event Impact: ${saleImpact > 0 ? "+" : ""}$${saleImpact}`
+                    : "",
+              },
             });
-          }
 
           players[targetIdx].stash.push(...kept);
           applyGoodsBonus(targetIdx, kept);
