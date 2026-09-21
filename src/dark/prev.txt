@@ -864,7 +864,6 @@ export default function DarkFolkloreGame() {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [showDiscard, setShowDiscard] = useState(false);
-  const [viewingSet, setViewingSet] = useState(null);
   const [broadcastLog, setBroadcastLog] = useState(null);
   const lastSeenLogId = useRef(null);
 
@@ -892,6 +891,7 @@ export default function DarkFolkloreGame() {
     });
   }, []);
 
+  // 3. NEW FUNCTION: Handle Splash Button Click
   // 3. NEW FUNCTION: Handle Splash Button Click
   const handleSplashStart = () => {
     // Set a temporary session flag
@@ -1461,24 +1461,6 @@ export default function DarkFolkloreGame() {
     const p = gameState.players[gameState.turnIndex];
     const card = p.hand.find((c) => c.uid === cardUid);
     const def = SUPERNATURALS[card.cardId];
-
-    if (def.target.includes("TABLE_CARD")) {
-       const hasTargets = gameState.players.some(
-         (pl) =>
-           pl.id !== user.uid &&
-           pl.tableau.some(
-             (s) =>
-               s.type === "SUP" &&
-               !s.isLocked &&
-               s.cards.some(
-                 (c) =>
-                   def.id === "SUP_NIGHTWALKER" ||
-                   SUPERNATURALS[c.cardId]?.gender === "M"
-               )
-           )
-       );
-       if (!hasTargets) return setError(`No valid entities to target for ${def.name}.`);
-    }
 
     // NEW: Intercept flow to ask for set placement if they have valid existing sets
     const validSets = p.tableau.filter(
@@ -2966,8 +2948,7 @@ export default function DarkFolkloreGame() {
                     {p.tableau.map((set, sIdx) => (
                       <div
                         key={sIdx}
-                        onClick={() => setViewingSet({ set, playerName: p.name, isLocked: set.isLocked })}
-                        className={`flex rounded-md p-1 bg-slate-950/50 shadow-inner border shrink-0 cursor-pointer hover:border-fuchsia-500/50 transition-colors ${set.isLocked ? "border-yellow-600/50" : "border-slate-800"}`}
+                        className={`flex rounded-md p-1 bg-slate-950/50 shadow-inner border shrink-0 ${set.isLocked ? "border-yellow-600/50" : "border-slate-800"}`}
                       >
                         {set.cards.map((c, cIdx) => (
                           <div
@@ -3146,8 +3127,7 @@ export default function DarkFolkloreGame() {
                 {me.tableau.map((set, sIdx) => (
                   <div
                     key={sIdx}
-                    onClick={() => setViewingSet({ set, playerName: "Your", isLocked: set.isLocked })}
-                    className={`p-1 sm:p-2 rounded-md sm:rounded-xl bg-slate-900 border-2 cursor-pointer hover:border-fuchsia-500/50 transition-colors ${set.isLocked ? "border-yellow-600 shadow-[0_0_15px_rgba(202,138,4,0.3)]" : "border-slate-800"} flex flex-nowrap md:flex-wrap gap-1 relative shrink-0`}
+                    className={`p-1 sm:p-2 rounded-md sm:rounded-xl bg-slate-900 border-2 ${set.isLocked ? "border-yellow-600 shadow-[0_0_15px_rgba(202,138,4,0.3)]" : "border-slate-800"} flex flex-nowrap md:flex-wrap gap-1 relative shrink-0`}
                   >
                     {set.isLocked && (
                       <Shield
@@ -3474,29 +3454,12 @@ export default function DarkFolkloreGame() {
           };
 
           // FIXED FAIL-SAFE CONDITION:
-          let fizzled = false;
-          let fizzleReason = "";
-
-          if (activeModal.isChain) {
-            if (["SET_SWAP", "SET_HEXWITCH"].includes(activeModal.type) && (!activeModal.validOwnSets || activeModal.validOwnSets.length === 0)) {
-              fizzled = true;
-              fizzleReason = "You do not have the required sets to fulfill this entity's demand.";
-            } else if (activeModal.type.includes("TABLE_CARD")) {
-              const hasTargets = gameState.players.some(p =>
-                p.id !== user.uid && p.tableau.some(s =>
-                  s.type === "SUP" && !s.isLocked && s.cards.some(c =>
-                    activeModal.def?.id === "SUP_NIGHTWALKER" || SUPERNATURALS[c.cardId]?.gender === "M"
-                  )
-                )
-              );
-              if (!hasTargets) {
-                fizzled = true;
-                fizzleReason = "There are no valid targets available for this entity.";
-              }
-            }
-          }
-
-          if (fizzled) {
+          if (
+            activeModal.isChain &&
+            (!activeModal.validOwnSets ||
+              activeModal.validOwnSets.length === 0) &&
+            ["SET_SWAP", "SET_HEXWITCH"].includes(activeModal.type)
+          ) {
             return (
               <div className="fixed inset-0 z-[80] bg-black/95 flex flex-col items-center justify-center p-4 backdrop-blur-lg">
                 <div className="bg-slate-950 border border-red-700/50 p-8 rounded-3xl max-w-md w-full shadow-[0_0_50px_rgba(239,68,68,0.2)] text-center">
@@ -3508,7 +3471,8 @@ export default function DarkFolkloreGame() {
                     Power Fizzled
                   </h3>
                   <p className="text-slate-400 text-sm mb-6 uppercase font-bold tracking-widest">
-                    {fizzleReason}
+                    You do not have the required sets to fulfill this entity's
+                    demand.
                   </p>
                   <button
                     onClick={() => resolveChain({})}
@@ -4633,36 +4597,6 @@ export default function DarkFolkloreGame() {
             </div>
           );
         })()}
-
-        {/* View Opnonents Sets Overlay */}
-        {viewingSet && (
-          <div
-            className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center p-4 backdrop-blur-md animate-in fade-in"
-            onClick={() => setViewingSet(null)}
-          >
-            <div
-              className="bg-slate-950 border border-slate-700/50 rounded-3xl w-full max-w-3xl flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex justify-between items-center p-4 md:p-6 border-b border-slate-800 bg-slate-900/50 shrink-0">
-                <h3 className="text-xl md:text-2xl font-black text-slate-200 uppercase tracking-widest flex items-center gap-3 drop-shadow-md">
-                  <Layers className="text-fuchsia-500" /> {viewingSet.playerName} Set {viewingSet.isLocked && <Shield size={20} className="text-yellow-500" />}
-                </h3>
-                <button
-                  onClick={() => setViewingSet(null)}
-                  className="p-2 bg-slate-900 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 border border-slate-800 transition-colors"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-              <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar flex flex-wrap justify-center gap-4">
-                {viewingSet.set.cards.map((c, i) => (
-                  <CardDisplay key={i} cardId={c.cardId} />
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* WIN SCREEN OVERLAY */}
         {gameState.status === "finished" && (
