@@ -1244,12 +1244,17 @@ export default function ReverieGame() {
 
       updates.turnPhase = "ROUND_END";
 
-      const winner = players.find((p) => p.score >= 30);
-      if (winner) {
-        updates.status = "finished";
+      const maxScore = Math.max(...players.map((p) => p.score));
+      if (maxScore >= 30) {
+        // Find all players who share the top score
+        const winners = players.filter((p) => p.score === maxScore);
+        const winnerNames = winners.map((w) => w.name).join(" & ");
+
         logs.push(
           triggerLog(
-            `${winner.name} wins the game!`,
+            winners.length > 1
+              ? `Tie! ${winnerNames} win the game!`
+              : `${winnerNames} wins the game!`,
             "important",
             true,
             "VICTORY",
@@ -1270,6 +1275,18 @@ export default function ReverieGame() {
   const nextRound = async () => {
     if (gameState.turnPhase !== "ROUND_END" || gameState.hostId !== user.uid)
       return;
+
+    // --- ADD THIS BLOCK ---
+    // If someone won, finish the game instead of dealing new cards
+    const maxScore = Math.max(...gameState.players.map((p) => p.score));
+    if (maxScore >= 30) {
+      await updateDoc(
+        doc(db, "artifacts", APP_ID, "public", "data", "rooms", roomId),
+        { status: "finished" },
+      );
+      return;
+    }
+    // ----------------------
 
     let players = JSON.parse(JSON.stringify(gameState.players));
     let deck = JSON.parse(JSON.stringify(gameState.deck));
@@ -1982,7 +1999,9 @@ export default function ReverieGame() {
                   onClick={nextRound}
                   className="w-full max-w-sm bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl uppercase tracking-widest shadow-[0_0_20px_rgba(16,185,129,0.4)] transition-all animate-bounce text-sm sm:text-base"
                 >
-                  Start Next Round
+                  {Math.max(...gameState.players.map((p) => p.score)) >= 30
+                    ? "View Final Standings"
+                    : "Start Next Round"}
                 </button>
               ) : (
                 <div className="text-center text-slate-500 text-xs sm:text-sm font-bold uppercase tracking-widest py-4 border border-slate-800 rounded-xl bg-black/50 w-full max-w-sm">
@@ -2133,12 +2152,16 @@ export default function ReverieGame() {
             <div className="bg-slate-900 p-6 md:p-8 rounded-3xl border-2 border-fuchsia-500 text-center shadow-[0_0_50px_rgba(217,70,239,0.4)] animate-in zoom-in max-w-lg w-full flex flex-col relative max-h-[90vh]">
               <div className="shrink-0 mb-4 sm:mb-6">
                 <Crown className="w-16 h-16 sm:w-20 sm:h-20 text-yellow-500 mx-auto mb-2 sm:mb-4 animate-bounce" />
-                <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white uppercase mb-1 sm:mb-2 leading-tight drop-shadow-lg truncate px-2">
-                  {
-                    gameState.players
-                      .slice()
-                      .sort((a, b) => b.score - a.score)[0]?.name
-                  }
+                <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white uppercase mb-1 sm:mb-2 leading-tight drop-shadow-lg px-2 text-wrap">
+                  {(() => {
+                    const maxScore = Math.max(
+                      ...gameState.players.map((p) => p.score),
+                    );
+                    const winners = gameState.players.filter(
+                      (p) => p.score === maxScore,
+                    );
+                    return winners.map((w) => w.name).join(" & ");
+                  })()}
                 </h2>
                 <p className="text-fuchsia-400 font-bold tracking-widest text-xs sm:text-sm uppercase">
                   Master of Dreams
@@ -2146,13 +2169,16 @@ export default function ReverieGame() {
               </div>
 
               <div className="space-y-2 mb-4 sm:mb-6 overflow-y-auto custom-scrollbar flex-1">
-                {gameState.players
-                  .slice()
-                  .sort((a, b) => b.score - a.score)
-                  .map((p, i) => (
+                {(() => {
+                  const sortedPlayers = gameState.players
+                    .slice()
+                    .sort((a, b) => b.score - a.score);
+                  const maxScore = sortedPlayers[0]?.score || 0;
+
+                  return sortedPlayers.map((p, i) => (
                     <div
                       key={p.id}
-                      className={`flex justify-between items-center px-3 sm:px-4 py-2 rounded-lg border ${i === 0 ? "bg-amber-500/20 border-amber-500/50" : "bg-slate-800 border-slate-700"}`}
+                      className={`flex justify-between items-center px-3 sm:px-4 py-2 rounded-lg border ${p.score === maxScore ? "bg-amber-500/20 border-amber-500/50" : "bg-slate-800 border-slate-700"}`}
                     >
                       <span className="font-bold text-white text-sm sm:text-base truncate mr-2">
                         {i + 1}. {p.name}
@@ -2161,7 +2187,8 @@ export default function ReverieGame() {
                         {p.score} pt
                       </span>
                     </div>
-                  ))}
+                  ));
+                })()}
               </div>
 
               {gameState.hostId === user.uid ? (
