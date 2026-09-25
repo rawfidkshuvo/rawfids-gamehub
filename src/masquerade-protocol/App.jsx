@@ -1692,64 +1692,61 @@ export default function MasqueradeProtocol() {
   // --- GAMEPLAY LOGIC ---
 
   // UPDATED FUNCTION SIGNATURE: Accepting the 3rd argument 'newCrashCount'
-  const checkWinConditions = async (players, logs, newCrashCount = 0) => {
-    const living = players.filter((pl) => !pl.isEliminated);
+  // Add activeTurnIndex as a parameter (defaulting to 0)
+const checkWinConditions = async (players, logs, newCrashCount = 0, activeTurnIndex = 0) => {
+  const living = players.filter((pl) => !pl.isEliminated);
 
-    // 1. UNIVERSAL CONDITION: Last Man Standing
-    if (living.length === 1) {
-      return living[0].id;
+  // 1. UNIVERSAL CONDITION: Last Man Standing
+  if (living.length === 1) {
+    return living[0].id;
+  }
+
+  const currentDbCrashes = gameState.crashCount || 0;
+  const totalCrashes = currentDbCrashes + newCrashCount;
+
+  // REARRANGE PLAYERS BY TURN ORDER
+  // This creates an array of indices starting from the active player 
+  // e.g., if it's Player 2's turn in a 4-player game: [2, 3, 0, 1]
+  const turnOrderedIndices = [];
+  for (let i = 0; i < players.length; i++) {
+    turnOrderedIndices.push((activeTurnIndex + i) % players.length);
+  }
+
+  // 2. Directive Specific Conditions (Checked in turn order)
+  for (const idx of turnOrderedIndices) {
+    const p = players[idx];
+    if (p.isEliminated) continue;
+
+    const d = p.directive; 
+    const h = p.hand;
+    let won = false;
+
+    if (d === "COLLECTOR") {
+      if (h.filter((c) => c === "INTEL").length >= 5) won = true;
+    } else if (d === "CORRUPTOR") {
+      if (h.filter((c) => c === "VIRUS").length >= 4) won = true;
+    } else if (d === "SABOTEUR") {
+      if (
+        h.includes("INTEL") &&
+        h.includes("VIRUS") &&
+        h.includes("PING") &&
+        h.includes("PATCH")
+      )
+        won = true;
+    } else if (d === "SURVIVOR") {
+      if (totalCrashes >= 1) won = true;
+    } else if (d === "HACKER") {
+      if ((p.pingCount || 0) >= 3) won = true;
+    } else if (d === "ANTIVIRUS") {
+      if ((p.antivirusCount || 0) >= 2) won = true;
     }
 
-    // CALCULATE REAL TOTAL: Database Value + Just Happened Value
-    const currentDbCrashes = gameState.crashCount || 0;
-    const totalCrashes = currentDbCrashes + newCrashCount;
-
-    // 2. Directive Specific Conditions
-    for (const p of players) {
-      if (p.isEliminated) continue;
-
-      const d = p.directive; // 'd' for Directive
-      const h = p.hand;
-      let won = false;
-
-      if (d === "COLLECTOR") {
-        if (h.filter((c) => c === "INTEL").length >= 5) won = true;
-      } else if (d === "CORRUPTOR") {
-        if (h.filter((c) => c === "VIRUS").length >= 4) won = true;
-
-        // } else if (d === "ANARCHIST") {
-        //   // SCALING:
-        //   // 3 Players: Needs 1 other player to be Critical.
-        //   // 4-6 Players: Needs 2 other players to be Critical.
-        //   const threshold = players.length <= 3 ? 1 : 2;
-        //   const criticalPlayers = living.filter(
-        //     (pl) =>
-        //       pl.id !== p.id && pl.hand.filter((c) => c === "VIRUS").length >= 2,
-        //   );
-        //   if (criticalPlayers.length >= threshold) won = true;
-        // }
-      } else if (d === "SABOTEUR") {
-        if (
-          h.includes("INTEL") &&
-          h.includes("VIRUS") &&
-          h.includes("PING") &&
-          h.includes("PATCH")
-        )
-          won = true;
-      } else if (d === "SURVIVOR") {
-        if (totalCrashes >= 1) won = true;
-      } else if (d === "HACKER") {
-        if ((p.pingCount || 0) >= 3) won = true;
-      } else if (d === "ANTIVIRUS") {
-        if ((p.antivirusCount || 0) >= 2) won = true;
-      }
-
-      if (won) {
-        return p.id;
-      }
+    if (won) {
+      return p.id; // Returns the first winner based on turn priority
     }
-    return null;
-  };
+  }
+  return null;
+};
 
   const handleConfirmDiscard = async (selectedIndices) => {
     // Determine source of data: Pending (after action) or Current GameState (skip turn)
@@ -1861,7 +1858,7 @@ export default function MasqueradeProtocol() {
     // }
 
     // 2. IMMEDIATE WIN CHECK (Priority over Death)
-    let winnerId = await checkWinConditions(updatedPlayers, logs);
+    let winnerId = await checkWinConditions(updatedPlayers, logs, globalCrashAccumulator, gameState.turnIndex);
     if (winnerId) {
       const winnerIdx = updatedPlayers.findIndex((p) => p.id === winnerId);
       updatedPlayers[winnerIdx].chips =
@@ -1979,6 +1976,7 @@ export default function MasqueradeProtocol() {
       updatedPlayers,
       logs,
       globalCrashAccumulator,
+      gameState.turnIndex,
     );
     if (winnerId) {
       const winnerIdx = updatedPlayers.findIndex((p) => p.id === winnerId);
@@ -2129,7 +2127,7 @@ export default function MasqueradeProtocol() {
     const crashedCount = processVirusOverload(players, discardPile, logs);
 
     // --- IMMEDIATE WIN CHECK ---
-    const winnerId = await checkWinConditions(players, logs, crashedCount);
+    const winnerId = await checkWinConditions(players, logs, crashedCount, gameState.turnIndex);
 
     if (winnerId) {
       // ... (Copy your standard win update logic here from activateGlitch) ...
@@ -2305,7 +2303,7 @@ export default function MasqueradeProtocol() {
     setSelectedCardIdx(null);
 
     // CHECK WIN IMMEDIATELY AFTER ACTION
-    const winnerId = await checkWinConditions(players, logs, crashedCount);
+    const winnerId = await checkWinConditions(players, logs, crashedCount, gameState.turnIndex);
     if (winnerId) {
       const winnerIdx = players.findIndex((p) => p.id === winnerId);
       players[winnerIdx].chips = (players[winnerIdx].chips || 0) + 1;
@@ -2632,7 +2630,7 @@ export default function MasqueradeProtocol() {
     const crashedCount = processVirusOverload(players, discardPile, logs);
 
     // CHECK WIN IMMEDIATELY AFTER GLITCH
-    const winnerId = await checkWinConditions(players, logs, crashedCount);
+    const winnerId = await checkWinConditions(players, logs, crashedCount, gameState.turnIndex);
     if (winnerId) {
       const winnerIdx = players.findIndex((p) => p.id === winnerId);
       players[winnerIdx].chips = (players[winnerIdx].chips || 0) + 1;
