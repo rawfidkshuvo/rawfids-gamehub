@@ -515,16 +515,43 @@ const FeedbackOverlay = ({ type, message, subtext, icon: Icon }) => (
 const RulesModal = ({ onClose }) => {
   const ResourceBadge = ({ type, count }) => {
     const resMap = {
-      WOOD: { bg: "bg-emerald-900/50", text: "text-emerald-300", border: "border-emerald-700/50", icon: TreeDeciduous },
-      BRICK: { bg: "bg-red-900/50", text: "text-red-300", border: "border-red-700/50", icon: Cuboid },
-      SHEEP: { bg: "bg-lime-900/50", text: "text-lime-300", border: "border-lime-700/50", icon: PawPrint },
-      WHEAT: { bg: "bg-yellow-900/50", text: "text-yellow-300", border: "border-yellow-700/50", icon: Leaf },
-      ORE: { bg: "bg-slate-700/50", text: "text-slate-300", border: "border-slate-500/50", icon: Mountain },
+      WOOD: {
+        bg: "bg-emerald-900/50",
+        text: "text-emerald-300",
+        border: "border-emerald-700/50",
+        icon: TreeDeciduous,
+      },
+      BRICK: {
+        bg: "bg-red-900/50",
+        text: "text-red-300",
+        border: "border-red-700/50",
+        icon: Cuboid,
+      },
+      SHEEP: {
+        bg: "bg-lime-900/50",
+        text: "text-lime-300",
+        border: "border-lime-700/50",
+        icon: PawPrint,
+      },
+      WHEAT: {
+        bg: "bg-yellow-900/50",
+        text: "text-yellow-300",
+        border: "border-yellow-700/50",
+        icon: Leaf,
+      },
+      ORE: {
+        bg: "bg-slate-700/50",
+        text: "text-slate-300",
+        border: "border-slate-500/50",
+        icon: Mountain,
+      },
     };
     const def = resMap[type];
     const Icon = def.icon;
     return (
-      <span className={`flex items-center gap-1 ${def.bg} ${def.text} border ${def.border} px-2 py-1 rounded text-xs font-bold`}>
+      <span
+        className={`flex items-center gap-1 ${def.bg} ${def.text} border ${def.border} px-2 py-1 rounded text-xs font-bold`}
+      >
         <Icon size={12} /> {count} {type}
       </span>
     );
@@ -533,7 +560,6 @@ const RulesModal = ({ onClose }) => {
   return (
     <div className="fixed inset-0 z-[200] bg-slate-950/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in zoom-in-95">
       <div className="bg-slate-900 border border-orange-500/30 w-full max-w-4xl rounded-3xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden relative">
-        
         {/* Header */}
         <div className="p-6 border-b border-slate-800 bg-slate-950/50 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
@@ -552,7 +578,6 @@ const RulesModal = ({ onClose }) => {
 
         {/* Scrollable Content */}
         <div className="p-6 overflow-y-auto custom-scrollbar flex-1 space-y-8">
-          
           {/* Objective & Turn Sequence */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <section className="bg-slate-800/40 p-5 rounded-2xl border border-slate-700">
@@ -560,19 +585,37 @@ const RulesModal = ({ onClose }) => {
                 <Trophy size={20} /> Objective
               </h3>
               <p className="text-slate-300 text-sm leading-relaxed font-medium">
-                The first player to reach <strong className="text-yellow-400 text-base">10 Victory Points (VP)</strong> on their turn wins the game. You earn VP by building Settlements (1 VP), Cities (2 VP), holding special Achievements (2 VP), or buying VP Development Cards (1 VP).
+                The first player to reach{" "}
+                <strong className="text-yellow-400 text-base">
+                  10 Victory Points (VP)
+                </strong>{" "}
+                on their turn wins the game. You earn VP by building Settlements
+                (1 VP), Cities (2 VP), holding special Achievements (2 VP), or
+                buying VP Development Cards (1 VP).
               </p>
             </section>
-            
+
             <section className="bg-slate-800/40 p-5 rounded-2xl border border-slate-700">
               <h3 className="text-xl font-black text-orange-400 mb-3 flex items-center gap-2">
                 <RotateCcw size={20} /> Turn Sequence
               </h3>
               <ol className="text-slate-300 text-sm space-y-2 font-medium list-decimal list-inside">
-                <li><strong>Roll Dice:</strong> Generates resources for adjacent settlements/cities. (Rolls of 7 trigger the Robber).</li>
-                <li><strong>Trade:</strong> Exchange resources with the Bank, Ports, or other Players.</li>
-                <li><strong>Build:</strong> Construct Roads, Settlements, Cities, or buy Dev Cards.</li>
-                <li><strong>Play Card:</strong> Play up to 1 Dev Card (except the turn it was bought).</li>
+                <li>
+                  <strong>Roll Dice:</strong> Generates resources for adjacent
+                  settlements/cities. (Rolls of 7 trigger the Robber).
+                </li>
+                <li>
+                  <strong>Trade:</strong> Exchange resources with the Bank,
+                  Ports, or other Players.
+                </li>
+                <li>
+                  <strong>Build:</strong> Construct Roads, Settlements, Cities,
+                  or buy Dev Cards.
+                </li>
+                <li>
+                  <strong>Play Card:</strong> Play up to 1 Dev Card (except the
+                  turn it was bought).
+                </li>
               </ol>
             </section>
           </div>
@@ -583,43 +626,84 @@ const RulesModal = ({ onClose }) => {
               <Hammer size={20} /> Building Costs & Rules
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              
               {/* Road */}
               <div className="bg-slate-800 p-4 rounded-xl border border-slate-700/50">
                 <div className="flex justify-between items-start mb-2">
-                  <strong className="text-white text-lg flex items-center gap-2"><Grip size={16} className="text-orange-400"/> Road</strong>
-                  <div className="flex gap-1"><ResourceBadge type="WOOD" count={1} /><ResourceBadge type="BRICK" count={1} /></div>
+                  <strong className="text-white text-lg flex items-center gap-2">
+                    <Grip size={16} className="text-orange-400" /> Road
+                  </strong>
+                  <div className="flex gap-1">
+                    <ResourceBadge type="WOOD" count={1} />
+                    <ResourceBadge type="BRICK" count={1} />
+                  </div>
                 </div>
-                <p className="text-xs text-slate-400">Must connect to one of your existing Roads, Settlements, or Cities. Cannot be built through opponent buildings.</p>
+                <p className="text-xs text-slate-400">
+                  Must connect to one of your existing Roads, Settlements, or
+                  Cities. Cannot be built through opponent buildings.
+                </p>
               </div>
 
               {/* Settlement */}
               <div className="bg-slate-800 p-4 rounded-xl border border-slate-700/50">
                 <div className="flex justify-between items-start mb-2">
-                  <strong className="text-white text-lg flex items-center gap-2"><Home size={16} className="text-orange-400"/> Settlement <span className="text-xs text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded">1 VP</span></strong>
-                  <div className="flex gap-1 flex-wrap justify-end max-w-[140px]"><ResourceBadge type="WOOD" count={1} /><ResourceBadge type="BRICK" count={1} /><ResourceBadge type="SHEEP" count={1} /><ResourceBadge type="WHEAT" count={1} /></div>
+                  <strong className="text-white text-lg flex items-center gap-2">
+                    <Home size={16} className="text-orange-400" /> Settlement{" "}
+                    <span className="text-xs text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded">
+                      1 VP
+                    </span>
+                  </strong>
+                  <div className="flex gap-1 flex-wrap justify-end max-w-[140px]">
+                    <ResourceBadge type="WOOD" count={1} />
+                    <ResourceBadge type="BRICK" count={1} />
+                    <ResourceBadge type="SHEEP" count={1} />
+                    <ResourceBadge type="WHEAT" count={1} />
+                  </div>
                 </div>
-                <p className="text-xs text-slate-400">Must be built on an intersection connected to your road. <strong>Distance Rule:</strong> Must be at least 2 edges away from ANY other settlement.</p>
+                <p className="text-xs text-slate-400">
+                  Must be built on an intersection connected to your road.{" "}
+                  <strong>Distance Rule:</strong> Must be at least 2 edges away
+                  from ANY other settlement.
+                </p>
               </div>
 
               {/* City */}
               <div className="bg-slate-800 p-4 rounded-xl border border-slate-700/50">
                 <div className="flex justify-between items-start mb-2">
-                  <strong className="text-white text-lg flex items-center gap-2"><Building2 size={16} className="text-orange-400"/> City <span className="text-xs text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded">2 VP</span></strong>
-                  <div className="flex gap-1"><ResourceBadge type="WHEAT" count={2} /><ResourceBadge type="ORE" count={3} /></div>
+                  <strong className="text-white text-lg flex items-center gap-2">
+                    <Building2 size={16} className="text-orange-400" /> City{" "}
+                    <span className="text-xs text-yellow-500 bg-yellow-500/10 px-1.5 py-0.5 rounded">
+                      2 VP
+                    </span>
+                  </strong>
+                  <div className="flex gap-1">
+                    <ResourceBadge type="WHEAT" count={2} />
+                    <ResourceBadge type="ORE" count={3} />
+                  </div>
                 </div>
-                <p className="text-xs text-slate-400">Upgrades an existing Settlement. Yields <strong>2x resources</strong> when its adjacent hexes are rolled.</p>
+                <p className="text-xs text-slate-400">
+                  Upgrades an existing Settlement. Yields{" "}
+                  <strong>2x resources</strong> when its adjacent hexes are
+                  rolled.
+                </p>
               </div>
 
               {/* Dev Card */}
               <div className="bg-slate-800 p-4 rounded-xl border border-slate-700/50">
                 <div className="flex justify-between items-start mb-2">
-                  <strong className="text-white text-lg flex items-center gap-2"><Scroll size={16} className="text-orange-400"/> Dev Card</strong>
-                  <div className="flex gap-1"><ResourceBadge type="SHEEP" count={1} /><ResourceBadge type="WHEAT" count={1} /><ResourceBadge type="ORE" count={1} /></div>
+                  <strong className="text-white text-lg flex items-center gap-2">
+                    <Scroll size={16} className="text-orange-400" /> Dev Card
+                  </strong>
+                  <div className="flex gap-1">
+                    <ResourceBadge type="SHEEP" count={1} />
+                    <ResourceBadge type="WHEAT" count={1} />
+                    <ResourceBadge type="ORE" count={1} />
+                  </div>
                 </div>
-                <p className="text-xs text-slate-400">Draw a random Development Card. You cannot play a card on the same turn it was purchased.</p>
+                <p className="text-xs text-slate-400">
+                  Draw a random Development Card. You cannot play a card on the
+                  same turn it was purchased.
+                </p>
               </div>
-
             </div>
           </section>
 
@@ -631,23 +715,58 @@ const RulesModal = ({ onClose }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div className="bg-slate-800/60 p-3 rounded-lg flex items-start gap-3 border border-slate-700">
                 <Swords className="text-purple-400 shrink-0" size={20} />
-                <div><strong className="text-sm text-white block">Knight (14)</strong><span className="text-xs text-slate-400">Move the robber and steal 1 resource.</span></div>
+                <div>
+                  <strong className="text-sm text-white block">
+                    Knight (14)
+                  </strong>
+                  <span className="text-xs text-slate-400">
+                    Move the robber and steal 1 resource.
+                  </span>
+                </div>
               </div>
               <div className="bg-slate-800/60 p-3 rounded-lg flex items-start gap-3 border border-slate-700">
                 <Trophy className="text-yellow-400 shrink-0" size={20} />
-                <div><strong className="text-sm text-white block">Victory Point (5)</strong><span className="text-xs text-slate-400">+1 VP. Automatically revealed when you have enough to win.</span></div>
+                <div>
+                  <strong className="text-sm text-white block">
+                    Victory Point (5)
+                  </strong>
+                  <span className="text-xs text-slate-400">
+                    +1 VP. Automatically revealed when you have enough to win.
+                  </span>
+                </div>
               </div>
               <div className="bg-slate-800/60 p-3 rounded-lg flex items-start gap-3 border border-slate-700">
                 <Grip className="text-blue-400 shrink-0" size={20} />
-                <div><strong className="text-sm text-white block">Road Building (2)</strong><span className="text-xs text-slate-400">Immediately place 2 free roads.</span></div>
+                <div>
+                  <strong className="text-sm text-white block">
+                    Road Building (2)
+                  </strong>
+                  <span className="text-xs text-slate-400">
+                    Immediately place 2 free roads.
+                  </span>
+                </div>
               </div>
               <div className="bg-slate-800/60 p-3 rounded-lg flex items-start gap-3 border border-slate-700">
                 <Gem className="text-emerald-400 shrink-0" size={20} />
-                <div><strong className="text-sm text-white block">Year of Plenty (2)</strong><span className="text-xs text-slate-400">Take any 2 resources directly from the bank.</span></div>
+                <div>
+                  <strong className="text-sm text-white block">
+                    Year of Plenty (2)
+                  </strong>
+                  <span className="text-xs text-slate-400">
+                    Take any 2 resources directly from the bank.
+                  </span>
+                </div>
               </div>
               <div className="bg-slate-800/60 p-3 rounded-lg flex items-start gap-3 border border-slate-700">
                 <Crown className="text-red-400 shrink-0" size={20} />
-                <div><strong className="text-sm text-white block">Monopoly (2)</strong><span className="text-xs text-slate-400">Name a resource. All players must give you all they have.</span></div>
+                <div>
+                  <strong className="text-sm text-white block">
+                    Monopoly (2)
+                  </strong>
+                  <span className="text-xs text-slate-400">
+                    Name a resource. All players must give you all they have.
+                  </span>
+                </div>
               </div>
             </div>
           </section>
@@ -659,9 +778,18 @@ const RulesModal = ({ onClose }) => {
                 <Skull size={20} /> Rolling a 7 (The Robber)
               </h3>
               <ul className="text-sm text-slate-300 space-y-2 list-disc list-inside bg-red-950/20 p-4 rounded-xl border border-red-900/30">
-                <li><strong>Discard:</strong> Any player holding more than 7 resources must discard half (rounded down).</li>
-                <li><strong>Move:</strong> The active player MUST move the Robber to a new hex. That hex stops producing resources.</li>
-                <li><strong>Steal:</strong> The active player steals 1 random card from an opponent adjacent to the Robber.</li>
+                <li>
+                  <strong>Discard:</strong> Any player holding more than 7
+                  resources must discard half (rounded down).
+                </li>
+                <li>
+                  <strong>Move:</strong> The active player MUST move the Robber
+                  to a new hex. That hex stops producing resources.
+                </li>
+                <li>
+                  <strong>Steal:</strong> The active player steals 1 random card
+                  from an opponent adjacent to the Robber.
+                </li>
               </ul>
             </section>
 
@@ -670,10 +798,22 @@ const RulesModal = ({ onClose }) => {
                 <Handshake size={20} /> Trading
               </h3>
               <ul className="text-sm text-slate-300 space-y-2 list-disc list-inside bg-blue-950/10 p-4 rounded-xl border border-blue-900/30">
-                <li><strong>Player Trade:</strong> Propose custom offers to other players (can be negotiated).</li>
-                <li><strong>Bank Trade (4:1):</strong> Trade 4 of identical resource for 1 of anything else.</li>
-                <li><strong>3:1 Port:</strong> If on a generic port, trade 3 of any identical resource for 1.</li>
-                <li><strong>2:1 Port:</strong> If on a specific port (e.g. Wheat), trade 2 of that specific resource for 1.</li>
+                <li>
+                  <strong>Player Trade:</strong> Propose custom offers to other
+                  players (can be negotiated).
+                </li>
+                <li>
+                  <strong>Bank Trade (4:1):</strong> Trade 4 of identical
+                  resource for 1 of anything else.
+                </li>
+                <li>
+                  <strong>3:1 Port:</strong> If on a generic port, trade 3 of
+                  any identical resource for 1.
+                </li>
+                <li>
+                  <strong>2:1 Port:</strong> If on a specific port (e.g. Wheat),
+                  trade 2 of that specific resource for 1.
+                </li>
               </ul>
             </section>
           </div>
@@ -685,22 +825,32 @@ const RulesModal = ({ onClose }) => {
             </h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="bg-orange-950/30 p-4 rounded-xl border border-orange-700/50 flex gap-4 items-center">
-                <div className="bg-orange-900/50 p-3 rounded-full text-orange-400"><Grip size={24}/></div>
+                <div className="bg-orange-900/50 p-3 rounded-full text-orange-400">
+                  <Grip size={24} />
+                </div>
                 <div>
                   <strong className="text-white block">Longest Road</strong>
-                  <p className="text-xs text-slate-400 mt-1">First to build a continuous road of <strong>5 or more</strong>. Another player must build a strictly longer road to steal it.</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    First to build a continuous road of{" "}
+                    <strong>5 or more</strong>. Another player must build a
+                    strictly longer road to steal it.
+                  </p>
                 </div>
               </div>
               <div className="bg-red-950/30 p-4 rounded-xl border border-red-700/50 flex gap-4 items-center">
-                <div className="bg-red-900/50 p-3 rounded-full text-red-400"><Swords size={24}/></div>
+                <div className="bg-red-900/50 p-3 rounded-full text-red-400">
+                  <Swords size={24} />
+                </div>
                 <div>
                   <strong className="text-white block">Largest Army</strong>
-                  <p className="text-xs text-slate-400 mt-1">First to play <strong>3 Knight cards</strong>. Another player must play strictly more Knights to steal it.</p>
+                  <p className="text-xs text-slate-400 mt-1">
+                    First to play <strong>3 Knight cards</strong>. Another
+                    player must play strictly more Knights to steal it.
+                  </p>
                 </div>
               </div>
             </div>
           </section>
-
         </div>
 
         {/* Footer */}
@@ -3493,22 +3643,25 @@ export default function ColonyGame() {
                         </button>
                       </>
                     )}
-                    {!gameState.turnPhase.startsWith("SETUP") && (
-                      <button
-                        onClick={() => setShowDevCards(true)}
-                        className="px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold flex flex-col items-center border-2 bg-slate-800 border-slate-600 hover:bg-slate-700 transition-all relative text-xs md:text-base"
-                      >
-                        <Scroll size={16} /> Cards
-                        {me &&
-                          (!me.hasPlayedDevCard || me.devCards["VP"] > 0) &&
-                          Object.values(me.devCards).reduce(
-                            (a, b) => a + b,
-                            0,
-                          ) > 0 && (
-                            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse border border-slate-900"></span>
-                          )}
-                      </button>
-                    )}
+                    {!gameState.turnPhase.startsWith("SETUP") &&
+                      !["DISCARD", "ROBBER", "ROBBER_STEAL"].includes(
+                        gameState.turnPhase,
+                      ) && (
+                        <button
+                          onClick={() => setShowDevCards(true)}
+                          className="px-3 py-1.5 md:px-4 md:py-2 rounded-lg font-bold flex flex-col items-center border-2 bg-slate-800 border-slate-600 hover:bg-slate-700 transition-all relative text-xs md:text-base"
+                        >
+                          <Scroll size={16} /> Cards
+                          {me &&
+                            (!me.hasPlayedDevCard || me.devCards["VP"] > 0) &&
+                            Object.values(me.devCards).reduce(
+                              (a, b) => a + b,
+                              0,
+                            ) > 0 && (
+                              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse border border-slate-900"></span>
+                            )}
+                        </button>
+                      )}
                   </>
                 )}
 
