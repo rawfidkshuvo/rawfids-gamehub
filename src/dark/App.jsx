@@ -1605,13 +1605,15 @@ export default function DarkFolkloreGame() {
         ctx.isQueueProcessing = true;
         break;
       case "SUP_DEVOURER":
-        ctx.logsText += " The shadows reach out to strike.";
-        ctx.awaitAmulet = true;
-        ctx.pendingData = {
-          type: def.id,
-          targetId: targetData.targetPlayerId,
-          sourceId: me.id,
-        };
+        const devOpp = players.find((p) => p.id === targetData.targetPlayerId);
+        if (devOpp && devOpp.hand.length > 0) {
+          const devouredCard = devOpp.hand.splice(
+            Math.floor(Math.random() * devOpp.hand.length),
+            1,
+          )[0];
+          ctx.discardPile.push(devouredCard);
+          ctx.logsText += ` Devourer ripped a card from ${devOpp.name}'s hand into the void.`;
+        }
         break;
       case "SUP_GRIM":
         // NEW: Draw immediately before asking for the amulet!
@@ -2280,13 +2282,6 @@ export default function DarkFolkloreGame() {
 
     if (pending.type === "STEAL") stealRandom(1);
     else if (pending.type === "SUP_BLOODFIEND") stealRandom(3);
-    else if (pending.type === "SUP_DEVOURER")
-      discardPile.push(
-        target.hand.splice(
-          Math.floor(Math.random() * target.hand.length),
-          1,
-        )[0],
-      );
     // UPDATED: Removed the deck push from here!
     else if (pending.type === "SUP_GRIM") stealRandom(1);
     else if (pending.type === "SUP_CHAINBINDER") {
@@ -2300,8 +2295,6 @@ export default function DarkFolkloreGame() {
   const getAttackSuccessLog = (type, sourceName, targetName) => {
     if (type === "STEAL")
       return `${sourceName} stole a card from ${targetName}.`;
-    if (type === "SUP_DEVOURER")
-      return `${sourceName}'s Devourer ripped a card from ${targetName}'s hand into the void.`;
     // UPDATED: Removed "drew from the deck and" since the draw happened earlier
     if (type === "SUP_GRIM")
       return `${sourceName}'s Grim Goblin successfully stole a card from ${targetName}.`;
