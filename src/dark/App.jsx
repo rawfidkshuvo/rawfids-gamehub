@@ -3660,7 +3660,7 @@ export default function DarkFolkloreGame() {
               fizzleReason = "Opponents have no cards in hand to target.";
             }
           } else if (
-            activeModal.type.includes("DISCARD") &&
+            (activeModal.type.includes("DISCARD") || activeModal.type === "BROKER") &&
             gameState.discardPile.length === 0
           ) {
             fizzled = true;
@@ -3673,7 +3673,7 @@ export default function DarkFolkloreGame() {
               fizzled = true;
               fizzleReason = "You have no valid entities to re-invoke.";
             }
-          } else if (activeModal.type === "HOARDER") {
+          } else if (["HOARDER", "BLOODFIEND"].includes(activeModal.type)) {
             const hasCardsInPlay =
               gameState.deck.length > 0 ||
               gameState.players.some(
