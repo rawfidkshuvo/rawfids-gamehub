@@ -864,6 +864,7 @@ export default function DarkFolkloreGame() {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
   const [showDiscard, setShowDiscard] = useState(false);
+  const [ritualTab, setRitualTab] = useState("ME"); // <--- ADD THIS LINE
   const [viewingSet, setViewingSet] = useState(null);
   const [broadcastLog, setBroadcastLog] = useState(null);
   const lastSeenLogId = useRef(null);
@@ -1209,11 +1210,11 @@ export default function DarkFolkloreGame() {
         // Identify Winner(s)
         const sorted = [...players].sort((a, b) => b.score - a.score);
         const topScore = sorted[0].score;
-        
+
         // Find everyone who tied for the top score
-        const winners = sorted.filter(p => p.score === topScore);
-        const winnerIds = winners.map(w => w.id); // Array of tied IDs
-        const winnerNames = winners.map(w => w.name).join(" & ");
+        const winners = sorted.filter((p) => p.score === topScore);
+        const winnerIds = winners.map((w) => w.id); // Array of tied IDs
+        const winnerNames = winners.map((w) => w.name).join(" & ");
 
         const updates = {
           players,
@@ -1225,9 +1226,10 @@ export default function DarkFolkloreGame() {
           winnerNames: winnerNames, // Save formatted names
         };
 
-        const winLog = winners.length > 1 
-          ? `A tie! ${winnerNames} share the shadows.` 
-          : `${winnerNames} commands the shadows and wins!`;
+        const winLog =
+          winners.length > 1
+            ? `A tie! ${winnerNames} share the shadows.`
+            : `${winnerNames} commands the shadows and wins!`;
 
         updates.logs = log(winLog, "success");
 
@@ -1463,21 +1465,22 @@ export default function DarkFolkloreGame() {
     const def = SUPERNATURALS[card.cardId];
 
     if (def.target.includes("TABLE_CARD")) {
-       const hasTargets = gameState.players.some(
-         (pl) =>
-           pl.id !== user.uid &&
-           pl.tableau.some(
-             (s) =>
-               s.type === "SUP" &&
-               !s.isLocked &&
-               s.cards.some(
-                 (c) =>
-                   def.id === "SUP_NIGHTWALKER" ||
-                   SUPERNATURALS[c.cardId]?.gender === "M"
-               )
-           )
-       );
-       if (!hasTargets) return setError(`No valid entities to target for ${def.name}.`);
+      const hasTargets = gameState.players.some(
+        (pl) =>
+          pl.id !== user.uid &&
+          pl.tableau.some(
+            (s) =>
+              s.type === "SUP" &&
+              !s.isLocked &&
+              s.cards.some(
+                (c) =>
+                  def.id === "SUP_NIGHTWALKER" ||
+                  SUPERNATURALS[c.cardId]?.gender === "M",
+              ),
+          ),
+      );
+      if (!hasTargets)
+        return setError(`No valid entities to target for ${def.name}.`);
     }
 
     // NEW: Intercept flow to ask for set placement if they have valid existing sets
@@ -1540,6 +1543,38 @@ export default function DarkFolkloreGame() {
         placementSetId,
       });
     }
+    // --- LATE GAME FAIL-SAFES ---
+    if (def.target === "CHAINBINDER") {
+      const hasOppCards = gameState.players.some(
+        (pl) => pl.id !== p.id && pl.hand.length > 0,
+      );
+      if (!hasOppCards) return setError("Opponents have no cards to steal.");
+    }
+    if (def.target === "HOARDER") {
+      const hasCardsInPlay =
+        gameState.deck.length > 0 ||
+        gameState.players.some((pl) => pl.id !== p.id && pl.hand.length > 0);
+      if (!hasCardsInPlay)
+        return setError("No cards available in deck or hands to hoard.");
+    }
+    if (def.target === "ORACLE") {
+      if (gameState.deck.length === 0 && gameState.discardPile.length === 0)
+        return setError("Both deck and discard pile are empty.");
+      // Pre-validation passes, safely open modal
+      return setModalState({ type: "ORACLE", cardUid, def, placementSetId });
+    }
+    // ----------------------------
+    // --- ADD PRE-VALIDATION FOR DESTROYER HERE ---
+    if (def.target === "SET_DESTROY") {
+      const hasOpponentSets = gameState.players.some(
+        (pl) => pl.id !== p.id && pl.tableau.length > 0,
+      );
+      if (!hasOpponentSets)
+        return setError(
+          "Requires an opponent to have a played set to destroy.",
+        );
+    }
+    // ---------------------------------------------
     if (def.target === "OWN_SUP") {
       const hasSup = p.tableau.some(
         (s) => s.type === "SUP" && s.cards.length > 0 && !s.isLocked,
@@ -2767,7 +2802,10 @@ export default function DarkFolkloreGame() {
           <div className="flex gap-4 items-center">
             {/* Unified Deck & Void Button */}
             <button
-              onClick={() => setShowDiscard(true)}
+              onClick={() => {
+                setRitualTab("DISCARD"); // <--- ADD THIS ROUTING
+                setShowDiscard(true);
+              }}
               className="bg-slate-900/80 hover:bg-slate-800 transition-colors px-3 sm:px-4 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold tracking-widest uppercase border border-slate-700 shadow-inner flex items-center gap-3 sm:gap-4 cursor-pointer active:scale-95"
             >
               <div
@@ -2966,7 +3004,13 @@ export default function DarkFolkloreGame() {
                     {p.tableau.map((set, sIdx) => (
                       <div
                         key={sIdx}
-                        onClick={() => setViewingSet({ set, playerName: p.name, isLocked: set.isLocked })}
+                        onClick={() =>
+                          setViewingSet({
+                            set,
+                            playerName: p.name,
+                            isLocked: set.isLocked,
+                          })
+                        }
                         className={`flex rounded-md p-1 bg-slate-950/50 shadow-inner border shrink-0 cursor-pointer hover:border-fuchsia-500/50 transition-colors ${set.isLocked ? "border-yellow-600/50" : "border-slate-800"}`}
                       >
                         {set.cards.map((c, cIdx) => (
@@ -3146,7 +3190,13 @@ export default function DarkFolkloreGame() {
                 {me.tableau.map((set, sIdx) => (
                   <div
                     key={sIdx}
-                    onClick={() => setViewingSet({ set, playerName: "Your", isLocked: set.isLocked })}
+                    onClick={() =>
+                      setViewingSet({
+                        set,
+                        playerName: "Your",
+                        isLocked: set.isLocked,
+                      })
+                    }
                     className={`p-1 sm:p-2 rounded-md sm:rounded-xl bg-slate-900 border-2 cursor-pointer hover:border-fuchsia-500/50 transition-colors ${set.isLocked ? "border-yellow-600 shadow-[0_0_15px_rgba(202,138,4,0.3)]" : "border-slate-800"} flex flex-nowrap md:flex-wrap gap-1 relative shrink-0`}
                   >
                     {set.isLocked && (
@@ -3353,7 +3403,7 @@ export default function DarkFolkloreGame() {
           </div>
         )}
 
-        {/* Game State Overview Modal (Hand & Void) */}
+        {/* Game State Overview Modal (Tabbed Interface) */}
         {showDiscard && (
           <div className="fixed inset-0 z-[270] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-4 animate-in fade-in">
             <div className="bg-slate-950 border border-slate-700/50 rounded-3xl w-full max-w-4xl flex flex-col shadow-[0_0_50px_rgba(0,0,0,0.5)] overflow-hidden max-h-[85vh]">
@@ -3370,64 +3420,210 @@ export default function DarkFolkloreGame() {
                 </button>
               </div>
 
-              {/* Scrollable Content */}
-              <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar flex flex-col gap-8">
-                {/* Your Hand Section */}
-                <div>
-                  <h4 className="text-sm font-black text-fuchsia-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
-                    <Hand size={16} /> Your Hand
-                    <span className="text-xs bg-slate-900 px-2 py-0.5 rounded-full text-slate-400 border border-slate-800">
-                      {me.hand.length}/7
-                    </span>
-                  </h4>
-                  <div className="flex flex-wrap gap-4 content-start">
-                    {me.hand.length === 0 ? (
-                      <div className="text-slate-600 uppercase tracking-widest font-black py-6 flex flex-col items-center gap-3 w-full bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
-                        <Ghost size={32} className="opacity-20" />
-                        Your hand is empty.
-                      </div>
-                    ) : (
-                      me.hand.map((c, i) => (
-                        <div
-                          key={`${c.uid}-${i}`}
-                          className="hover:-translate-y-2 transition-transform"
-                        >
-                          <CardDisplay cardId={c.cardId} />
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
+              {/* Tabs Navigation */}
+              <div className="flex overflow-x-auto custom-scrollbar border-b border-slate-800 bg-slate-900/30 shrink-0 p-3 gap-2">
+                <button
+                  onClick={() => setRitualTab("ME")}
+                  className={`px-5 py-2.5 rounded-xl text-xs md:text-sm font-black uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2 ${
+                    ritualTab === "ME"
+                      ? "bg-fuchsia-900/50 text-fuchsia-300 border border-fuchsia-500/50 shadow-inner"
+                      : "bg-slate-900 border border-slate-800 text-slate-500 hover:text-slate-300 hover:border-slate-600"
+                  }`}
+                >
+                  <Hand size={16} /> Your State
+                </button>
 
-                {/* The Void Section */}
-                <div>
-                  <h4 className="text-sm font-black text-red-500 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
-                    <LayersPlus size={16} /> Discard Pile
-                    <span className="text-xs bg-slate-900 px-2 py-0.5 rounded-full text-slate-400 border border-slate-800">
-                      {gameState.discardPile.length}
-                    </span>
-                  </h4>
-                  <div className="flex flex-wrap gap-4 content-start">
-                    {gameState.discardPile.length === 0 ? (
-                      <div className="text-slate-600 uppercase tracking-widest font-black py-6 flex flex-col items-center gap-3 w-full bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
-                        <Ghost size={32} className="opacity-20" />
-                        The discard pile is currently empty.
-                      </div>
-                    ) : (
-                      /* Reversing so the most recently discarded cards show up first */
-                      [...gameState.discardPile].reverse().map((c, i) => (
-                        <div key={`${c.uid}-${i}`} className="relative group">
-                          {i === 0 && (
-                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-950 text-red-400 text-[9px] font-black uppercase px-2 py-0.5 rounded border border-red-900/50 z-20 shadow-md">
-                              Top
+                {gameState.players
+                  .filter((p) => p.id !== user.uid)
+                  .map((p) => (
+                    <button
+                      key={p.id}
+                      onClick={() => setRitualTab(p.id)}
+                      className={`px-5 py-2.5 rounded-xl text-xs md:text-sm font-black uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2 ${
+                        ritualTab === p.id
+                          ? "bg-slate-800 text-slate-200 border border-slate-500 shadow-inner"
+                          : "bg-slate-900 border border-slate-800 text-slate-500 hover:text-slate-300 hover:border-slate-600"
+                      }`}
+                    >
+                      <UserCheck size={16} /> {p.name}
+                    </button>
+                  ))}
+
+                <button
+                  onClick={() => setRitualTab("DISCARD")}
+                  className={`px-5 py-2.5 rounded-xl text-xs md:text-sm font-black uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2 ${
+                    ritualTab === "DISCARD"
+                      ? "bg-red-900/50 text-red-300 border border-red-500/50 shadow-inner"
+                      : "bg-slate-900 border border-slate-800 text-slate-500 hover:text-slate-300 hover:border-slate-600"
+                  }`}
+                >
+                  <LayersPlus size={16} /> Discard Pile (
+                  {gameState.discardPile.length})
+                </button>
+              </div>
+
+              {/* Scrollable Content Engine */}
+              <div className="p-4 md:p-6 overflow-y-auto custom-scrollbar flex flex-col gap-8 flex-1">
+                {/* --- TAB: YOUR STATE --- */}
+                {ritualTab === "ME" && (
+                  <>
+                    {/* Your Hand */}
+                    <div>
+                      <h4 className="text-sm font-black text-fuchsia-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
+                        <Hand size={16} /> Your Hand
+                        <span className="text-xs bg-slate-900 px-2 py-0.5 rounded-full text-slate-400 border border-slate-800 ml-2">
+                          {me.hand.length}/7
+                        </span>
+                      </h4>
+                      <div className="flex flex-wrap gap-4 content-start">
+                        {me.hand.length === 0 ? (
+                          <div className="text-slate-600 uppercase tracking-widest font-black py-6 flex flex-col items-center gap-3 w-full bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
+                            <Ghost size={32} className="opacity-20" />
+                            Your hand is empty.
+                          </div>
+                        ) : (
+                          me.hand.map((c, i) => (
+                            <div
+                              key={`${c.uid}-${i}`}
+                              className="hover:-translate-y-2 transition-transform"
+                            >
+                              <CardDisplay cardId={c.cardId} />
                             </div>
-                          )}
-                          <CardDisplay cardId={c.cardId} />
+                          ))
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Your Banked Sets */}
+                    <div>
+                      <h4 className="text-sm font-black text-fuchsia-400 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
+                        <Layers size={16} /> Your Banked Sets
+                        <span className="text-xs bg-slate-900 px-2 py-0.5 rounded-full text-slate-400 border border-slate-800 ml-2">
+                          {me.tableau.length}
+                        </span>
+                      </h4>
+                      <div className="flex flex-wrap gap-4 content-start">
+                        {me.tableau.length === 0 ? (
+                          <div className="text-slate-600 uppercase tracking-widest font-black py-6 flex flex-col items-center gap-3 w-full bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
+                            <Ghost size={32} className="opacity-20" />
+                            You have no banked sets.
+                          </div>
+                        ) : (
+                          me.tableau.map((set, sIdx) => (
+                            <div
+                              key={sIdx}
+                              className={`p-3 rounded-xl bg-slate-900 border-2 ${
+                                set.isLocked
+                                  ? "border-yellow-600/50 shadow-[0_0_15px_rgba(202,138,4,0.2)]"
+                                  : "border-slate-800"
+                              } flex gap-1 relative shrink-0`}
+                            >
+                              {set.isLocked && (
+                                <Shield
+                                  className="absolute -top-2 -right-2 text-yellow-500 bg-slate-900 rounded-full p-0.5 z-20 shadow-md"
+                                  size={18}
+                                />
+                              )}
+                              {set.cards.map((c, cIdx) => (
+                                <div
+                                  key={c.uid}
+                                  className={`relative transition-transform hover:-translate-y-1 ${cIdx > 0 ? "-ml-4" : ""}`}
+                                >
+                                  <CardDisplay cardId={c.cardId} small />
+                                </div>
+                              ))}
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {/* --- TAB: DISCARD PILE --- */}
+                {ritualTab === "DISCARD" && (
+                  <div>
+                    <h4 className="text-sm font-black text-red-500 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
+                      <LayersPlus size={16} /> Discard Pile
+                      <span className="text-xs bg-slate-900 px-2 py-0.5 rounded-full text-slate-400 border border-slate-800 ml-2">
+                        {gameState.discardPile.length}
+                      </span>
+                    </h4>
+                    <div className="flex flex-wrap gap-4 content-start">
+                      {gameState.discardPile.length === 0 ? (
+                        <div className="text-slate-600 uppercase tracking-widest font-black py-6 flex flex-col items-center gap-3 w-full bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
+                          <Ghost size={32} className="opacity-20" />
+                          The discard pile is currently empty.
                         </div>
-                      ))
-                    )}
+                      ) : (
+                        [...gameState.discardPile].reverse().map((c, i) => (
+                          <div key={`${c.uid}-${i}`} className="relative group">
+                            {i === 0 && (
+                              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-950 text-red-400 text-[9px] font-black uppercase px-2 py-0.5 rounded border border-red-900/50 z-20 shadow-md">
+                                Top
+                              </div>
+                            )}
+                            <CardDisplay cardId={c.cardId} />
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* --- TAB: OPPONENTS --- */}
+                {ritualTab !== "ME" &&
+                  ritualTab !== "DISCARD" &&
+                  (() => {
+                    const opp = gameState.players.find(
+                      (p) => p.id === ritualTab,
+                    );
+                    if (!opp) return null;
+                    return (
+                      <div>
+                        <h4 className="text-sm font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
+                          <UserCheck size={16} /> {opp.name}'s Banked Sets
+                          <span className="text-xs bg-slate-900 px-2 py-0.5 rounded-full text-slate-400 border border-slate-800 ml-2">
+                            {opp.tableau.length}
+                          </span>
+                        </h4>
+                        <div className="flex flex-wrap gap-4 content-start">
+                          {opp.tableau.length === 0 ? (
+                            <div className="text-slate-600 uppercase tracking-widest font-black py-6 flex flex-col items-center gap-3 w-full bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
+                              <Ghost size={32} className="opacity-20" />
+                              {opp.name} has no banked sets yet.
+                            </div>
+                          ) : (
+                            opp.tableau.map((set, sIdx) => (
+                              <div
+                                key={sIdx}
+                                className={`p-3 rounded-xl bg-slate-900 border-2 ${
+                                  set.isLocked
+                                    ? "border-yellow-600/50 shadow-[0_0_15px_rgba(202,138,4,0.2)]"
+                                    : "border-slate-800"
+                                } flex gap-1 relative shrink-0`}
+                              >
+                                {set.isLocked && (
+                                  <Shield
+                                    className="absolute -top-2 -right-2 text-yellow-500 bg-slate-900 rounded-full p-0.5 z-20 shadow-md"
+                                    size={18}
+                                  />
+                                )}
+                                {set.cards.map((c, cIdx) => (
+                                  <div
+                                    key={c.uid}
+                                    className={`relative transition-transform hover:-translate-y-1 ${cIdx > 0 ? "-ml-4" : ""}`}
+                                  >
+                                    <CardDisplay cardId={c.cardId} small />
+                                  </div>
+                                ))}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
               </div>
             </div>
           </div>
@@ -3478,20 +3674,95 @@ export default function DarkFolkloreGame() {
           let fizzleReason = "";
 
           if (activeModal.isChain) {
-            if (["SET_SWAP", "SET_HEXWITCH"].includes(activeModal.type) && (!activeModal.validOwnSets || activeModal.validOwnSets.length === 0)) {
+            if (
+              ["SET_SWAP", "SET_HEXWITCH"].includes(activeModal.type) &&
+              (!activeModal.validOwnSets ||
+                activeModal.validOwnSets.length === 0)
+            ) {
               fizzled = true;
-              fizzleReason = "You do not have the required sets to fulfill this entity's demand.";
+              fizzleReason =
+                "You do not have the required sets to fulfill this entity's demand.";
+            } else if (
+              ["SET_SWAP", "SET_HEXWITCH", "SET_DESTROY"].includes(
+                activeModal.type,
+              )
+            ) {
+              const hasOpponentSets = gameState.players.some(
+                (p) => p.id !== user.uid && p.tableau.length > 0,
+              );
+              if (!hasOpponentSets) {
+                fizzled = true;
+                fizzleReason =
+                  "There are no opponent sets available to target.";
+              }
             } else if (activeModal.type.includes("TABLE_CARD")) {
-              const hasTargets = gameState.players.some(p =>
-                p.id !== user.uid && p.tableau.some(s =>
-                  s.type === "SUP" && !s.isLocked && s.cards.some(c =>
-                    activeModal.def?.id === "SUP_NIGHTWALKER" || SUPERNATURALS[c.cardId]?.gender === "M"
-                  )
-                )
+              const hasTargets = gameState.players.some(
+                (p) =>
+                  p.id !== user.uid &&
+                  p.tableau.some(
+                    (s) =>
+                      s.type === "SUP" &&
+                      !s.isLocked &&
+                      s.cards.some(
+                        (c) =>
+                          activeModal.def?.id === "SUP_NIGHTWALKER" ||
+                          SUPERNATURALS[c.cardId]?.gender === "M",
+                      ),
+                  ),
               );
               if (!hasTargets) {
                 fizzled = true;
-                fizzleReason = "There are no valid targets available for this entity.";
+                fizzleReason =
+                  "There are no valid targets available for this entity.";
+              }
+            } else if (
+              [
+                "PLAYER",
+                "PLAYER_VIEW",
+                "PLAYER_VIEW_STEAL",
+                "CHAINBINDER",
+              ].includes(activeModal.type) &&
+              !["SUP_SILENCER", "SUP_HANDSHIFTER"].includes(activeModal.def?.id)
+            ) {
+              const hasOpponentCards = gameState.players.some(
+                (p) => p.id !== user.uid && p.hand.length > 0,
+              );
+              if (!hasOpponentCards) {
+                fizzled = true;
+                fizzleReason = "Opponents have no cards in hand to target.";
+              }
+            } else if (
+              activeModal.type.includes("DISCARD") &&
+              gameState.discardPile.length === 0
+            ) {
+              fizzled = true;
+              fizzleReason = "The discard pile is completely empty.";
+            } else if (activeModal.type === "OWN_SUP") {
+              const hasValidOwnSups = me.tableau.some(
+                (s) => s.type === "SUP" && !s.isLocked,
+              );
+              if (!hasValidOwnSups) {
+                fizzled = true;
+                fizzleReason = "You have no valid entities to re-invoke.";
+              }
+            } else if (activeModal.type === "HOARDER") {
+              const hasCardsInPlay =
+                gameState.deck.length > 0 ||
+                gameState.players.some(
+                  (p) => p.id !== user.uid && p.hand.length > 0,
+                );
+              if (!hasCardsInPlay) {
+                fizzled = true;
+                fizzleReason = "There are no cards left in the game to hoard.";
+              }
+            } else if (activeModal.type === "ORACLE") {
+              if (
+                gameState.deck.length === 0 &&
+                gameState.discardPile.length === 0
+              ) {
+                fizzled = true;
+                fizzleReason =
+                  "The river is completely dry. The entity yields nothing.";
               }
             }
           }
@@ -3556,7 +3827,11 @@ export default function DarkFolkloreGame() {
                   </h3>
                   {!activeModal.isChain &&
                     activeModal.type !== "VIEW_HAND" &&
-                    activeModal.type !== "CHAINBINDER" && (
+                    activeModal.type !== "CHAINBINDER" &&
+                    !(activeModal.type === "ORACLE" && activeModal.tempCards) &&
+                    !(
+                      activeModal.type === "BROKER" && activeModal.tempCards
+                    ) && (
                       <button
                         onClick={() => {
                           setModalState(null);
@@ -4520,6 +4795,28 @@ export default function DarkFolkloreGame() {
                                 />
                               </div>
                             ))}
+                        {/* FALLBACK: IF ORACLE PULLS NOTHING */}
+                        {activeModal.tempCards &&
+                          activeModal.tempCards.length === 0 && (
+                            <div className="flex flex-col items-center gap-4">
+                              <span className="text-slate-500 uppercase tracking-widest font-bold">
+                                The river is dry.
+                              </span>
+                              <button
+                                onClick={() => {
+                                  confirmModalAction({
+                                    keptCard: null,
+                                    discardedCard: null,
+                                    updatedDeck: activeModal._deck,
+                                    updatedDiscard: activeModal._discard,
+                                  });
+                                }}
+                                className="bg-fuchsia-700 hover:bg-fuchsia-600 text-white px-8 py-3 rounded-xl uppercase font-black tracking-widest transition-colors mt-2"
+                              >
+                                Continue
+                              </button>
+                            </div>
+                          )}
                         {!activeModal.tempCards && (
                           <button
                             onClick={() => {
@@ -4646,7 +4943,11 @@ export default function DarkFolkloreGame() {
             >
               <div className="flex justify-between items-center p-4 md:p-6 border-b border-slate-800 bg-slate-900/50 shrink-0">
                 <h3 className="text-xl md:text-2xl font-black text-slate-200 uppercase tracking-widest flex items-center gap-3 drop-shadow-md">
-                  <Layers className="text-fuchsia-500" /> {viewingSet.playerName} Set {viewingSet.isLocked && <Shield size={20} className="text-yellow-500" />}
+                  <Layers className="text-fuchsia-500" />{" "}
+                  {viewingSet.playerName} Set{" "}
+                  {viewingSet.isLocked && (
+                    <Shield size={20} className="text-yellow-500" />
+                  )}
                 </h3>
                 <button
                   onClick={() => setViewingSet(null)}
@@ -4675,8 +4976,13 @@ export default function DarkFolkloreGame() {
                   className="text-yellow-500 mx-auto mb-4 animate-bounce drop-shadow-[0_0_20px_rgba(234,179,8,0.8)]"
                 />
                 <h2 className="text-3xl md:text-5xl font-black uppercase tracking-[0.2em] text-white mb-2 drop-shadow-md">
-                  {gameState.winnerNames || gameState.players.find((p) => p.id === gameState.winnerId)?.name}{" "}
-                  {Array.isArray(gameState.winnerId) && gameState.winnerId.length > 1 ? "Win!" : "Wins!"}
+                  {gameState.winnerNames ||
+                    gameState.players.find((p) => p.id === gameState.winnerId)
+                      ?.name}{" "}
+                  {Array.isArray(gameState.winnerId) &&
+                  gameState.winnerId.length > 1
+                    ? "Win!"
+                    : "Wins!"}
                 </h2>
                 <p className="text-slate-400 uppercase tracking-widest text-sm md:text-lg font-bold">
                   The shadows bow to them.
@@ -4687,7 +4993,9 @@ export default function DarkFolkloreGame() {
               <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-4 text-left pr-2 mb-6">
                 {(() => {
                   // 1. Sort the players first
-                  const sortedPlayers = gameState.players.slice().sort((a, b) => b.score - a.score);
+                  const sortedPlayers = gameState.players
+                    .slice()
+                    .sort((a, b) => b.score - a.score);
                   let currentRank = 1;
 
                   return sortedPlayers.map((p, i) => {
@@ -4732,7 +5040,8 @@ export default function DarkFolkloreGame() {
                               isWinner ? "text-yellow-400" : "text-fuchsia-400"
                             }`}
                           >
-                            {p.score} <span className="text-sm text-slate-500">Pts</span>
+                            {p.score}{" "}
+                            <span className="text-sm text-slate-500">Pts</span>
                           </span>
                         </div>
 
