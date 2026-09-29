@@ -1464,26 +1464,7 @@ export default function DarkFolkloreGame() {
     const card = p.hand.find((c) => c.uid === cardUid);
     const def = SUPERNATURALS[card.cardId];
 
-    if (def.target.includes("TABLE_CARD")) {
-      const hasTargets = gameState.players.some(
-        (pl) =>
-          pl.id !== user.uid &&
-          pl.tableau.some(
-            (s) =>
-              s.type === "SUP" &&
-              !s.isLocked &&
-              s.cards.some(
-                (c) =>
-                  def.id === "SUP_NIGHTWALKER" ||
-                  SUPERNATURALS[c.cardId]?.gender === "M",
-              ),
-          ),
-      );
-      if (!hasTargets)
-        return setError(`No valid entities to target for ${def.name}.`);
-    }
-
-    // NEW: Intercept flow to ask for set placement if they have valid existing sets
+    // Intercept flow to ask for set placement if they have valid existing sets
     const validSets = p.tableau.filter(
       (s) => s.type === "SUP" && !s.isLocked && s.cards.length < 5,
     );
@@ -1492,19 +1473,15 @@ export default function DarkFolkloreGame() {
       return; // Stop here and wait for modal input
     }
 
-    // Pass the placementSetId into the target modals so it isn't lost
     if (def.target === "SET_SWAP") {
-      // Deep copy so we can visually inject the pending card
       let previewOwnSets = JSON.parse(
         JSON.stringify(p.tableau.filter((s) => !s.isLocked)),
       );
-
-      // Default to "NEW" if they bypassed the placement modal
       const actualPlacement = placementSetId || "NEW";
 
       if (actualPlacement === "NEW") {
         previewOwnSets.push({
-          id: "NEW_PLACEMENT_SET", // A temporary mock ID
+          id: "NEW_PLACEMENT_SET",
           type: "SUP",
           cards: [{ cardId: card.cardId, uid: card.uid }],
           isLocked: false,
@@ -1516,24 +1493,20 @@ export default function DarkFolkloreGame() {
         }
       }
 
-      if (previewOwnSets.length === 0)
-        return setError("Requires an unlocked set to swap.");
-
       return setModalState({
         type: "SET_SWAP",
         ownSetId: previewOwnSets.length === 1 ? previewOwnSets[0].id : null,
         validOwnSets: previewOwnSets,
         cardUid,
         def,
-        placementSetId: actualPlacement, // Pass the placement through!
+        placementSetId: actualPlacement,
       });
     }
+
     if (def.target === "SET_HEXWITCH") {
       const validOwnSets = p.tableau.filter(
         (s) => s.type === "BIRD" && !s.isLocked && s.cards.length === 3,
       );
-      if (validOwnSets.length === 0)
-        return setError("Requires a completed Bird set to sacrifice.");
       return setModalState({
         type: "SET_HEXWITCH",
         ownSetId: validOwnSets.length === 1 ? validOwnSets[0].id : null,
@@ -1543,44 +1516,8 @@ export default function DarkFolkloreGame() {
         placementSetId,
       });
     }
-    // --- LATE GAME FAIL-SAFES ---
-    if (def.target === "CHAINBINDER") {
-      const hasOppCards = gameState.players.some(
-        (pl) => pl.id !== p.id && pl.hand.length > 0,
-      );
-      if (!hasOppCards) return setError("Opponents have no cards to steal.");
-    }
-    if (def.target === "HOARDER") {
-      const hasCardsInPlay =
-        gameState.deck.length > 0 ||
-        gameState.players.some((pl) => pl.id !== p.id && pl.hand.length > 0);
-      if (!hasCardsInPlay)
-        return setError("No cards available in deck or hands to hoard.");
-    }
-    if (def.target === "ORACLE") {
-      if (gameState.deck.length === 0 && gameState.discardPile.length === 0)
-        return setError("Both deck and discard pile are empty.");
-      // Pre-validation passes, safely open modal
-      return setModalState({ type: "ORACLE", cardUid, def, placementSetId });
-    }
-    // ----------------------------
-    // --- ADD PRE-VALIDATION FOR DESTROYER HERE ---
-    if (def.target === "SET_DESTROY") {
-      const hasOpponentSets = gameState.players.some(
-        (pl) => pl.id !== p.id && pl.tableau.length > 0,
-      );
-      if (!hasOpponentSets)
-        return setError(
-          "Requires an opponent to have a played set to destroy.",
-        );
-    }
-    // ---------------------------------------------
+
     if (def.target === "OWN_SUP") {
-      const hasSup = p.tableau.some(
-        (s) => s.type === "SUP" && s.cards.length > 0 && !s.isLocked,
-      );
-      if (!hasSup)
-        return setError("You have no unlocked entities to re-trigger.");
       return setModalState({ type: "OWN_SUP", cardUid, def, placementSetId });
     }
     if (def.target === "ORACLE") {
@@ -3673,97 +3610,94 @@ export default function DarkFolkloreGame() {
           let fizzled = false;
           let fizzleReason = "";
 
-          if (activeModal.isChain) {
-            if (
-              ["SET_SWAP", "SET_HEXWITCH"].includes(activeModal.type) &&
-              (!activeModal.validOwnSets ||
-                activeModal.validOwnSets.length === 0)
-            ) {
+          // WE REMOVED THE 'if (activeModal.isChain)' WRAPPER HERE
+          if (
+            ["SET_SWAP", "SET_HEXWITCH"].includes(activeModal.type) &&
+            (!activeModal.validOwnSets || activeModal.validOwnSets.length === 0)
+          ) {
+            fizzled = true;
+            fizzleReason =
+              "You do not have the required sets to fulfill this entity's demand.";
+          } else if (
+            ["SET_SWAP", "SET_HEXWITCH", "SET_DESTROY"].includes(
+              activeModal.type,
+            )
+          ) {
+            const hasOpponentSets = gameState.players.some(
+              (p) => p.id !== user.uid && p.tableau.length > 0,
+            );
+            if (!hasOpponentSets) {
+              fizzled = true;
+              fizzleReason = "There are no opponent sets available to target.";
+            }
+          } else if (activeModal.type.includes("TABLE_CARD")) {
+            const hasTargets = gameState.players.some(
+              (p) =>
+                p.id !== user.uid &&
+                p.tableau.some(
+                  (s) =>
+                    s.type === "SUP" &&
+                    !s.isLocked &&
+                    s.cards.some(
+                      (c) =>
+                        activeModal.def?.id === "SUP_NIGHTWALKER" ||
+                        SUPERNATURALS[c.cardId]?.gender === "M",
+                    ),
+                ),
+            );
+            if (!hasTargets) {
               fizzled = true;
               fizzleReason =
-                "You do not have the required sets to fulfill this entity's demand.";
-            } else if (
-              ["SET_SWAP", "SET_HEXWITCH", "SET_DESTROY"].includes(
-                activeModal.type,
-              )
-            ) {
-              const hasOpponentSets = gameState.players.some(
-                (p) => p.id !== user.uid && p.tableau.length > 0,
-              );
-              if (!hasOpponentSets) {
-                fizzled = true;
-                fizzleReason =
-                  "There are no opponent sets available to target.";
-              }
-            } else if (activeModal.type.includes("TABLE_CARD")) {
-              const hasTargets = gameState.players.some(
-                (p) =>
-                  p.id !== user.uid &&
-                  p.tableau.some(
-                    (s) =>
-                      s.type === "SUP" &&
-                      !s.isLocked &&
-                      s.cards.some(
-                        (c) =>
-                          activeModal.def?.id === "SUP_NIGHTWALKER" ||
-                          SUPERNATURALS[c.cardId]?.gender === "M",
-                      ),
-                  ),
-              );
-              if (!hasTargets) {
-                fizzled = true;
-                fizzleReason =
-                  "There are no valid targets available for this entity.";
-              }
-            } else if (
-              [
-                "PLAYER",
-                "PLAYER_VIEW",
-                "PLAYER_VIEW_STEAL",
-                "CHAINBINDER",
-              ].includes(activeModal.type) &&
-              !["SUP_SILENCER", "SUP_HANDSHIFTER"].includes(activeModal.def?.id)
-            ) {
-              const hasOpponentCards = gameState.players.some(
+                "There are no valid targets available for this entity.";
+            }
+          } else if (
+            [
+              "PLAYER",
+              "PLAYER_VIEW",
+              "PLAYER_VIEW_STEAL",
+              "CHAINBINDER",
+            ].includes(activeModal.type) &&
+            !["SUP_SILENCER", "SUP_HANDSHIFTER"].includes(activeModal.def?.id)
+          ) {
+            const hasOpponentCards = gameState.players.some(
+              (p) => p.id !== user.uid && p.hand.length > 0,
+            );
+            if (!hasOpponentCards) {
+              fizzled = true;
+              fizzleReason = "Opponents have no cards in hand to target.";
+            }
+          } else if (
+            activeModal.type.includes("DISCARD") &&
+            gameState.discardPile.length === 0
+          ) {
+            fizzled = true;
+            fizzleReason = "The discard pile is completely empty.";
+          } else if (activeModal.type === "OWN_SUP") {
+            const hasValidOwnSups = me.tableau.some(
+              (s) => s.type === "SUP" && !s.isLocked,
+            );
+            if (!hasValidOwnSups) {
+              fizzled = true;
+              fizzleReason = "You have no valid entities to re-invoke.";
+            }
+          } else if (activeModal.type === "HOARDER") {
+            const hasCardsInPlay =
+              gameState.deck.length > 0 ||
+              gameState.players.some(
                 (p) => p.id !== user.uid && p.hand.length > 0,
               );
-              if (!hasOpponentCards) {
-                fizzled = true;
-                fizzleReason = "Opponents have no cards in hand to target.";
-              }
-            } else if (
-              activeModal.type.includes("DISCARD") &&
+            if (!hasCardsInPlay) {
+              fizzled = true;
+              fizzleReason = "There are no cards left in the game to hoard.";
+            }
+          } else if (activeModal.type === "ORACLE") {
+            if (
+              gameState.deck.length === 0 &&
               gameState.discardPile.length === 0
             ) {
               fizzled = true;
-              fizzleReason = "The discard pile is completely empty.";
-            } else if (activeModal.type === "OWN_SUP") {
-              const hasValidOwnSups = me.tableau.some(
-                (s) => s.type === "SUP" && !s.isLocked,
-              );
-              if (!hasValidOwnSups) {
-                fizzled = true;
-                fizzleReason = "You have no valid entities to re-invoke.";
-              }
-            } else if (activeModal.type === "HOARDER") {
-              const hasCardsInPlay =
-                gameState.deck.length > 0 ||
-                gameState.players.some(
-                  (p) => p.id !== user.uid && p.hand.length > 0,
-                );
-              if (!hasCardsInPlay) {
-                fizzled = true;
-                fizzleReason = "There are no cards left in the game to hoard.";
-              }
-            } else if (activeModal.type === "ORACLE") {
-              if (
-                gameState.deck.length === 0 &&
-                gameState.discardPile.length === 0
-              ) {
-                fizzled = true;
-                fizzleReason =
-                  "The river is completely dry. The entity yields nothing.";
-              }
+              fizzleReason =
+                "The river is completely dry. The entity yields nothing.";
             }
           }
 
@@ -3781,12 +3715,31 @@ export default function DarkFolkloreGame() {
                   <p className="text-slate-400 text-sm mb-6 uppercase font-bold tracking-widest">
                     {fizzleReason}
                   </p>
-                  <button
-                    onClick={() => resolveChain({})}
-                    className="bg-slate-800 hover:bg-slate-700 text-white w-full py-4 rounded-xl uppercase font-black tracking-widest transition-colors"
-                  >
-                    Yield Effect
-                  </button>
+
+                  <div className="flex gap-3 mt-2 w-full">
+                    {/* ONLY show Cancel if played from the hand */}
+                    {!activeModal.isChain && (
+                      <button
+                        onClick={() => {
+                          setModalState(null);
+                          setSelectedHandCards([]);
+                        }}
+                        className="flex-1 bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-slate-200 py-4 rounded-xl uppercase font-black tracking-widest transition-colors border border-slate-700"
+                      >
+                        Cancel
+                      </button>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        if (activeModal.isChain) resolveChain({});
+                        else confirmModalAction({});
+                      }}
+                      className="flex-1 bg-red-900/80 hover:bg-red-800 text-white py-4 rounded-xl uppercase font-black tracking-widest transition-colors border border-red-700/50"
+                    >
+                      Yield & Bank
+                    </button>
+                  </div>
                 </div>
               </div>
             );
@@ -4720,15 +4673,22 @@ export default function DarkFolkloreGame() {
                           .map((set) =>
                             set.cards.map((c) => {
                               const def = SUPERNATURALS[c.cardId];
+                              const isMoonHag = c.cardId === "SUP_MOONHAG"; // <--- ADD THIS
+
                               return (
                                 <button
                                   key={c.uid}
+                                  disabled={isMoonHag} // <--- DISABLE IF MOON HAG
                                   onClick={() =>
                                     confirmModalAction({
                                       retriggerCardId: c.cardId,
                                     })
                                   }
-                                  className="flex items-center gap-4 p-3 rounded-xl border-2 border-slate-700 hover:border-fuchsia-500 bg-slate-950 hover:bg-slate-800 transition-all text-left w-full shadow-md"
+                                  className={`flex items-center gap-4 p-3 rounded-xl border-2 text-left w-full shadow-md transition-all ${
+                                    isMoonHag
+                                      ? "border-slate-800 bg-slate-950 opacity-40 grayscale cursor-not-allowed"
+                                      : "border-slate-700 hover:border-fuchsia-500 bg-slate-950 hover:bg-slate-800"
+                                  }`} // <--- DYNAMIC STYLING
                                 >
                                   <div className="shrink-0 w-12 h-16 bg-slate-900 rounded flex flex-col items-center justify-center border border-fuchsia-900/50">
                                     <div className="text-fuchsia-400">
@@ -4740,8 +4700,13 @@ export default function DarkFolkloreGame() {
                                     </div>
                                   </div>
                                   <div className="flex-1">
-                                    <div className="text-sm font-black text-slate-200 uppercase tracking-widest mb-1">
+                                    <div className="text-sm font-black text-slate-200 uppercase tracking-widest mb-1 flex items-center gap-2">
                                       {def.name}
+                                      {isMoonHag && (
+                                        <span className="text-[9px] bg-red-950/80 text-red-400 px-2 py-0.5 rounded border border-red-900/50">
+                                          Cannot Target Self
+                                        </span>
+                                      )}
                                     </div>
                                     <div className="text-xs text-fuchsia-300 font-bold leading-snug">
                                       {def.desc}
@@ -4751,6 +4716,7 @@ export default function DarkFolkloreGame() {
                               );
                             }),
                           )}
+                        {/* Fallback if no sets exist (covered by fizzle logic, but good practice to keep) */}
                         {me.tableau.filter(
                           (s) => s.type === "SUP" && !s.isLocked,
                         ).length === 0 && (
