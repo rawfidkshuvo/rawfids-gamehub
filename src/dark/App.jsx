@@ -3614,12 +3614,13 @@ export default function DarkFolkloreGame() {
               activeModal.type,
             )
           ) {
-            const hasOpponentSets = gameState.players.some(
-              (p) => p.id !== user.uid && p.tableau.length > 0,
+            const hasUnlockedOpponentSets = gameState.players.some(
+              (p) => p.id !== user.uid && p.tableau.some((s) => !s.isLocked),
             );
-            if (!hasOpponentSets) {
+            if (!hasUnlockedOpponentSets) {
               fizzled = true;
-              fizzleReason = "There are no opponent sets available to target.";
+              fizzleReason =
+                "There are no unlocked opponent sets available to target.";
             }
           } else if (activeModal.type.includes("TABLE_CARD")) {
             const hasTargets = gameState.players.some(
