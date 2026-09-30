@@ -1539,7 +1539,6 @@ export default function DarkFolkloreGame() {
       [
         "SUP_HEADLESS",
         "SUP_DEVOURER",
-        "SUP_GRIM",
         "SUP_SERPENT",
         "SUP_SILENCER",
         "SUP_HANDSHIFTER",
@@ -1616,18 +1615,21 @@ export default function DarkFolkloreGame() {
         }
         break;
       case "SUP_GRIM":
-        // NEW: Draw immediately before asking for the amulet!
         if (ctx.deck.length > 0) {
           me.hand.push(ctx.deck.pop());
           ctx.logsText += " They drew 1 from the deck.";
         }
-        ctx.logsText += " The shadows reach out to strike.";
-        ctx.awaitAmulet = true;
-        ctx.pendingData = {
-          type: def.id,
-          targetId: targetData.targetPlayerId,
-          sourceId: me.id,
-        };
+
+        // Wrap the steal logic so it only fires if a target was picked
+        if (targetData && targetData.targetPlayerId) {
+          ctx.logsText += " The shadows reach out to strike.";
+          ctx.awaitAmulet = true;
+          ctx.pendingData = {
+            type: def.id,
+            targetId: targetData.targetPlayerId,
+            sourceId: me.id,
+          };
+        }
         break;
       case "SUP_CHAINBINDER":
         ctx.awaitAmulet = true;
@@ -1651,10 +1653,6 @@ export default function DarkFolkloreGame() {
           deckPulls: 0,
           amuletPromptActive: false,
         };
-        // Pad with DECK for remaining attempts if they selected fewer than 3 people
-        while (ctx.pendingData.queue.length < 3) {
-          ctx.pendingData.queue.push("DECK");
-        }
         ctx.isQueueProcessing = true; // Tell the engine to use the queue
         break;
       case "SUP_SERPENT":
@@ -3649,8 +3647,11 @@ export default function DarkFolkloreGame() {
               "PLAYER_VIEW",
               "PLAYER_VIEW_STEAL",
               "CHAINBINDER",
+              "BLOODFIEND",
             ].includes(activeModal.type) &&
-            !["SUP_SILENCER", "SUP_HANDSHIFTER"].includes(activeModal.def?.id)
+            !["SUP_SILENCER", "SUP_HANDSHIFTER", "SUP_GRIM"].includes(
+              activeModal.def?.id,
+            ) // <--- Add SUP_GRIM here
           ) {
             const hasOpponentCards = gameState.players.some(
               (p) => p.id !== user.uid && p.hand.length > 0,
@@ -3659,8 +3660,19 @@ export default function DarkFolkloreGame() {
               fizzled = true;
               fizzleReason = "Opponents have no cards in hand to target.";
             }
+          } else if (activeModal.def?.id === "SUP_GRIM") {
+            // <--- Add Custom Grim Logic
+            const hasOpponentCards = gameState.players.some(
+              (p) => p.id !== user.uid && p.hand.length > 0,
+            );
+            if (!hasOpponentCards && gameState.deck.length === 0) {
+              fizzled = true;
+              fizzleReason =
+                "The deck is empty and opponents have no cards to steal.";
+            }
           } else if (
-            (activeModal.type.includes("DISCARD") || activeModal.type === "BROKER") &&
+            (activeModal.type.includes("DISCARD") ||
+              activeModal.type === "BROKER") &&
             gameState.discardPile.length === 0
           ) {
             fizzled = true;
@@ -3673,7 +3685,7 @@ export default function DarkFolkloreGame() {
               fizzled = true;
               fizzleReason = "You have no valid entities to re-invoke.";
             }
-          } else if (["HOARDER", "BLOODFIEND"].includes(activeModal.type)) {
+          } else if (activeModal.type === "HOARDER") {
             const hasCardsInPlay =
               gameState.deck.length > 0 ||
               gameState.players.some(
@@ -3844,99 +3856,121 @@ export default function DarkFolkloreGame() {
                   {(activeModal.type === "PLAYER" ||
                     activeModal.type === "PLAYER_VIEW" ||
                     activeModal.type === "PLAYER_VIEW_STEAL") && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                      {gameState.players
-                        .filter((p) => p.id !== user.uid)
-                        .map((p) => (
-                          <button
-                            key={p.id}
-                            disabled={
-                              p.hand.length === 0 &&
-                              activeModal.def?.id !== "SUP_SILENCER" &&
-                              activeModal.def?.id !== "SUP_HANDSHIFTER"
-                            }
-                            onClick={() => {
-                              if (activeModal.mode === "STEAL") {
-                                const target = gameState.players.find(
-                                  (pl) => pl.id === p.id,
-                                );
-                                const pending = {
-                                  type: "STEAL",
-                                  sourceId: me.id,
-                                  targetId: p.id,
-                                  count: 1,
-                                };
-                                if (
-                                  target.hand.some((c) => c.cardId === "AMULET")
-                                ) {
-                                  const updates = {
-                                    turnState: "AMULET_PROMPT",
-                                    pendingAction: pending,
-                                  };
-                                  executeAction(
-                                    updates,
-                                    `${me.name} attempts to steal from ${target.name}. Waiting for defense...`,
-                                    "warning",
-                                  );
-                                } else {
-                                  const players = JSON.parse(
-                                    JSON.stringify(gameState.players),
-                                  );
-                                  const discardPile = [
-                                    ...gameState.discardPile,
-                                  ];
-                                  const deck = [...gameState.deck];
-                                  resolveOffensiveAction(
-                                    pending,
-                                    players,
-                                    discardPile,
-                                    deck,
-                                  );
-                                  const updates = finalizeAction(
-                                    players,
-                                    deck,
-                                    "ACTION",
-                                    gameState.actionsLeft - 1,
-                                  );
-                                  updates.discardPile = discardPile;
-                                  executeAction(
-                                    updates,
-                                    `${me.name} successfully stole from ${target.name}!`,
-                                    "success",
-                                  );
-                                }
-                                setModalState(null);
-                                setSelectedHandCards([]); // <--- ADD THIS HERE
-                              } else if (
-                                activeModal.type === "PLAYER_VIEW_STEAL" ||
-                                activeModal.type === "PLAYER_VIEW"
-                              ) {
-                                setModalState({
-                                  ...activeModal,
-                                  type: "VIEW_HAND",
-                                  targetId: p.id,
-                                });
-                              } else {
-                                confirmModalAction({ targetPlayerId: p.id });
+                    <div className="flex flex-col items-center gap-4 w-full">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
+                        {gameState.players
+                          .filter((p) => p.id !== user.uid)
+                          .map((p) => (
+                            <button
+                              key={p.id}
+                              disabled={
+                                p.hand.length === 0 &&
+                                activeModal.def?.id !== "SUP_SILENCER" &&
+                                activeModal.def?.id !== "SUP_HANDSHIFTER"
                               }
-                            }}
-                            className="bg-slate-900 border border-slate-800 p-5 rounded-2xl text-left hover:border-fuchsia-500 hover:bg-slate-800 transition-all disabled:opacity-30 disabled:grayscale group shadow-md hover:shadow-[0_0_15px_rgba(192,38,211,0.3)]"
-                          >
-                            <div className="font-black text-xl text-slate-200 uppercase tracking-widest mb-2 group-hover:text-fuchsia-300 flex justify-between items-center">
-                              {p.name}{" "}
-                              <UserCheck
-                                size={20}
-                                className="opacity-0 group-hover:opacity-100 transition-opacity"
-                              />
-                            </div>
-                            <div className="text-xs text-slate-500 uppercase font-bold flex items-center gap-2">
-                              <Scroll size={14} /> Cards in Hand:{" "}
-                              <span className="text-slate-300 text-sm">
-                                {p.hand.length}
-                              </span>
-                            </div>
-                          </button>
-                        ))}
+                              onClick={() => {
+                                if (activeModal.mode === "STEAL") {
+                                  const target = gameState.players.find(
+                                    (pl) => pl.id === p.id,
+                                  );
+                                  const pending = {
+                                    type: "STEAL",
+                                    sourceId: me.id,
+                                    targetId: p.id,
+                                    count: 1,
+                                  };
+                                  if (
+                                    target.hand.some(
+                                      (c) => c.cardId === "AMULET",
+                                    )
+                                  ) {
+                                    const updates = {
+                                      turnState: "AMULET_PROMPT",
+                                      pendingAction: pending,
+                                    };
+                                    executeAction(
+                                      updates,
+                                      `${me.name} attempts to steal from ${target.name}. Waiting for defense...`,
+                                      "warning",
+                                    );
+                                  } else {
+                                    const players = JSON.parse(
+                                      JSON.stringify(gameState.players),
+                                    );
+                                    const discardPile = [
+                                      ...gameState.discardPile,
+                                    ];
+                                    const deck = [...gameState.deck];
+                                    resolveOffensiveAction(
+                                      pending,
+                                      players,
+                                      discardPile,
+                                      deck,
+                                    );
+                                    const updates = finalizeAction(
+                                      players,
+                                      deck,
+                                      "ACTION",
+                                      gameState.actionsLeft - 1,
+                                    );
+                                    updates.discardPile = discardPile;
+                                    executeAction(
+                                      updates,
+                                      `${me.name} successfully stole from ${target.name}!`,
+                                      "success",
+                                    );
+                                  }
+                                  setModalState(null);
+                                  setSelectedHandCards([]);
+                                } else if (
+                                  activeModal.type === "PLAYER_VIEW_STEAL" ||
+                                  activeModal.type === "PLAYER_VIEW"
+                                ) {
+                                  setModalState({
+                                    ...activeModal,
+                                    type: "VIEW_HAND",
+                                    targetId: p.id,
+                                  });
+                                } else {
+                                  confirmModalAction({ targetPlayerId: p.id });
+                                }
+                              }}
+                              className="bg-slate-900 border border-slate-800 p-5 rounded-2xl text-left hover:border-fuchsia-500 hover:bg-slate-800 transition-all disabled:opacity-30 disabled:grayscale group shadow-md hover:shadow-[0_0_15px_rgba(192,38,211,0.3)]"
+                            >
+                              <div className="font-black text-xl text-slate-200 uppercase tracking-widest mb-2 group-hover:text-fuchsia-300 flex justify-between items-center">
+                                {p.name}{" "}
+                                <UserCheck
+                                  size={20}
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                />
+                              </div>
+                              <div className="text-xs text-slate-500 uppercase font-bold flex items-center gap-2">
+                                <Scroll size={14} /> Cards in Hand:{" "}
+                                <span className="text-slate-300 text-sm">
+                                  {p.hand.length}
+                                </span>
+                              </div>
+                            </button>
+                          ))}
+                      </div>
+
+                      {/* NEW: Grim Goblin Fallback */}
+                      {activeModal.def?.id === "SUP_GRIM" &&
+                        !gameState.players.some(
+                          (p) => p.id !== user.uid && p.hand.length > 0,
+                        ) && (
+                          <div className="flex flex-col items-center gap-4 mt-2">
+                            <span className="text-slate-500 uppercase tracking-widest font-bold text-center px-4">
+                              Opponents have no cards to steal.
+                            </span>
+                            <button
+                              onClick={() => confirmModalAction({})}
+                              className="bg-fuchsia-700 hover:bg-fuchsia-600 text-white px-8 py-3 rounded-xl uppercase font-black tracking-widest transition-colors shadow-[0_0_20px_rgba(192,38,211,0.5)]"
+                            >
+                              Draw 1 from Deck
+                            </button>
+                          </div>
+                        )}
                     </div>
                   )}
 
