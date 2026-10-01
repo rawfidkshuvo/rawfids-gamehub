@@ -1043,23 +1043,7 @@ const GameCard = ({
           <h3 className="text-2xl font-bold text-white mb-2 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-linear-to-r group-hover:from-white group-hover:to-slate-300 transition-all">
             {game.title}
           </h3>
-          <p className="text-slate-400 leading-relaxed mb-4 text-sm">
-            {game.description}
-          </p>
-
           <div className="flex flex-wrap gap-2 mb-4">
-            {game.categories &&
-              game.categories.map((cat, i) => (
-                <span
-                  key={i}
-                  className="px-2 py-1 bg-slate-800 text-slate-300 text-[10px] uppercase font-bold rounded flex items-center gap-1"
-                >
-                  {cat}
-                </span>
-              ))}
-            <span className="px-2 py-1 bg-slate-800 text-indigo-300 text-[10px] uppercase font-bold rounded flex items-center gap-1">
-              <Clock size={10} /> {game.duration}
-            </span>
             <span
               className={`px-2 py-1 bg-slate-800 text-[10px] uppercase font-bold rounded flex items-center gap-1 ${
                 game.complexity === "Hard"
@@ -1071,7 +1055,22 @@ const GameCard = ({
             >
               <Zap size={10} /> {game.complexity}
             </span>
+            <span className="px-2 py-1 bg-slate-800 text-indigo-300 text-[10px] uppercase font-bold rounded flex items-center gap-1">
+              <Clock size={10} /> {game.duration}
+            </span>
+            {game.categories &&
+              game.categories.map((cat, i) => (
+                <span
+                  key={i}
+                  className="px-2 py-1 bg-slate-800 text-slate-300 text-[10px] uppercase font-bold rounded flex items-center gap-1"
+                >
+                  {cat}
+                </span>
+              ))}
           </div>
+          <p className="text-slate-400 leading-relaxed mb-4 text-sm">
+            {game.description}
+          </p>
         </div>
 
         <div className="pt-4 border-t border-slate-800/50 mt-auto flex items-center justify-between group/btn">
