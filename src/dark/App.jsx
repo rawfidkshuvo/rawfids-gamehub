@@ -341,7 +341,7 @@ const SUPERNATURALS = {
     name: "Redeemer",
     type: "SUP",
     gender: "M",
-    target: "NONE",
+    target: "REDEEMER",
     desc: "Take the top card of the discard pile, may trigger it.",
   },
   SUP_TWINS: {
@@ -1527,8 +1527,14 @@ export default function DarkFolkloreGame() {
       return setModalState({ type: "BROKER", cardUid, def, placementSetId });
     }
 
-    if (def.target === "NONE") resolveSupernatural(cardUid, { placementSetId });
-    else setModalState({ type: def.target, cardUid, def, placementSetId });
+    if (
+      def.target === "NONE" ||
+      (def.target === "REDEEMER" && gameState.discardPile.length > 0)
+    ) {
+      resolveSupernatural(cardUid, { placementSetId });
+    } else {
+      setModalState({ type: def.target, cardUid, def, placementSetId });
+    }
   };
 
   const applySupernaturalEffect = (def, targetData, ctx) => {
@@ -3673,7 +3679,8 @@ export default function DarkFolkloreGame() {
             }
           } else if (
             (activeModal.type.includes("DISCARD") ||
-              activeModal.type === "BROKER") &&
+              activeModal.type === "BROKER" ||
+              activeModal.type === "REDEEMER") &&
             gameState.discardPile.length === 0
           ) {
             fizzled = true;
@@ -4915,6 +4922,31 @@ export default function DarkFolkloreGame() {
                               </button>
                             </div>
                           )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {/* Redeemer (When triggered via Chain) */}
+                  {activeModal.type === "REDEEMER" && (
+                    <div className="flex flex-col gap-6 items-center">
+                      <p className="text-slate-300 uppercase tracking-widest text-sm font-bold bg-slate-900 px-6 py-3 rounded-full border border-slate-700 text-center">
+                        Claim the top card of the discard pile.
+                      </p>
+                      {gameState.discardPile.length > 0 && (
+                        <div className="flex flex-col items-center gap-4">
+                          <CardDisplay
+                            cardId={
+                              gameState.discardPile[
+                                gameState.discardPile.length - 1
+                              ].cardId
+                            }
+                          />
+                          <button
+                            onClick={() => confirmModalAction({})}
+                            className="bg-fuchsia-700 hover:bg-fuchsia-600 px-8 py-4 rounded-xl text-white font-black uppercase tracking-widest transition-colors shadow-[0_0_20px_rgba(192,38,211,0.5)]"
+                          >
+                            Redeem Card
+                          </button>
                         </div>
                       )}
                     </div>
