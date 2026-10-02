@@ -1280,37 +1280,14 @@ export default function DarkFolkloreGame() {
         const target = players.find((p) => p.id === currentTargetId);
         if (!target || target.hand.length === 0) {
           pending.queue.shift();
-          continue; // Target has no cards, move to next
+          continue; // Target has no cards left, move to next
         }
 
-        const hasAmulet = target.hand.some((c) => c.cardId === "AMULET");
-        // NEW: Check if this player already pressed "Take Hit" during this queue
-        const hasRejected =
-          pending.rejectedAmulets &&
-          pending.rejectedAmulets.includes(target.id);
-
-        if (hasAmulet && !hasRejected && !pending.amuletPromptActive) {
-          // STOP THE QUEUE: Ask for defense!
-          pending.amuletPromptActive = true;
-          pending.targetId = currentTargetId; // Tell UI who is defending
-          isPausedForAmulet = true;
-          break;
-        } else {
-          // Steal succeeds automatically (no amulet, OR they opted out earlier)
-          const source = players.find((p) => p.id === pending.sourceId);
-          const stolen = target.hand.splice(
-            Math.floor(Math.random() * target.hand.length),
-            1,
-          )[0];
-          source.hand.push(stolen);
-
-          pending.stolenCount = pending.stolenCount || {};
-          pending.stolenCount[target.name] =
-            (pending.stolenCount[target.name] || 0) + 1;
-
-          pending.amuletPromptActive = false;
-          pending.queue.shift();
-        }
+        // STOP THE QUEUE ON EVERY HIT: Ask for defense / acknowledgment!
+        pending.amuletPromptActive = true;
+        pending.targetId = currentTargetId; // Tell UI who is defending
+        isPausedForAmulet = true;
+        break;
       }
     }
 
@@ -1352,7 +1329,14 @@ export default function DarkFolkloreGame() {
       else finalLog = `${source.name}'s ${def.name} found nothing.`;
 
       if (pending.blockedBy && pending.blockedBy.length > 0) {
-        finalLog += ` (${pending.blockedBy.join(" and ")} blocked!)`;
+        const blockCounts = {};
+        pending.blockedBy.forEach(
+          (n) => (blockCounts[n] = (blockCounts[n] || 0) + 1),
+        );
+        const blockText = Object.entries(blockCounts)
+          .map(([n, c]) => (c > 1 ? `${n} x${c}` : n))
+          .join(" and ");
+        finalLog += ` (${blockText} blocked!)`;
       }
 
       const updates = finalizeAction(players, deck, "ACTION", remainingActions);
@@ -2032,8 +2016,7 @@ export default function DarkFolkloreGame() {
 
     if (ctx.awaitAmulet) {
       const target = ctx.players.find((p) => p.id === ctx.pendingData.targetId);
-      const hasAmulet = target.hand.some((c) => c.cardId === "AMULET");
-      if (hasAmulet && target.hand.length > 0) {
+      if (target && target.hand.length > 0) {
         const updates = {
           players: ctx.players,
           deck: ctx.deck,
@@ -2045,33 +2028,9 @@ export default function DarkFolkloreGame() {
         setSelectedHandCards([]);
         return executeAction(
           updates,
-          `${ctx.logsText} The attack on ${target.name} succeeds!`,
-          "success",
+          `${ctx.logsText} Waiting for ${target.name}'s defense...`,
+          "warning",
         );
-      } else {
-        resolveOffensiveAction(
-          ctx.pendingData,
-          ctx.players,
-          ctx.discardPile,
-          ctx.deck,
-        );
-        const updates = finalizeAction(
-          ctx.players,
-          ctx.deck,
-          "ACTION",
-          gameState.actionsLeft - 1,
-        );
-        updates.discardPile = ctx.discardPile;
-        // FIX: Clear the modal out of local memory before the turn passes!
-        setModalState(null);
-        setSelectedHandCards([]);
-        // Use the helper here too!
-        const successLog = getAttackSuccessLog(
-          ctx.pendingData.type,
-          ctx.me.name,
-          target.name,
-        );
-        return executeAction(updates, successLog, "success");
       }
     }
 
@@ -2170,8 +2129,7 @@ export default function DarkFolkloreGame() {
 
     if (ctx.awaitAmulet) {
       const target = ctx.players.find((p) => p.id === ctx.pendingData.targetId);
-      const hasAmulet = target.hand.some((c) => c.cardId === "AMULET");
-      if (hasAmulet && target.hand.length > 0) {
+      if (target && target.hand.length > 0) {
         const updates = {
           players: ctx.players,
           deck: ctx.deck,
@@ -2179,38 +2137,13 @@ export default function DarkFolkloreGame() {
           turnState: "AMULET_PROMPT",
           pendingAction: ctx.pendingData,
         };
-        // FIX: Clear local modal state before waiting for defense
         setModalState(null);
         setSelectedHandCards([]);
         return executeAction(
           updates,
-          `${ctx.logsText} The attack on ${target.name} succeeds!`,
-          "success",
+          `${ctx.logsText} Waiting for ${target.name}'s defense...`,
+          "warning",
         );
-      } else {
-        resolveOffensiveAction(
-          ctx.pendingData,
-          ctx.players,
-          ctx.discardPile,
-          ctx.deck,
-        );
-        const updates = finalizeAction(
-          ctx.players,
-          ctx.deck,
-          "ACTION",
-          gameState.actionsLeft - 1,
-        );
-        updates.discardPile = ctx.discardPile;
-        // FIX: Clear the modal out of local memory before the turn passes!
-        setModalState(null);
-        setSelectedHandCards([]);
-        // Use the helper here too!
-        const successLog = getAttackSuccessLog(
-          ctx.pendingData.type,
-          ctx.me.name,
-          target.name,
-        );
-        return executeAction(updates, successLog, "success");
       }
     }
 
@@ -2315,7 +2248,12 @@ export default function DarkFolkloreGame() {
     const me = players.find((p) => p.id === user.uid);
     const source = players.find((p) => p.id === pending.sourceId);
 
-    // --- QUEUED MULTI-ATTACK LOGIC ---
+    // Safety guard: cannot burn an Amulet if you don't hold one
+    if (useAmulet && !me.hand.some((c) => c.cardId === "AMULET")) {
+      useAmulet = false;
+    }
+
+    // --- QUEUED MULTI-ATTACK LOGIC (Per-Hit Priority) ---
     if (pending.isQueue) {
       if (useAmulet) {
         const aIdx = me.hand.findIndex((c) => c.cardId === "AMULET");
@@ -2323,20 +2261,19 @@ export default function DarkFolkloreGame() {
         pending.blockedBy = pending.blockedBy || [];
         pending.blockedBy.push(me.name);
       } else {
-        // NEW: Player Took the hit -> DO NOT ASK AGAIN FOR THIS ATTACK
-        pending.rejectedAmulets = pending.rejectedAmulets || [];
-        pending.rejectedAmulets.push(me.id);
-
-        const stolen = me.hand.splice(
-          Math.floor(Math.random() * me.hand.length),
-          1,
-        )[0];
-        source.hand.push(stolen);
-        pending.stolenCount = pending.stolenCount || {};
-        pending.stolenCount[me.name] = (pending.stolenCount[me.name] || 0) + 1;
+        if (me.hand.length > 0) {
+          const stolen = me.hand.splice(
+            Math.floor(Math.random() * me.hand.length),
+            1,
+          )[0];
+          source.hand.push(stolen);
+          pending.stolenCount = pending.stolenCount || {};
+          pending.stolenCount[me.name] =
+            (pending.stolenCount[me.name] || 0) + 1;
+        }
       }
 
-      pending.queue.shift(); // Consume this attempt
+      pending.queue.shift(); // Consume this single hit
       pending.amuletPromptActive = false; // Reset for next loop
       setSelectedHandCards([]);
 
@@ -2350,7 +2287,7 @@ export default function DarkFolkloreGame() {
       );
     }
 
-    // --- EXISTING SINGLE ATTACK LOGIC ---
+    // --- SINGLE ATTACK LOGIC ---
     let logText = "";
     if (useAmulet) {
       const aIdx = me.hand.findIndex((c) => c.cardId === "AMULET");
@@ -3299,43 +3236,66 @@ export default function DarkFolkloreGame() {
             </div>
           )}
 
-        {/* Amulet Prompt - Scaled Down */}
-        {amITarget && (
-          <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4">
-            <div className="bg-slate-950 border border-red-900/80 rounded-3xl p-6 sm:p-8 max-w-sm w-full flex flex-col items-center text-center shadow-[0_0_50px_rgba(220,38,38,0.2)] animate-in zoom-in-95 duration-200">
-              <div className="relative mb-4">
-                <div className="absolute inset-0 bg-red-500 blur-[30px] opacity-30 rounded-full animate-pulse"></div>
-                <Shield
-                  size={48}
-                  className="text-red-500 animate-bounce relative z-10 drop-shadow-lg"
-                />
+        {/* Amulet Prompt - Per-Hit Priority & Zero Info Leak */}
+        {amITarget &&
+          (() => {
+            const hasAmuletInHand = me.hand.some((c) => c.cardId === "AMULET");
+            const remainingHitsOnMe = gameState.pendingAction?.isQueue
+              ? gameState.pendingAction.queue.filter((id) => id === user.uid)
+                  .length
+              : 1;
+
+            return (
+              <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4">
+                <div className="bg-slate-950 border border-red-900/80 rounded-3xl p-6 sm:p-8 max-w-sm w-full flex flex-col items-center text-center shadow-[0_0_50px_rgba(220,38,38,0.2)] animate-in zoom-in-95 duration-200">
+                  <div className="relative mb-4">
+                    <div className="absolute inset-0 bg-red-500 blur-[30px] opacity-30 rounded-full animate-pulse"></div>
+                    <Shield
+                      size={48}
+                      className="text-red-500 animate-bounce relative z-10 drop-shadow-lg"
+                    />
+                  </div>
+
+                  <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-widest mb-1 drop-shadow-md">
+                    Incoming Steal!
+                  </h2>
+
+                  {remainingHitsOnMe > 1 && (
+                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-950/60 border border-amber-700/50 px-3 py-0.5 rounded-full mb-2">
+                      {remainingHitsOnMe} Steals Queued Against You
+                    </span>
+                  )}
+
+                  <p className="text-red-300 mb-6 uppercase tracking-wider text-xs font-bold bg-red-950/40 px-4 py-2.5 rounded-xl border border-red-900/50 w-full">
+                    {hasAmuletInHand
+                      ? "A thief reaches for your hand. Burn an Amulet to block this hit?"
+                      : "A thief reaches for your hand. You have no Amulet to block."}
+                  </p>
+
+                  <div className="text-[10px] text-slate-400 uppercase font-bold tracking-widest mb-4">
+                    Cards in Hand:{" "}
+                    <span className="text-white">{me.hand.length}</span>
+                  </div>
+
+                  <div className="flex w-full gap-3">
+                    <button
+                      disabled={!hasAmuletInHand}
+                      onClick={() => handleAmuletResponse(true)}
+                      className="flex-1 bg-gradient-to-b from-red-700 to-red-900 hover:from-red-600 hover:to-red-800 text-white py-3 sm:py-4 rounded-xl uppercase font-black tracking-widest shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:scale-105 transition-all active:scale-95 text-xs sm:text-sm border border-red-500/50 disabled:opacity-30 disabled:grayscale disabled:pointer-events-none"
+                    >
+                      {hasAmuletInHand ? "Burn" : "No Amulet"}
+                    </button>
+                    <button
+                      onClick={() => handleAmuletResponse(false)}
+                      className="flex-1 bg-slate-900/80 hover:bg-slate-800 text-slate-400 py-3 sm:py-4 rounded-xl uppercase font-bold tracking-widest border border-slate-700 hover:text-slate-200 transition-all hover:scale-105 active:scale-95 text-xs sm:text-sm"
+                    >
+                      Take Hit
+                    </button>
+                  </div>
+                </div>
               </div>
-
-              <h2 className="text-xl sm:text-2xl font-black text-white uppercase tracking-widest mb-2 drop-shadow-md">
-                Incoming Attack!
-              </h2>
-
-              <p className="text-red-300 mb-8 uppercase tracking-wider text-xs font-bold bg-red-950/40 px-4 py-2.5 rounded-xl border border-red-900/50 w-full">
-                An entity strikes. Burn your Amulet?
-              </p>
-
-              <div className="flex w-full gap-3">
-                <button
-                  onClick={() => handleAmuletResponse(true)}
-                  className="flex-1 bg-gradient-to-b from-red-700 to-red-900 hover:from-red-600 hover:to-red-800 text-white py-3 sm:py-4 rounded-xl uppercase font-black tracking-widest shadow-[0_0_20px_rgba(220,38,38,0.4)] hover:scale-105 transition-all active:scale-95 text-xs sm:text-sm border border-red-500/50"
-                >
-                  Burn
-                </button>
-                <button
-                  onClick={() => handleAmuletResponse(false)}
-                  className="flex-1 bg-slate-900/80 hover:bg-slate-800 text-slate-400 py-3 sm:py-4 rounded-xl uppercase font-bold tracking-widest border border-slate-700 hover:text-slate-200 transition-all hover:scale-105 active:scale-95 text-xs sm:text-sm"
-                >
-                  Take Hit
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+            );
+          })()}
 
         {/* Game State Overview Modal (Tabbed Interface) */}
         {showDiscard && (
@@ -3789,7 +3749,9 @@ export default function DarkFolkloreGame() {
                                           ? "River Oracle"
                                           : activeModal.type === "BROKER"
                                             ? "Grave Broker"
-                                            : "Select Target"}
+                                            : activeModal.type === "REDEEMER"
+                                              ? "Redeemer"
+                                              : "Select Target"}
                   </h3>
                   {!activeModal.isChain &&
                     activeModal.type !== "VIEW_HAND" &&
@@ -3887,47 +3849,15 @@ export default function DarkFolkloreGame() {
                                     targetId: p.id,
                                     count: 1,
                                   };
-                                  if (
-                                    target.hand.some(
-                                      (c) => c.cardId === "AMULET",
-                                    )
-                                  ) {
-                                    const updates = {
-                                      turnState: "AMULET_PROMPT",
-                                      pendingAction: pending,
-                                    };
-                                    executeAction(
-                                      updates,
-                                      `${me.name} attempts to steal from ${target.name}. Waiting for defense...`,
-                                      "warning",
-                                    );
-                                  } else {
-                                    const players = JSON.parse(
-                                      JSON.stringify(gameState.players),
-                                    );
-                                    const discardPile = [
-                                      ...gameState.discardPile,
-                                    ];
-                                    const deck = [...gameState.deck];
-                                    resolveOffensiveAction(
-                                      pending,
-                                      players,
-                                      discardPile,
-                                      deck,
-                                    );
-                                    const updates = finalizeAction(
-                                      players,
-                                      deck,
-                                      "ACTION",
-                                      gameState.actionsLeft - 1,
-                                    );
-                                    updates.discardPile = discardPile;
-                                    executeAction(
-                                      updates,
-                                      `${me.name} successfully stole from ${target.name}!`,
-                                      "success",
-                                    );
-                                  }
+                                  const updates = {
+                                    turnState: "AMULET_PROMPT",
+                                    pendingAction: pending,
+                                  };
+                                  executeAction(
+                                    updates,
+                                    `${me.name} attempts to steal from ${target.name}. Waiting for defense...`,
+                                    "warning",
+                                  );
                                   setModalState(null);
                                   setSelectedHandCards([]);
                                 } else if (
