@@ -645,7 +645,8 @@ const HowToPlayModal = ({ onClose, winPoints }) => {
             Captain's Guide
           </h2>
           <p className="text-slate-400 text-sm">
-            Reach <strong>{winPoints} points</strong> (scales with player count) to win the game.
+            Reach <strong>{winPoints} points</strong> (scales with player count)
+            to win the game.
           </p>
         </div>
 
@@ -773,7 +774,9 @@ const HowToPlayModal = ({ onClose, winPoints }) => {
                   <Hand size={16} /> STOP (Safe Play)
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  The round ends immediately. Everyone scores the standard points for the cards they currently hold in their hand and tableau. Safe and predictable.
+                  The round ends immediately. Everyone scores the standard
+                  points for the cards they currently hold in their hand and
+                  tableau. Safe and predictable.
                 </p>
               </div>
               {/* LAST CHANCE */}
@@ -782,7 +785,9 @@ const HowToPlayModal = ({ onClose, winPoints }) => {
                   <AlertTriangle size={16} /> LAST CHANCE (Betting)
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  You bet that you currently have the highest score. Every opponent gets <strong>one final turn</strong> to try and beat you. High risk, high reward!
+                  You bet that you currently have the highest score. Every
+                  opponent gets <strong>one final turn</strong> to try and beat
+                  you. High risk, high reward!
                 </p>
               </div>
               {/* EMPTY DECK */}
@@ -791,7 +796,9 @@ const HowToPlayModal = ({ onClose, winPoints }) => {
                   <Layers size={16} /> EMPTY DECK
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  The round ends immediately when the deck is empty. Everyone scores the standard points for the cards they currently hold in their hand and tableau. No betting allowed.
+                  The round ends immediately when the deck is empty. Everyone
+                  scores the standard points for the cards they currently hold
+                  in their hand and tableau. No betting allowed.
                 </p>
               </div>
             </div>
@@ -805,7 +812,10 @@ const HowToPlayModal = ({ onClose, winPoints }) => {
             </h3>
             <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 text-sm">
               <p className="text-slate-300 mb-3 text-xs">
-                When "Last Chance" is called, scoring depends on a penalty metric called the <strong className="text-cyan-300">Color Bonus</strong> (1 point per card of your most abundant color).
+                When "Last Chance" is called, scoring depends on a penalty
+                metric called the{" "}
+                <strong className="text-cyan-300">Color Bonus</strong> (1 point
+                per card of your most abundant color).
               </p>
               <div className="space-y-3">
                 <div className="bg-emerald-900/20 border border-emerald-500/30 p-3 rounded-lg">
@@ -813,8 +823,14 @@ const HowToPlayModal = ({ onClose, winPoints }) => {
                     <CheckCircle size={14} /> If the Bettor Wins:
                   </strong>
                   <ul className="list-disc pl-5 text-xs text-slate-300 space-y-1">
-                    <li><strong>Bettor:</strong> Scores Standard Points + Color Bonus.</li>
-                    <li><strong>Opponents:</strong> Score ONLY their Color Bonus (Standard points are lost!).</li>
+                    <li>
+                      <strong>Bettor:</strong> Scores Standard Points + Color
+                      Bonus.
+                    </li>
+                    <li>
+                      <strong>Opponents:</strong> Score ONLY their Color Bonus
+                      (Standard points are lost!).
+                    </li>
                   </ul>
                 </div>
                 <div className="bg-red-900/20 border border-red-500/30 p-3 rounded-lg">
@@ -822,8 +838,14 @@ const HowToPlayModal = ({ onClose, winPoints }) => {
                     <AlertTriangle size={14} /> If the Bettor Loses:
                   </strong>
                   <ul className="list-disc pl-5 text-xs text-slate-300 space-y-1">
-                    <li><strong>Bettor:</strong> Scores ONLY their Color Bonus (Punished for a bad bet!).</li>
-                    <li><strong>Opponents:</strong> Score their standard accumulated points.</li>
+                    <li>
+                      <strong>Bettor:</strong> Scores ONLY their Color Bonus
+                      (Punished for a bad bet!).
+                    </li>
+                    <li>
+                      <strong>Opponents:</strong> Score their standard
+                      accumulated points.
+                    </li>
                   </ul>
                 </div>
               </div>
@@ -838,28 +860,42 @@ const HowToPlayModal = ({ onClose, winPoints }) => {
             </h3>
             <div className="grid md:grid-cols-3 gap-4">
               <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
-                <strong className="text-cyan-400 block text-sm mb-1">Point Goal & Forced Stop</strong>
+                <strong className="text-cyan-400 block text-sm mb-1">
+                  Point Goal & Forced Stop
+                </strong>
                 <p className="text-[11px] text-slate-300">
-                  Reach the target threshold to win. If your current score hits this during a round, you are <strong>forced</strong> to call a Safe Stop on your turn to end the game.
+                  Reach the target threshold to win. If your current score hits
+                  this during a round, you are <strong>forced</strong> to call a
+                  Safe Stop on your turn to end the game.
                 </p>
               </div>
               <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
-                <strong className="text-fuchsia-400 block text-sm mb-1">Instant Win</strong>
+                <strong className="text-fuchsia-400 block text-sm mb-1">
+                  Instant Win
+                </strong>
                 <p className="text-[11px] text-slate-300">
-                  If any player successfully collects all <strong>4 Mermaids</strong>, the game ends instantly and they are declared the winner, regardless of current points!
+                  If any player successfully collects all{" "}
+                  <strong>4 Mermaids</strong>, the game ends instantly and they
+                  are declared the winner, regardless of current points!
                 </p>
               </div>
               <div className="bg-slate-800/50 p-3 rounded-xl border border-slate-700/50">
-                <strong className="text-yellow-400 block text-sm mb-1">Tiebreakers</strong>
-                <p className="text-[11px] text-slate-300 mb-1">If players tie above the winning goal:</p>
+                <strong className="text-yellow-400 block text-sm mb-1">
+                  Tiebreakers
+                </strong>
+                <p className="text-[11px] text-slate-300 mb-1">
+                  If players tie above the winning goal:
+                </p>
                 <ol className="list-decimal pl-4 text-[11px] text-slate-400 space-y-0.5">
                   <li>Most points scored in the final round.</li>
-                  <li>Player who took their turn latest in the final round (turn order distance).</li>
+                  <li>
+                    Player who took their turn latest in the final round (turn
+                    order distance).
+                  </li>
                 </ol>
               </div>
             </div>
           </div>
-
         </div>
 
         <div className="text-center pt-4 border-t border-slate-800 shrink-0 mt-4">
@@ -1000,7 +1036,7 @@ export default function PaperOceans() {
   });
   const [playerName, setPlayerName] = useState("");
   const [roomCode, setRoomCode] = useState("");
-  
+
   const [gameState, setGameState] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -1044,7 +1080,7 @@ export default function PaperOceans() {
   const handleSplashStart = () => {
     // Set a temporary session flag
     sessionStorage.setItem("splashRefreshed", "true");
-    
+
     // Force a hard browser reload to ensure a perfectly clean state
     window.location.reload();
   };
@@ -2387,6 +2423,10 @@ export default function PaperOceans() {
       gameState.status !== "last_chance";
     // --- ADDED LOGIC END ---
 
+    // Track if a pair is selected or its power is currently resolving
+    const isPairSelected = selectedHandIndices.length === 2;
+    const isResolvingPower = discardSearchMode || sharkStealMode;
+
     return (
       <div className="fixed inset-0 bg-slate-950 text-white overflow-hidden flex flex-col font-sans select-none">
         <DarkAtmosphere />
@@ -2720,97 +2760,96 @@ export default function PaperOceans() {
             </div>
           </div>
 
-          {/* 3. PLAYER HUD (Pinned to bottom, auto height) */}
-          <div className="flex-none bg-slate-900 border-t border-slate-800 p-3 pb-safe relative z-20 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
-            {/* Action Bar (Above Cards) */}
-            <div className="flex flex-wrap justify-between items-end mb-3 gap-2">
-              <div className="flex gap-4 items-center">
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider text-yellow-500/80">
-                    Total Score
-                  </span>
-                  <span className="text-2xl font-black text-yellow-500 leading-none">
-                    {me.score}
-                  </span>
-                </div>
-                <div className="w-px bg-slate-700 h-8"></div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] text-slate-500 uppercase font-bold tracking-wider">
-                    Round Est.
-                  </span>
-                  <span className="text-2xl font-black text-white leading-none">
-                    {currentPoints}
-                  </span>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-2 items-center flex-wrap justify-end ml-auto">
-                {/* Duo Button */}
-                {selectedHandIndices.length === 2 &&
-                  isMyTurn &&
-                  gameState.turnState === "ACTION_PHASE" && (
-                    <button
-                      onClick={handlePlayDuo}
-                      className="bg-linear-to-r from-purple-600 to-indigo-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg animate-in slide-in-from-bottom-2 hover:scale-105 transition-all flex items-center gap-2"
-                    >
-                      <Sparkles size={16} /> Play Pair
-                    </button>
-                  )}
-
+          {/* 3. PLAYER HUD (Pinned to bottom, compact height) */}
+          <div className="flex-none bg-slate-900 border-t border-slate-800 p-2 pb-safe relative z-20 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
+            {/* TOP ROW: FULL-WIDTH ACTION BUTTONS (Spans above the entire score & hand area) */}
+            {isMyTurn && gameState.turnState === "ACTION_PHASE" && (
+              <div className="w-full flex flex-col gap-2 mb-2.5 pb-2.5 border-b border-slate-800/80">
                 {/* WARNING: REACHED WINNING SCORE */}
-                {isMyTurn &&
-                  mustStopOrBet &&
-                  gameState.turnState === "ACTION_PHASE" && (
-                    <div className="flex items-center gap-2 bg-yellow-500/20 border border-yellow-500/50 px-3 py-1 rounded text-yellow-200 text-xs font-bold animate-pulse">
-                      <AlertTriangle size={14} />
-                      <span>
-                        Winning Score Reached! You must end the round.
-                      </span>
-                    </div>
-                  )}
-
-                {/* End Turn (Disabled if mustStopOrBet is true) */}
-                {isMyTurn &&
-                  gameState.turnState === "ACTION_PHASE" &&
-                  !mustStopOrBet && (
-                    <button
-                      onClick={handleEndTurn}
-                      className="bg-slate-700 hover:bg-slate-600 text-white px-6 py-2 rounded-lg font-bold shadow-lg flex items-center gap-2 transition-colors animate-bounce"
-                    >
-                      End Turn <RotateCcw size={16} />
-                    </button>
-                  )}
-
-                {/* STOP / LAST CHANCE */}
-                {canEndRound && (
-                  <div className="flex gap-2 ml-4 pl-4 border-l border-slate-700">
-                    <button
-                      onClick={handleStop}
-                      className="bg-slate-100 hover:bg-white text-slate-900 px-4 py-2 rounded-lg font-black shadow-lg hover:shadow-white/20 transition-all active:scale-95"
-                    >
-                      STOP
-                    </button>
-                    <button
-                      onClick={handleLastChance}
-                      className="bg-linear-to-r from-amber-500 to-orange-600 hover:brightness-110 text-white px-4 py-2 rounded-lg font-black shadow-lg animate-pulse transition-all active:scale-95 border-2 border-white/20"
-                    >
-                      LAST CHANCE
-                    </button>
+                {mustStopOrBet && !isPairSelected && !isResolvingPower && (
+                  <div className="w-full flex items-center justify-center gap-2 bg-yellow-500/20 border border-yellow-500/50 px-3 py-1.5 rounded-lg text-yellow-200 text-xs font-bold animate-pulse">
+                    <AlertTriangle size={16} />
+                    <span>Winning Score Reached! You must end the round.</span>
                   </div>
                 )}
+
+                {/* BUTTONS ROW: Left [STOP / LAST CHANCE] <---> Right [END TURN / PLAY PAIR] */}
+                <div className="w-full flex items-center justify-between gap-2">
+                  {/* LEFT SIDE: STOP / LAST CHANCE (Far left to prevent accidental taps) */}
+                  <div className="flex gap-2.5 items-center">
+                    {canEndRound && !isPairSelected && !isResolvingPower && (
+                      <>
+                        <button
+                          onClick={handleStop}
+                          className="bg-slate-100 hover:bg-white text-slate-900 px-5 py-2.5 rounded-xl font-black text-sm shadow-lg hover:shadow-white/20 transition-all active:scale-95"
+                        >
+                          STOP
+                        </button>
+                        <button
+                          onClick={handleLastChance}
+                          className="bg-linear-to-r from-amber-500 to-orange-600 hover:brightness-110 text-white px-5 py-2.5 rounded-xl font-black text-sm shadow-lg animate-pulse transition-all active:scale-95 border border-white/20"
+                        >
+                          LAST CHANCE
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* RIGHT SIDE: PLAY PAIR or END TURN */}
+                  <div className="flex items-center ml-auto">
+                    {/* Play Pair Button (Shows exclusively when 2 cards are selected) */}
+                    {isPairSelected && !isResolvingPower && (
+                      <button
+                        onClick={handlePlayDuo}
+                        className="bg-linear-to-r from-purple-600 to-indigo-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg animate-in slide-in-from-bottom-2 hover:scale-105 transition-all flex items-center gap-2"
+                      >
+                        <Sparkles size={16} /> Play Pair
+                      </button>
+                    )}
+
+                    {/* End Turn */}
+                    {!isPairSelected && !isResolvingPower && !mustStopOrBet && (
+                      <button
+                        onClick={handleEndTurn}
+                        className="bg-slate-700 hover:bg-slate-600 text-white px-6 py-2.5 rounded-xl font-bold text-sm shadow-lg flex items-center gap-2 transition-colors animate-bounce"
+                      >
+                        End Turn
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* MIDDLE ROW: SCORES (Divider aligned with Tableau & Hand below) */}
+            <div className="flex items-center mb-1.5">
+              <div className="w-28 flex-none flex flex-col items-center border-r border-slate-800 pr-2">
+                <span className="text-[9px] text-yellow-500/80 uppercase font-bold tracking-wider">
+                  Total Score
+                </span>
+                <span className="text-lg md:text-xl font-black text-yellow-500 leading-none mt-0.5">
+                  {me.score}
+                </span>
+              </div>
+              <div className="flex flex-col pl-4">
+                <span className="text-[9px] text-slate-500 uppercase font-bold tracking-wider">
+                  Round Est.
+                </span>
+                <span className="text-lg md:text-xl font-black text-white leading-none mt-0.5">
+                  {currentPoints}
+                </span>
               </div>
             </div>
 
-            {/* CARD AREA */}
-            <div className="flex gap-4 h-auto min-h-[140px] items-stretch">
-              {/* My Tableau (Left) */}
+            {/* BOTTOM ROW: TABLEAU & HAND CARDS (Shortened height) */}
+            <div className="flex gap-4 h-auto min-h-[100px] items-stretch">
+              {/* My Tableau (Left - Matches Total Score width & border) */}
               <div className="w-28 flex-none flex flex-col gap-1 border-r border-slate-800 pr-2">
-                <span className="text-[10px] text-slate-500 uppercase font-bold text-center flex-none">
+                <span className="text-[9px] text-slate-500 uppercase font-bold text-center flex-none">
                   Tableau
                 </span>
-                <div className="flex-1 overflow-y-auto custom-scrollbar max-h-[180px] p-1">
-                  <div className="grid grid-cols-2 gap-2">
+                <div className="flex-1 overflow-y-auto custom-scrollbar max-h-[105px] p-1">
+                  <div className="grid grid-cols-2 gap-1.5 place-items-center">
                     {me.tableau.map((c, i) => (
                       <CardDisplay key={i} cardType={c.type} mini />
                     ))}
@@ -2824,7 +2863,7 @@ export default function PaperOceans() {
               </div>
 
               {/* My Hand (Scrollable) */}
-              <div className="flex-1 overflow-x-auto pb-4 pt-8 flex items-center gap-2 px-2 custom-scrollbar">
+              <div className="flex-1 overflow-x-auto pb-1 pt-3 flex items-center gap-2 px-2 custom-scrollbar">
                 {me.hand.map((c, i) => {
                   const isSelected = selectedHandIndices.includes(i);
                   return (
@@ -2832,8 +2871,8 @@ export default function PaperOceans() {
                       key={i}
                       className={`transition-all duration-200 transform origin-bottom ${
                         isSelected
-                          ? "-translate-y-6 scale-105 z-10"
-                          : "hover:-translate-y-2 hover:z-10"
+                          ? "-translate-y-2.5 scale-105 z-10"
+                          : "hover:-translate-y-1 hover:z-10"
                       }`}
                     >
                       <CardDisplay
@@ -2844,7 +2883,7 @@ export default function PaperOceans() {
                             gameState.turnState !== "ACTION_PHASE" &&
                             gameState.turnState !== "DRAW_DECISION"
                           )
-                            return; // Only selectable in Action
+                            return;
 
                           if (selectedHandIndices.includes(i)) {
                             setSelectedHandIndices(
@@ -2859,7 +2898,7 @@ export default function PaperOceans() {
                   );
                 })}
                 {me.hand.length === 0 && (
-                  <div className="w-full text-center text-slate-600 font-bold italic">
+                  <div className="w-full text-center text-slate-600 font-bold italic text-sm">
                     Hand Empty
                   </div>
                 )}
@@ -2879,12 +2918,6 @@ export default function PaperOceans() {
                   <Scissors className="text-red-400 animate-pulse" />
                   SALVAGE DISCARD
                 </h3>
-                <button
-                  onClick={() => setDiscardSearchMode(false)}
-                  className="p-2 hover:bg-slate-800 rounded-full text-slate-400"
-                >
-                  <X size={24} />
-                </button>
               </div>
 
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-[50vh] overflow-y-auto p-4 bg-black/40 rounded-2xl mb-6 custom-scrollbar">
@@ -3029,9 +3062,13 @@ export default function PaperOceans() {
                                 {p.name}
                               </span>
                               {/* FIX: Crown the actual winnerId, not just index 0 */}
-                              {gameState.status === "finished" && p.id === gameState.winnerId && (
-                                <Crown size={16} className="text-yellow-500 animate-bounce" />
-                              )}
+                              {gameState.status === "finished" &&
+                                p.id === gameState.winnerId && (
+                                  <Crown
+                                    size={16}
+                                    className="text-yellow-500 animate-bounce"
+                                  />
+                                )}
                             </div>
                             <div className="flex items-center gap-3">
                               {p.ready ? (
@@ -3136,7 +3173,9 @@ export default function PaperOceans() {
                   <div className="flex flex-col items-center gap-2">
                     <button
                       onClick={toggleReady}
-                      disabled={gameState.players.find((p) => p.id === user.uid)?.ready}
+                      disabled={
+                        gameState.players.find((p) => p.id === user.uid)?.ready
+                      }
                       className={`w-full py-4 rounded-full font-bold text-lg shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 ${
                         gameState.players.find((p) => p.id === user.uid)?.ready
                           ? "bg-slate-700 text-emerald-400 hover:bg-slate-600"
