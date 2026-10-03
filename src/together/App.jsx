@@ -983,6 +983,103 @@ const InfoModal = ({ goal, onClose }) => (
   </div>
 );
 
+const ScoreboardModal = ({
+  teamScores,
+  players,
+  myTeamId,
+  activeTeamId,
+  onClose,
+}) => (
+  <div
+    className="fixed inset-0 z-200 bg-black/80 flex items-center justify-center p-4 animate-in fade-in duration-200"
+    onClick={onClose}
+  >
+    <div
+      className="bg-slate-900 border-2 border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 text-slate-500 hover:text-white"
+      >
+        <X size={24} />
+      </button>
+
+      <div className="flex items-center gap-3 mb-6">
+        <div className="bg-yellow-500/20 p-2.5 rounded-xl border border-yellow-500/30">
+          <Trophy className="text-yellow-400" size={24} />
+        </div>
+        <h3 className="text-2xl font-black text-white">Scoreboard</h3>
+      </div>
+
+      <div className="space-y-3">
+        {TEAMS.map((t) => {
+          if (!teamScores?.[t.id]) return null;
+          if (players.length === 4 && t.id === "C") return null;
+
+          const score = teamScores[t.id];
+          const isMyTeam = myTeamId === t.id;
+          const isActive = activeTeamId === t.id;
+          const teamMembers = players
+            .filter((p) => p.teamId === t.id)
+            .map((p) => p.name)
+            .join(" & ");
+
+          return (
+            <div
+              key={t.id}
+              className={`p-4 rounded-xl border-2 flex items-center justify-between transition-all ${
+                isActive
+                  ? `${t.bg}${t.border}`
+                  : "bg-slate-800/60 border-slate-700"
+              }`}
+            >
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className={`font-black text-lg uppercase ${t.color}`}>
+                    {t.name}
+                  </span>
+                  {isMyTeam && (
+                    <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold uppercase">
+                      Your Team
+                    </span>
+                  )}
+                </div>
+                <div className="text-xs text-slate-400 font-medium mt-0.5">
+                  {teamMembers}
+                </div>
+              </div>
+
+              <div className="text-right">
+                <div className="text-lg font-black text-white">
+                  {score.goals}{" "}
+                  <span className="text-xs text-slate-400">/ 8 Goals</span>
+                </div>
+                {isMyTeam ? (
+                  <div className="text-xs font-bold text-yellow-400">
+                    {score.points} Pts
+                  </div>
+                ) : (
+                  <div className="text-[10px] font-bold text-slate-500 uppercase">
+                    Pts Hidden
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <button
+        onClick={onClose}
+        className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl mt-6 transition-colors"
+      >
+        Close
+      </button>
+    </div>
+  </div>
+);
+
 const ReportCard = ({ completedGoals, onClose }) => {
   // Sort goals by team
   const sortedGoals = [...completedGoals].sort((a, b) =>
@@ -1332,6 +1429,8 @@ export default function TogetherGame() {
   // Event Modal State
   const [activeEvent, setActiveEvent] = useState(null);
   const [lastProcessedEventId, setLastProcessedEventId] = useState(0);
+
+  const [showScoreboard, setShowScoreboard] = useState(false);
 
   // --- NEW STATE: Context Menu Control ---
   const [activeGoalMenu, setActiveGoalMenu] = useState(null); // 'PERSONAL' | 'PUBLIC' | null
@@ -2560,7 +2659,7 @@ export default function TogetherGame() {
         .join(" & ");
 
       return (
-        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-8 text-center text-white font-sans relative">
+        <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4 md:p-8 text-center text-white font-sans relative overflow-x-hidden">
           <FloatingBackground />
 
           {/* --- MODALS --- */}
@@ -2586,56 +2685,37 @@ export default function TogetherGame() {
           )}
 
           {/* --- TOP BAR (Fixed) --- */}
-          <div className="fixed top-0 left-0 right-0 bg-slate-900 border-b border-slate-800 p-2 md:p-4 flex items-center justify-between shadow-md z-40 backdrop-blur-md bg-opacity-90">
-            <div className="flex gap-2 md:gap-4 overflow-x-auto">
-              {TEAMS.map((t) => {
-                if (!gameState.teamScores[t.id]) return null;
-                if (gameState.players.length === 4 && t.id === "C") return null;
-                const score = gameState.teamScores[t.id];
-                const isMyTeam = myPlayer?.teamId === t.id;
-                return (
-                  <div
-                    key={t.id}
-                    className={`flex flex-col md:flex-row items-center gap-1 md:gap-3 px-3 py-1 rounded-lg border ${
-                      myPlayer?.teamId === t.id
-                        ? t.border
-                        : "border-transparent"
-                    }`}
-                  >
-                    <span
-                      className={`font-black text-xs md:text-sm uppercase ${t.color}`}
-                    >
-                      {t.name}
-                    </span>
-                    <div className="flex gap-2 text-xs font-bold text-slate-400">
-                      <span>{score.goals}/8 Goals</span>
-                      {isMyTeam && <span>{score.points} Pts</span>}
-                    </div>
-                  </div>
-                );
-              })}
+          <div className="fixed top-0 left-0 right-0 bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between shadow-md z-40 backdrop-blur-md bg-opacity-90">
+            <div className="flex items-center gap-2">
+              <div className="bg-pink-600/20 p-1.5 rounded-lg border border-pink-500/30">
+                <Handshake size={18} className="text-pink-500" />
+              </div>
+              <span className="text-sm md:text-base font-black tracking-widest text-white uppercase">
+                TOGETHER
+              </span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-1.5 md:gap-2">
               <button
                 onClick={() => setShowGuide(true)}
-                className="p-2 rounded-full text-slate-500 hover:bg-slate-800"
+                className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
                 title="How to Play"
               >
                 <BookOpen size={20} />
               </button>
               <button
                 onClick={() => setShowLogs(!showLogs)}
-                className={`p-2 rounded-full ${
+                className={`p-2 rounded-full transition-colors ${
                   showLogs
-                    ? "bg-slate-800 text-white"
-                    : "text-slate-500 hover:bg-slate-800"
+                    ? "bg-pink-900 text-pink-400"
+                    : "text-slate-400 hover:text-white hover:bg-slate-800"
                 }`}
+                title="Game Log"
               >
                 <History size={20} />
               </button>
               <button
                 onClick={() => setShowLeaveConfirm(true)}
-                className="p-2 rounded-full text-red-500 hover:bg-red-900/20"
+                className="p-2 rounded-full text-red-500 hover:bg-red-900/20 transition-colors"
                 title="Leave Game"
               >
                 <DoorOpen size={20} />
@@ -2672,50 +2752,212 @@ export default function TogetherGame() {
           {/* --- GUIDE MODAL --- */}
           {showGuide && (
             <div className="fixed inset-0 bg-black/90 z-200 flex items-center justify-center p-4 text-left">
-              <div className="bg-slate-900 max-w-3xl w-full max-h-[85vh] overflow-y-auto rounded-2xl border border-slate-700 p-6 relative">
-                <button
-                  onClick={() => setShowGuide(false)}
-                  className="absolute top-4 right-4 text-slate-500"
-                >
-                  <X />
-                </button>
-                <h2 className="text-2xl font-bold mb-4 text-white">
-                  Game Rules
-                </h2>
-                <p className="text-slate-400">See main menu for full rules.</p>
+              <div className="bg-slate-900 max-w-3xl w-full max-h-[85vh] overflow-y-auto rounded-2xl border border-slate-700 shadow-2xl relative flex flex-col">
+                <div className="flex justify-between items-center p-6 border-b border-slate-800 bg-slate-900 sticky top-0 z-10">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-pink-600 p-2 rounded-xl">
+                      <BookOpen className="text-white" size={24} />
+                    </div>
+                    <h2 className="text-3xl font-black text-white tracking-tight">
+                      Code of Conduct
+                    </h2>
+                  </div>
+                  <button
+                    onClick={() => setShowGuide(false)}
+                    className="p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white transition-colors border border-slate-700 hover:bg-slate-700"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <div className="p-8 space-y-10 text-slate-300">
+                  <section className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div>
+                      <h3 className="text-2xl font-bold text-white mb-3 flex items-center gap-2">
+                        <Shield className="text-pink-500" /> The Basics
+                      </h3>
+                      <p className="leading-relaxed text-lg">
+                        Together is a <strong>cooperative team game</strong>.
+                        You are paired with the player sitting opposite you.
+                        Your goal is to complete specific patterns called{" "}
+                        <strong>Goal Cards</strong> faster than the other teams.
+                      </p>
+                    </div>
+                    <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-inner">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-12 h-16 bg-pink-600 rounded-lg border-2 border-pink-400"></div>
+                        <div className="w-12 h-16 bg-yellow-400 rounded-lg border-2 border-yellow-200"></div>
+                        <div className="text-sm font-bold text-slate-400">
+                          The Deck has numbers <strong>1-8</strong> in two
+                          colors: <span className="text-pink-400">Magenta</span>{" "}
+                          & <span className="text-yellow-400">Lemon</span>.
+                        </div>
+                      </div>
+                      <div className="text-xs bg-slate-900 p-3 rounded-lg text-slate-400">
+                        <strong>Winning Condition:</strong> The game ends when a
+                        team claims <strong>8 Goals</strong>. The team with the
+                        highest score wins!
+                      </div>
+                    </div>
+                  </section>
+                  <hr className="border-slate-800" />
+                  <section>
+                    <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                      <RotateCcw className="text-blue-400" /> Turn Structure
+                    </h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="bg-slate-800/50 p-5 rounded-xl border border-slate-700/50 relative overflow-hidden group hover:border-blue-500/30 transition-colors">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 font-black text-6xl group-hover:opacity-20 transition-opacity">
+                          1
+                        </div>
+                        <h4 className="font-bold text-white text-lg mb-2">
+                          Cleanup
+                        </h4>
+                        <p className="text-sm">
+                          If you start your turn with{" "}
+                          <strong>more than 6 cards</strong>, you must discard
+                          down to 6 before doing anything else.
+                        </p>
+                      </div>
+
+                      <div className="bg-slate-800/50 p-5 rounded-xl border border-slate-700/50 relative overflow-hidden group hover:border-blue-500/30 transition-colors">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 font-black text-6xl group-hover:opacity-20 transition-opacity">
+                          2
+                        </div>
+                        <h4 className="font-bold text-white text-lg mb-2">
+                          Actions (Any Order)
+                        </h4>
+                        <p className="text-sm">
+                          You can Draw, Trade, or Claim goals in any order. BUT
+                          you <strong>MUST draw 2 cards</strong> before passing.
+                        </p>
+                      </div>
+
+                      <div className="bg-slate-800/50 p-5 rounded-xl border border-slate-700/50 relative overflow-hidden group hover:border-blue-500/30 transition-colors">
+                        <div className="absolute top-0 right-0 p-4 opacity-10 font-black text-6xl group-hover:opacity-20 transition-opacity">
+                          3
+                        </div>
+                        <h4 className="font-bold text-white text-lg mb-2">
+                          Pass
+                        </h4>
+                        <p className="text-sm">
+                          Once you have drawn your 2 cards and finished your
+                          moves, <strong>Pass</strong> the turn.
+                        </p>
+                      </div>
+                    </div>
+                  </section>
+                  <hr className="border-slate-800" />
+                  <section>
+                    <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
+                      <Zap className="text-yellow-400" /> Valid Actions
+                    </h3>
+                    <div className="space-y-4">
+                      <div className="flex gap-4 items-start">
+                        <div className="bg-green-500/20 p-3 rounded-lg text-green-400 shrink-0">
+                          <CheckCircle size={24} />
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-bold text-white">
+                            Claim a Goal
+                          </h4>
+                          <p className="text-sm text-slate-400">
+                            Select cards from your hand that match your{" "}
+                            <strong>Personal Goal</strong> or the shared{" "}
+                            <strong>Public Goal</strong>. If valid, you score
+                            points and get a new goal.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4 items-start">
+                        <div className="bg-blue-500/20 p-3 rounded-lg text-blue-400 shrink-0">
+                          <Hand size={24} />
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-bold text-white">
+                            Trade Cards
+                          </h4>
+                          <p className="text-sm text-slate-400">
+                            Give 1 or 2 cards from your hand to your partner.
+                            You cannot receive cards, only give.{" "}
+                            <strong>Limit:</strong> Max 2 cards traded per turn.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-4 items-start">
+                        <div className="bg-purple-500/20 p-3 rounded-lg text-purple-400 shrink-0">
+                          <RefreshCw size={24} />
+                        </div>
+                        <div>
+                          <h4 className="text-lg font-bold text-white">
+                            Cycle Goal
+                          </h4>
+                          <p className="text-sm text-slate-400">
+                            Once per turn, you can discard your current Personal
+                            Goal or the Public Goal and draw a new one. Use this
+                            if a goal seems impossible!
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </section>
+                  <div className="bg-red-500/10 border border-red-500/20 p-4 rounded-xl flex gap-4 items-center">
+                    <div className="bg-red-500/20 p-2 rounded-full text-red-400">
+                      <AlertTriangle size={24} />
+                    </div>
+                    <p className="text-sm font-medium text-red-200">
+                      <strong>Communication Rule:</strong> You strictly cannot
+                      talk about the specific numbers or colors in your hand.
+                      You CAN say "I need high cards" or "I can help with that
+                      goal," but not "I have a Magenta 5."
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-6 border-t border-slate-800 bg-slate-900 sticky bottom-0 text-center">
+                  <button
+                    onClick={() => setShowGuide(false)}
+                    className="bg-white text-slate-900 font-bold py-4 px-12 rounded-xl hover:scale-105 transition-transform shadow-xl"
+                  >
+                    Got It, Let's Play!
+                  </button>
+                </div>
               </div>
             </div>
           )}
 
           {/* --- MAIN CONTENT --- */}
-          <div className="z-10 bg-slate-900/80 backdrop-blur p-8 rounded-3xl border border-slate-700 shadow-2xl max-w-2xl w-full mt-20">
+          <div className="z-10 bg-slate-900/80 backdrop-blur p-5 sm:p-8 rounded-3xl border border-slate-700 shadow-2xl max-w-2xl w-full mt-14 md:mt-20 overflow-hidden">
             <Trophy
-              size={80}
-              className="text-yellow-400 mb-6 mx-auto animate-bounce"
+              size={64}
+              className="text-yellow-400 mb-4 md:mb-6 mx-auto animate-bounce md:w-20 md:h-20"
             />
-            <h1 className="text-5xl md:text-6xl font-black mb-2">
+            <h1 className="text-3xl sm:text-5xl md:text-6xl font-black mb-2 leading-tight break-words">
               {winners.length > 1 ? "Joint Winners!" : `${winnerNames} Wins!`}
             </h1>
             {winners.length > 1 && (
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-yellow-400">
+              <h2 className="text-xl sm:text-3xl md:text-4xl font-bold mb-4 text-yellow-400 break-words">
                 {winnerNames}
               </h2>
             )}
-            <div className="grid grid-cols-2 gap-8 my-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 my-6 md:my-8">
               {TEAMS.map((t) => {
                 if (!gameState.teamScores[t.id]) return null;
                 return (
                   <div
                     key={t.id}
-                    className={`bg-slate-800 p-6 rounded-2xl border ${t.border}`}
+                    className={`bg-slate-800 p-4 sm:p-6 rounded-2xl border ${t.border}`}
                   >
-                    <h2 className={`text-2xl font-bold ${t.color}`}>
+                    <h2 className={`text-lg sm:text-2xl font-bold ${t.color}`}>
                       {t.name}
                     </h2>
-                    <div className="text-4xl font-black mt-2">
+                    <div className="text-2xl sm:text-4xl font-black mt-1 sm:mt-2">
                       {gameState.teamScores[t.id].points} pts
                     </div>
-                    <div className="text-sm text-slate-400">
+                    <div className="text-xs sm:text-sm text-slate-400">
                       {gameState.teamScores[t.id].goals} goals
                     </div>
                   </div>
@@ -2725,61 +2967,62 @@ export default function TogetherGame() {
 
             <button
               onClick={() => setShowReport(true)}
-              className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 rounded-xl mb-8 border border-slate-600 transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-slate-800 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-xl mb-6 md:mb-8 border border-slate-600 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
             >
-              <FileText size={20} /> View Game Report Card
+              <FileText size={18} className="shrink-0" /> View Game Report Card
             </button>
 
-            <div className="flex flex-wrap justify-center gap-2 mb-8">
+            <div className="flex flex-wrap justify-center gap-2 mb-6 md:mb-8">
               {gameState.players.map((p) => (
                 <div
                   key={p.id}
-                  className={`px-3 py-1 rounded-full text-sm border flex items-center gap-2 ${
+                  className={`px-3 py-1 rounded-full text-xs sm:text-sm border flex items-center gap-1.5 max-w-full truncate ${
                     p.ready
                       ? "border-green-500 bg-green-900/20 text-green-300"
                       : "border-gray-700 bg-gray-800 text-gray-400"
                   }`}
                 >
-                  {p.name} {p.ready && <CheckCircle size={12} />}
+                  <span className="truncate max-w-[120px]">{p.name}</span>
+                  {p.ready && <CheckCircle size={12} className="shrink-0" />}
                 </div>
               ))}
             </div>
 
             {/* Bottom Actions - Host Controls */}
             {isHost ? (
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                 <button
                   onClick={restartGame}
                   disabled={!allGuestsReady}
-                  className={`flex-1 py-3 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-transform ${
+                  className={`flex-1 py-3 px-4 rounded-xl font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition-transform ${
                     allGuestsReady
                       ? "bg-green-600 hover:bg-green-500 text-white hover:scale-105"
                       : "bg-gray-800 text-gray-500 cursor-not-allowed"
                   }`}
                 >
-                  <RotateCcw size={20} /> Restart Game
+                  <RotateCcw size={18} className="shrink-0" /> Restart Game
                 </button>
                 <button
                   onClick={resetToLobby}
                   disabled={!allGuestsReady}
-                  className={`flex-1 py-3 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-transform ${
+                  className={`flex-1 py-3 px-4 rounded-xl font-bold text-base sm:text-lg flex items-center justify-center gap-2 transition-transform ${
                     allGuestsReady
                       ? "bg-blue-600 hover:bg-blue-500 text-white hover:scale-105"
                       : "bg-gray-800 text-gray-500 cursor-not-allowed"
                   }`}
                 >
-                  <Home size={20} /> Return to Lobby
+                  <Home size={18} className="shrink-0" /> Return to Lobby
                 </button>
               </div>
             ) : !myPlayer.ready ? (
               <button
                 onClick={toggleReady}
-                className="w-full py-4 bg-green-600 hover:bg-green-500 text-white rounded-xl font-bold text-lg shadow-lg hover:scale-105 transition-transform animate-pulse"
+                className="w-full py-3.5 sm:py-4 bg-green-600 hover:bg-green-500 text-white rounded-xl font-bold text-base sm:text-lg shadow-lg hover:scale-105 transition-transform animate-pulse"
               >
                 Ready for Next Game
               </button>
             ) : (
-              <div className="text-green-400 font-bold animate-pulse border border-green-500/30 bg-green-900/10 p-4 rounded-xl">
+              <div className="text-green-400 text-sm sm:text-base font-bold animate-pulse border border-green-500/30 bg-green-900/10 p-3.5 sm:p-4 rounded-xl">
                 Waiting for Host...
               </div>
             )}
@@ -2874,6 +3117,17 @@ export default function TogetherGame() {
           onClose={() => setActiveEvent(null)}
           currentUserId={user.uid}
         />
+
+        {/* Scoreboard Modal */}
+        {showScoreboard && (
+          <ScoreboardModal
+            teamScores={gameState.teamScores}
+            players={gameState.players}
+            myTeamId={myPlayer?.teamId}
+            activeTeamId={activePlayer?.teamId}
+            onClose={() => setShowScoreboard(false)}
+          />
+        )}
 
         {/* Guide Modal (Game) - POPULATED */}
         {showGuide && (
@@ -3077,58 +3331,49 @@ export default function TogetherGame() {
           />
         )}
 
-        {/* Top Bar: Scores */}
-        <div className="bg-slate-900 border-b border-slate-800 p-2 md:p-4 flex items-center justify-between shadow-md z-160 sticky top-0 backdrop-blur-md bg-opacity-90">
-          <div className="flex gap-2 md:gap-4 overflow-x-auto">
-            {TEAMS.map((t) => {
-              if (!gameState.teamScores[t.id]) return null;
-              if (gameState.players.length === 4 && t.id === "C") return null;
-              const score = gameState.teamScores[t.id];
-              const isActive = activePlayer.teamId === t.id;
-              const isMyTeam = myPlayer?.teamId === t.id;
-              return (
-                <div
-                  key={t.id}
-                  className={`flex flex-col md:flex-row items-center gap-1 md:gap-3 px-3 py-1 rounded-lg border ${
-                    isActive
-                      ? t.bg + " " + t.border
-                      : "bg-transparent border-transparent"
-                  }`}
-                >
-                  <span
-                    className={`font-black text-xs md:text-sm uppercase ${t.color}`}
-                  >
-                    {t.name}
-                  </span>
-                  <div className="flex gap-2 text-xs font-bold text-slate-400">
-                    <span>{score.goals}/8 Goals</span>
-                    {isMyTeam && <span>{score.points} Pts</span>}
-                  </div>
-                </div>
-              );
-            })}
+        {/* Top Bar: Logo Left, Action Buttons Right */}
+        <div className="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex items-center justify-between shadow-md z-160 sticky top-0 backdrop-blur-md bg-opacity-90">
+          {/* Left: Together Logo & Name */}
+          <div className="flex items-center gap-2">
+            <div className="bg-pink-600/20 p-1.5 rounded-lg border border-pink-500/30">
+              <Handshake size={18} className="text-pink-500" />
+            </div>
+            <span className="text-sm md:text-base font-black tracking-widest text-white uppercase">
+              TOGETHER
+            </span>
           </div>
-          <div className="flex gap-2">
+
+          {/* Right: Scoreboard, Guide, Logs, Leave */}
+          <div className="flex items-center gap-1.5 md:gap-2">
+            <button
+              onClick={() => setShowScoreboard(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 text-xs font-bold transition-colors"
+              title="Scoreboard"
+            >
+              <Trophy size={15} />
+              <span className="hidden sm:inline">Scores</span>
+            </button>
             <button
               onClick={() => setShowGuide(true)}
-              className="p-2 rounded-full text-slate-500 hover:bg-slate-800"
+              className="p-2 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
               title="How to Play"
             >
               <BookOpen size={20} />
             </button>
             <button
               onClick={() => setShowLogs(!showLogs)}
-              className={`p-2 rounded-full ${
+              className={`p-2 rounded-full transition-colors ${
                 showLogs
                   ? "bg-pink-900 text-pink-400"
-                  : "text-gray-400 hover:bg-gray-800"
+                  : "text-slate-400 hover:text-white hover:bg-slate-800"
               }`}
+              title="Game Log"
             >
               <History size={20} />
             </button>
             <button
               onClick={() => setShowLeaveConfirm(true)}
-              className="p-2 rounded-full text-red-500 hover:bg-red-900/20"
+              className="p-2 rounded-full text-red-500 hover:bg-red-900/20 transition-colors"
               title="Leave Game"
             >
               <DoorOpen size={20} />
@@ -3266,65 +3511,27 @@ export default function TogetherGame() {
             </div>
           </div>
 
-          {/* Center Board */}
-          <div className="flex-1 bg-slate-900/50 backdrop-blur-md rounded-3xl border border-slate-800 shadow-xl p-4 flex flex-col md:flex-row items-center justify-center gap-8 md:gap-6 mb-4 md:mb-0 relative">
-            {/* REMOVED Turn Indicator from here */}
+          {/* Center Board - Slimmed down: Only Market & Draw Blind in one row */}
+          <div className="bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-800 shadow-xl py-3 px-4 flex items-center justify-center my-1 relative">
+            <div className="flex items-center justify-center gap-2 md:gap-3">
+              {gameState.market.map((c, i) => (
+                <Card
+                  key={i}
+                  card={c}
+                  small
+                  disabled={
+                    !isMyTurn ||
+                    gameState.turnPhase === "CHECK_LIMIT" ||
+                    gameState.cardsDrawn >= 2
+                  }
+                  onClick={() => handleDraw(i)}
+                />
+              ))}
 
-            {/* Public Goal - Reduced size */}
-            <div className="flex flex-col w-32 h-24 md:w-48 md:h-32 shrink-0">
-              <div className="text-center text-[10px] font-bold text-slate-500 mb-1 uppercase">
-                Public Goal
-              </div>
+              {/* Divider */}
+              <div className="h-10 w-px bg-slate-800 mx-1" />
 
-              {/* WRAPPER FIX: relative is now here, not on the parent */}
-              <div className="relative flex-1 w-full h-full">
-                {gameState.publicGoal ? (
-                  <>
-                    <GoalCard
-                      goal={gameState.publicGoal}
-                      isPublic
-                      selected={activeGoalMenu === "PUBLIC"}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (isMyTurn && gameState.turnPhase === "PLAYING") {
-                          setActiveGoalMenu(
-                            activeGoalMenu === "PUBLIC" ? null : "PUBLIC",
-                          );
-                        } else {
-                          setViewingGoal(gameState.publicGoal);
-                        }
-                      }}
-                    />
-                    {activeGoalMenu === "PUBLIC" && (
-                      <GoalOverlay type="PUBLIC" goal={gameState.publicGoal} />
-                    )}
-                  </>
-                ) : (
-                  <div className="h-full border-2 border-dashed border-slate-700 rounded-lg flex items-center justify-center text-slate-600">
-                    Empty
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Market & Deck */}
-            <div className="flex flex-col items-center gap-2 mt-2 md:mt-0">
-              <div className="flex gap-2">
-                {gameState.market.map((c, i) => (
-                  <Card
-                    key={i}
-                    card={c}
-                    small
-                    // Allow drawing in PLAYING phase if limit not met
-                    disabled={
-                      !isMyTurn ||
-                      gameState.turnPhase === "CHECK_LIMIT" ||
-                      gameState.cardsDrawn >= 2
-                    }
-                    onClick={() => handleDraw(i)}
-                  />
-                ))}
-              </div>
+              {/* Draw Blind in the same row */}
               <button
                 onClick={() => handleDraw(-1)}
                 disabled={
@@ -3332,9 +3539,10 @@ export default function TogetherGame() {
                   gameState.turnPhase === "CHECK_LIMIT" ||
                   gameState.cardsDrawn >= 2
                 }
-                className="w-full h-10 bg-slate-800 border border-slate-700 rounded-xl flex items-center justify-center gap-2 text-slate-300 text-sm font-bold hover:bg-slate-700 active:scale-95 disabled:opacity-50 transition-all shadow-lg"
+                className="w-16 h-16 bg-slate-800 border-2 border-slate-700 border-b-4 rounded-xl flex flex-col items-center justify-center gap-1 text-slate-300 text-[10px] font-black uppercase tracking-wider hover:bg-slate-700 hover:border-pink-500/50 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-lg shrink-0"
               >
-                <Layers size={16} /> Draw Blind
+                <Layers size={18} className="text-pink-400" />
+                <span>Blind</span>
               </button>
             </div>
           </div>
@@ -3360,7 +3568,7 @@ export default function TogetherGame() {
               </div>
             </div>
 
-            {/* PASS BUTTON (Replaces Action Bar) */}
+            {/* PASS BUTTON */}
             {isMyTurn && gameState.turnPhase === "PLAYING" && (
               <button
                 onClick={endTurn}
@@ -3378,23 +3586,24 @@ export default function TogetherGame() {
             )}
 
             <div className="flex flex-col md:flex-row gap-4 items-end">
-              {/* Personal Goal */}
-              {/* REMOVED fixed heights here to allow the Turn indicator to stack nicely */}
-              <div className="relative w-28 md:w-36 shrink-0 self-center md:self-end mb-4 md:mb-0 flex flex-col gap-2">
-                {/* --- MOVED: Turn Indicator --- */}
-                <div className="mb-2 text-center md:text-left">
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">
-                    Current Turn
-                  </div>
-                  <div
-                    className={`text-lg font-black animate-bounce  ${
-                      TEAMS.find((t) => t.id === activePlayer.teamId).color
-                    }`}
-                  >
-                    {isMyTurn ? "YOUR TURN" : activePlayer.name}
+              {/* Turn Indicator + Personal & Public Goals Side-by-Side */}
+              <div className="relative shrink-0 self-center md:self-end mb-2 md:mb-0 flex flex-col gap-2">
+                {/* Turn Indicator */}
+                <div className="mb-1 text-center md:text-left flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
+                  <div>
+                    <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                      Current Turn
+                    </div>
+                    <div
+                      className={`text-lg font-black animate-bounce ${
+                        TEAMS.find((t) => t.id === activePlayer.teamId).color
+                      }`}
+                    >
+                      {isMyTurn ? "YOUR TURN" : activePlayer.name}
+                    </div>
                   </div>
                   {isMyTurn && (
-                    <div className="text-[10px] font-bold bg-slate-800 text-blue-400 border border-blue-900/50 px-2 py-1 rounded-full mt-1 inline-block shadow-lg animate-pulse">
+                    <div className="text-[10px] font-bold bg-slate-800 text-blue-400 border border-blue-900/50 px-2 py-1 rounded-full inline-block shadow-lg animate-pulse self-center md:self-end">
                       {gameState.turnPhase === "CHECK_LIMIT"
                         ? "Discard down to 6"
                         : gameState.cardsDrawn < 2
@@ -3404,42 +3613,79 @@ export default function TogetherGame() {
                   )}
                 </div>
 
-                {/* --- My Goal --- */}
-                {/* WRAPPER FIX: Added a relative div to constrain the overlay only to the card */}
-                <div className="relative w-full flex-1 min-h-[100px]">
-                  {myPlayer.personalGoal ? (
-                    <>
-                      <GoalCard
-                        goal={myPlayer.personalGoal}
-                        isPersonal
-                        selected={activeGoalMenu === "PERSONAL"}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (isMyTurn && gameState.turnPhase === "PLAYING") {
-                            setActiveGoalMenu(
-                              activeGoalMenu === "PERSONAL" ? null : "PERSONAL",
-                            );
-                          } else {
-                            setViewingGoal(myPlayer.personalGoal);
-                          }
-                        }}
-                      />
-                      {activeGoalMenu === "PERSONAL" && (
-                        <GoalOverlay
-                          type="PERSONAL"
+                {/* Goals Row: Personal Goal & Public Goal Next to Each Other */}
+                <div className="flex gap-2 items-stretch justify-center">
+                  {/* My Goal */}
+                  <div className="relative w-28 md:w-36 min-h-[100px]">
+                    {myPlayer.personalGoal ? (
+                      <>
+                        <GoalCard
                           goal={myPlayer.personalGoal}
+                          isPersonal
+                          selected={activeGoalMenu === "PERSONAL"}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (isMyTurn && gameState.turnPhase === "PLAYING") {
+                              setActiveGoalMenu(
+                                activeGoalMenu === "PERSONAL"
+                                  ? null
+                                  : "PERSONAL",
+                              );
+                            } else {
+                              setViewingGoal(myPlayer.personalGoal);
+                            }
+                          }}
                         />
-                      )}
-                    </>
-                  ) : (
-                    <div className="h-full bg-slate-800 rounded-lg flex items-center justify-center text-xs text-slate-500 font-bold border-2 border-dashed border-slate-700">
-                      Completed!
-                    </div>
-                  )}
+                        {activeGoalMenu === "PERSONAL" && (
+                          <GoalOverlay
+                            type="PERSONAL"
+                            goal={myPlayer.personalGoal}
+                          />
+                        )}
+                      </>
+                    ) : (
+                      <div className="h-full bg-slate-800 rounded-lg flex items-center justify-center text-xs text-slate-500 font-bold border-2 border-dashed border-slate-700">
+                        Completed!
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Public Goal */}
+                  <div className="relative w-28 md:w-36 min-h-[100px]">
+                    {gameState.publicGoal ? (
+                      <>
+                        <GoalCard
+                          goal={gameState.publicGoal}
+                          isPublic
+                          selected={activeGoalMenu === "PUBLIC"}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (isMyTurn && gameState.turnPhase === "PLAYING") {
+                              setActiveGoalMenu(
+                                activeGoalMenu === "PUBLIC" ? null : "PUBLIC",
+                              );
+                            } else {
+                              setViewingGoal(gameState.publicGoal);
+                            }
+                          }}
+                        />
+                        {activeGoalMenu === "PUBLIC" && (
+                          <GoalOverlay
+                            type="PUBLIC"
+                            goal={gameState.publicGoal}
+                          />
+                        )}
+                      </>
+                    ) : (
+                      <div className="h-full bg-slate-800 rounded-lg flex items-center justify-center text-xs text-slate-500 font-bold border-2 border-dashed border-slate-700">
+                        Empty
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              {/* Hand - INCREASED PADDING TO REVEAL DISCARD BUTTON */}
+              {/* Hand */}
               <div className="flex-1 overflow-x-auto pb-4 pt-16 px-2 w-full min-h-[200px]">
                 <div className="flex gap-2 items-end w-fit mx-auto">
                   {myPlayer.hand
