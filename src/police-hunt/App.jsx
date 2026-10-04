@@ -823,7 +823,7 @@ export default function ThiefPoliceGame() {
   const createRoom = async () => {
     if (!user || !playerName.trim()) return setError("Enter nickname.");
     setLoading(true);
-    const chars = "123456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
+    const chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
     let newRoomId = "";
     for (let i = 0; i < 6; i++) {
       newRoomId += chars.charAt(Math.floor(Math.random() * chars.length));

@@ -2320,7 +2320,7 @@ export default function OutbreakGame() {
     if (!user) return setError("Uplink establishing... please wait.");
     if (!playerName) return setError("Operative Name required");
     setLoading(true);
-    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
     let newRoomId = "";
     for (let i = 0; i < 6; i++)
       newRoomId += chars.charAt(Math.floor(Math.random() * chars.length));

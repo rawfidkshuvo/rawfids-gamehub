@@ -887,7 +887,7 @@ export default function ReverieGame() {
     if (!playerName) return setError("Enter Name");
     localStorage.setItem("gameHub_playerName", playerName);
     setLoading(true);
-    const chars = "123456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
+    const chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
     let newRoomId = "";
     for (let i = 0; i < 6; i++) {
       newRoomId += chars.charAt(Math.floor(Math.random() * chars.length));

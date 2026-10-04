@@ -765,7 +765,7 @@ export default function LastOfUs() {
   const createRoom = async () => {
     if (!playerName) return showError("Name required");
     setLoading(true);
-    const chars = "123456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
+    const chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
     let newId = "";
     for (let i = 0; i < 6; i++) {
       newId += chars.charAt(Math.floor(Math.random() * chars.length));

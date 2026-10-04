@@ -786,7 +786,7 @@ export default function GhostDiceGame() {
   const createRoom = async () => {
     if (!playerName.trim()) return setError("Name required.");
     setLoading(true);
-    const chars = "123456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
+    const chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
     let newId = "";
     for (let i = 0; i < 6; i++) {
       newId += chars.charAt(Math.floor(Math.random() * chars.length));

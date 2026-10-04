@@ -782,7 +782,7 @@ export default function AngryVirus() {
   const createRoom = async () => {
     if (!playerName) return setError("Name required");
     setLoading(true);
-    const chars = "123456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
+    const chars = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ";
     let newRoomId = "";
     for (let i = 0; i < 6; i++) {
       newRoomId += chars.charAt(Math.floor(Math.random() * chars.length));
