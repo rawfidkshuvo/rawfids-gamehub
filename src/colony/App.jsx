@@ -3715,6 +3715,20 @@ export default function ColonyGame() {
         {showTradeModal && me && (
           <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
             <div className="bg-slate-900 border border-slate-700 p-6 rounded-2xl max-w-lg w-full text-center shadow-2xl relative">
+              {/* Resource Tab at Top of Modal */}
+              <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex gap-1 bg-slate-900/95 p-1.5 rounded-t-xl border-t border-x border-slate-700 shadow-[0_-10px_20px_rgba(0,0,0,0.5)] whitespace-nowrap">
+                {Object.entries(RESOURCES)
+                  .filter(([k]) => k !== "DESERT")
+                  .map(([key, def]) => (
+                    <div
+                      key={key}
+                      className={`flex items-center gap-1 ${def.color} px-2 py-1 rounded-md text-xs font-bold border ${def.border} text-white shadow-md relative`}
+                    >
+                      <def.icon size={12} /> {me.resources[key]}
+                    </div>
+                  ))}
+              </div>
+
               <button
                 onClick={() => setShowTradeModal(false)}
                 className="absolute top-4 right-4 p-2 bg-slate-800 rounded-full hover:bg-slate-700"
@@ -3724,29 +3738,8 @@ export default function ColonyGame() {
               <h3 className="text-2xl font-black text-white mb-4 uppercase">
                 Trading Post
               </h3>
-              {/* NEW: Player Selector */}
-              <div className="bg-slate-800/80 p-3 rounded-xl mb-4 border border-slate-700">
-                <div className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest text-center">
-                  Select Player to Trade With
-                </div>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {gameState.players
-                    .filter((p) => p.id !== user.uid)
-                    .map((p) => (
-                      <button
-                        key={p.id}
-                        onClick={() => setTradeTargetId(p.id)}
-                        className={`px-3 py-1.5 rounded-lg font-bold text-sm border-2 transition-all ${
-                          tradeTargetId === p.id
-                            ? "bg-blue-600 border-blue-400 text-white"
-                            : "bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500"
-                        }`}
-                      >
-                        {p.name}
-                      </button>
-                    ))}
-                </div>
-              </div>
+
+              {/* Exchange Rates */}
               <div className="bg-slate-800/80 p-3 rounded-xl mb-4 border border-slate-700">
                 <div className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest text-center">
                   Your Exchange Rates
@@ -3770,6 +3763,8 @@ export default function ColonyGame() {
                   )}
                 </div>
               </div>
+
+              {/* Offer / Request Inputs */}
               <div className="bg-black/30 p-4 rounded-xl mb-4 border border-white/5">
                 <div className="flex gap-4">
                   <div className="flex-1">
@@ -3840,16 +3835,45 @@ export default function ColonyGame() {
                   </div>
                 </div>
               </div>
+
+              {/* Player Selector (Moved above Trade/Propose buttons) */}
+              <div className="bg-slate-800/80 p-3 rounded-xl mb-4 border border-slate-700">
+                <div className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest text-center">
+                  Select Player to Trade With
+                </div>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {gameState.players
+                    .filter((p) => p.id !== user.uid)
+                    .map((p) => (
+                      <button
+                        key={p.id}
+                        onClick={() =>
+                          setTradeTargetId(tradeTargetId === p.id ? "" : p.id)
+                        }
+                        className={`px-3 py-1.5 rounded-lg font-bold text-sm border-2 transition-all ${
+                          tradeTargetId === p.id
+                            ? "bg-blue-600 border-blue-400 text-white"
+                            : "bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500"
+                        }`}
+                      >
+                        {p.name}
+                      </button>
+                    ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
               <div className="flex gap-2">
                 <button
                   onClick={executeBankTrade}
-                  className="flex-1 py-3 bg-emerald-700 hover:bg-emerald-600 rounded-xl font-bold text-white flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-emerald-700 hover:bg-emerald-600 rounded-xl font-bold text-white flex items-center justify-center gap-2 transition-colors"
                 >
                   <Anchor size={18} /> Bank Trade
                 </button>
                 <button
                   onClick={proposeDomesticTrade}
-                  className="flex-1 py-3 bg-blue-700 hover:bg-blue-600 rounded-xl font-bold text-white flex items-center justify-center gap-2"
+                  disabled={!tradeTargetId}
+                  className="flex-1 py-3 bg-blue-700 hover:bg-blue-600 disabled:opacity-50 disabled:hover:bg-blue-700 disabled:cursor-not-allowed rounded-xl font-bold text-white flex items-center justify-center gap-2 transition-all"
                 >
                   <Handshake size={18} /> Propose
                 </button>
