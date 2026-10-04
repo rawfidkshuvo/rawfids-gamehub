@@ -2152,12 +2152,12 @@ const GameHub = () => {
           <div className="inline-flex items-center justify-center p-3 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 mb-4 animate-fade-in-down">
             <Gamepad2 className="w-6 h-6 text-indigo-400 mr-2" />
             <span className="text-indigo-300 font-medium tracking-wide text-sm uppercase">
-              Multiplayer Board Game Hub
+              Multiplayer . Online . Board Games
             </span>
           </div>
-          <h1 className="text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-linear-to-r from-white via-slate-200 to-slate-400 tracking-tight mb-4">
-            Board Games{" "}
-            <span className="animate-pulse animate-rainbow">Online</span>
+          <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-linear-to-r from-white via-slate-200 to-slate-400 tracking-tight mb-4">
+            Rawfid's{" "}
+            <span className="animate-pulse animate-rainbow">GameHub</span>
           </h1>
           {/* Profile Button */}
           <button
@@ -2483,7 +2483,7 @@ const GameHub = () => {
             </p>
           </div>
           <p className="opacity-60">
-            &copy; {new Date().getFullYear()} Game Hub Portal. All rights
+            &copy; {new Date().getFullYear()} Rawfid's GameHub. All rights
             reserved.
           </p>
         </footer>
