@@ -2321,14 +2321,14 @@ export default function OutbreakGame() {
     if (!playerName) return setError("Operative Name required");
     setLoading(true);
     const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-    let newId = "";
-    for (let i = 0; i < 5; i++)
-      newId += chars.charAt(Math.floor(Math.random() * chars.length));
+    let newRoomId = "";
+    for (let i = 0; i < 6; i++)
+      newRoomId += chars.charAt(Math.floor(Math.random() * chars.length));
 
     await setDoc(
-      doc(db, "artifacts", APP_ID, "public", "data", "rooms", newId),
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", newRoomId),
       {
-        roomId: newId,
+        roomId: newRoomId,
         hostId: user.uid,
         status: "lobby",
         players: [
@@ -2344,9 +2344,9 @@ export default function OutbreakGame() {
         logs: [{ type: "info", text: "HQ established." }],
       },
     );
-    localStorage.setItem("outbreak_roomId", newId);
-    setRoomId(newId);
-    setRoomInput(newId);
+    localStorage.setItem("outbreak_roomId", newRoomId);
+    setRoomId(newRoomId);
+    setRoomInput(newRoomId);
   };
 
   const joinRoom = async () => {

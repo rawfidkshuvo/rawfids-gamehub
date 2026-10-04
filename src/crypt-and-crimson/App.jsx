@@ -522,15 +522,19 @@ export default function CryptGame() {
   const createRoom = async () => {
     if (!playerName) return setError("Enter Name");
     localStorage.setItem("gameHub_playerName", playerName); setLoading(true);
-    const newId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const chars = "123456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
+    let newRoomId = "";
+    for (let i = 0; i < 6; i++) {
+      newRoomId += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
     const initialData = {
-      roomId: newId, hostId: user.uid, status: "lobby",
+      roomId: newRoomId, hostId: user.uid, status: "lobby",
       players: [{ id: user.uid, name: playerName, colorIdx: 0, score: 0, hand: [], played: [], discarded: [], passed: false, isEliminated: false }],
       turnIndex: 0, turnPhase: "PLAY", currentBid: 0, highestBidder: null, cardsToReveal: 0, starterId: user.uid, discardingPlayer: null, logs: []
     };
     try {
-      await setDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", newId), initialData);
-      setRoomId(newId); localStorage.setItem("cryptandcrimson_roomId", newId);
+      await setDoc(doc(db, "artifacts", APP_ID, "public", "data", "rooms", newRoomId), initialData);
+      setRoomId(newRoomId); localStorage.setItem("cryptandcrimson_roomId", newRoomId);
     } catch (e) { setError("Failed to open the crypt."); }
     setLoading(false);
   };

@@ -981,12 +981,16 @@ export default function DarkFolkloreGame() {
   const createRoom = async () => {
     if (!playerName) return setError("Enter a name.");
     localStorage.setItem("gameHub_playerName", playerName);
-    const newId = Math.random().toString(36).substr(2, 6).toUpperCase();
-    localStorage.setItem("dark_roomId", newId);
+    const chars = "123456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
+    let newRoomId = "";
+    for (let i = 0; i < 6; i++) {
+      newRoomId += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    localStorage.setItem("dark_roomId", newRoomId);
     await setDoc(
-      doc(db, "artifacts", APP_ID, "public", "data", "rooms", newId),
+      doc(db, "artifacts", APP_ID, "public", "data", "rooms", newRoomId),
       {
-        roomId: newId,
+        roomId: newRoomId,
         hostId: user.uid,
         status: "lobby",
         turnIndex: 0,
@@ -1012,7 +1016,7 @@ export default function DarkFolkloreGame() {
         ],
       },
     );
-    setRoomId(newId);
+    setRoomId(newRoomId);
   };
 
   const joinRoom = async (code) => {

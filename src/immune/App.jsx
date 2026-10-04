@@ -904,10 +904,14 @@ export default function ImmuneGame() {
     if (!playerName) return setError("Enter Name");
     localStorage.setItem("gameHub_playerName", playerName);
     setLoading(true);
-    const newId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const chars = "123456789ABCDEFGHIJKLMNPQRSTUVWXYZ";
+    let newRoomId = "";
+    for (let i = 0; i < 6; i++) {
+      newRoomId += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
 
     const initialData = {
-      roomId: newId,
+      roomId: newRoomId,
       hostId: user.uid,
       status: "lobby",
       gameMode: "solo",
@@ -931,11 +935,11 @@ export default function ImmuneGame() {
     };
     try {
       await setDoc(
-        doc(db, "artifacts", APP_ID, "public", "data", "rooms", newId),
+        doc(db, "artifacts", APP_ID, "public", "data", "rooms", newRoomId),
         initialData,
       );
-      setRoomId(newId);
-      localStorage.setItem("immune_roomId", newId);
+      setRoomId(newRoomId);
+      localStorage.setItem("immune_roomId", newRoomId);
     } catch (e) {
       setError("Failed to create lab.");
     }
