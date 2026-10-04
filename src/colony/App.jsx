@@ -3714,7 +3714,7 @@ export default function ColonyGame() {
         {/* TRADE MODAL */}
         {showTradeModal && me && (
           <div className="fixed inset-0 z-[200] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-slate-900 border border-slate-700 p-6 rounded-2xl max-w-lg w-full text-center shadow-2xl relative">
+            <div className="bg-slate-900 border border-slate-700 p-4 md:p-6 rounded-2xl max-w-lg w-full text-center shadow-2xl relative">
               {/* Resource Tab at Top of Modal */}
               <div className="absolute -top-10 left-1/2 -translate-x-1/2 flex gap-1 bg-slate-900/95 p-1.5 rounded-t-xl border-t border-x border-slate-700 shadow-[0_-10px_20px_rgba(0,0,0,0.5)] whitespace-nowrap">
                 {Object.entries(RESOURCES)
@@ -3735,16 +3735,16 @@ export default function ColonyGame() {
               >
                 <X size={20} />
               </button>
-              <h3 className="text-2xl font-black text-white mb-4 uppercase">
+              <h3 className="text-xl md:text-2xl font-black text-white mb-3 md:mb-4 uppercase">
                 Trading Post
               </h3>
 
               {/* Exchange Rates */}
-              <div className="bg-slate-800/80 p-3 rounded-xl mb-4 border border-slate-700">
-                <div className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest text-center">
+              <div className="bg-slate-800/80 p-2.5 md:p-3 rounded-xl mb-3 md:mb-4 border border-slate-700">
+                <div className="text-[10px] md:text-xs text-slate-400 font-bold mb-1.5 md:mb-2 uppercase tracking-widest text-center">
                   Your Exchange Rates
                 </div>
-                <div className="flex flex-wrap justify-center gap-2">
+                <div className="flex flex-wrap justify-center gap-1.5 md:gap-2">
                   {Object.keys(getTradeRatios(user.uid, gameState.board)).map(
                     (k) => {
                       const ratio = getTradeRatios(user.uid, gameState.board)[
@@ -3764,69 +3764,119 @@ export default function ColonyGame() {
                 </div>
               </div>
 
-              {/* Offer / Request Inputs */}
-              <div className="bg-black/30 p-4 rounded-xl mb-4 border border-white/5">
-                <div className="flex gap-4">
+              {/* Offer / Request Touch Steppers */}
+              <div className="bg-black/30 p-3 md:p-4 rounded-xl mb-3 md:mb-4 border border-white/5">
+                <div className="flex gap-2 md:gap-4 items-center">
+                  {/* YOU OFFER */}
                   <div className="flex-1">
-                    <div className="text-xs text-slate-400 font-bold mb-2 uppercase">
+                    <div className="text-xs text-orange-400 font-bold mb-2 uppercase">
                       You Offer
                     </div>
                     <div className="flex flex-col gap-2">
                       {["WOOD", "BRICK", "SHEEP", "WHEAT", "ORE"].map((res) => {
                         const IconComponent = RESOURCES[res].icon;
+                        const maxHave = me.resources[res];
                         return (
-                          <div key={res} className="flex items-center gap-2">
+                          <div
+                            key={res}
+                            className="flex items-center justify-between bg-slate-800/70 p-1.5 rounded-lg border border-slate-700/60"
+                          >
                             <div
-                              className={`p-1.5 rounded bg-slate-800 border ${RESOURCES[res].border} w-8 flex justify-center`}
+                              className={`p-1.5 rounded ${RESOURCES[res].color} border ${RESOURCES[res].border} w-7 h-7 flex items-center justify-center shrink-0`}
                             >
-                              <IconComponent size={16} />
+                              <IconComponent size={14} className="text-white" />
                             </div>
-                            <input
-                              type="number"
-                              min="0"
-                              max={me.resources[res]}
-                              value={offerTokens[res]}
-                              onChange={(e) =>
-                                setOfferTokens({
-                                  ...offerTokens,
-                                  [res]: parseInt(e.target.value) || 0,
-                                })
-                              }
-                              className="w-12 bg-black border border-slate-700 rounded text-center text-white p-1"
-                            />
+                            <div className="flex items-center gap-1.5 md:gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setOfferTokens({
+                                    ...offerTokens,
+                                    [res]: Math.max(0, offerTokens[res] - 1),
+                                  })
+                                }
+                                disabled={offerTokens[res] <= 0}
+                                className="w-7 h-7 rounded-md bg-slate-700 hover:bg-slate-600 active:scale-95 disabled:opacity-30 font-black text-white flex items-center justify-center"
+                              >
+                                -
+                              </button>
+                              <span className="w-5 text-center font-black text-sm text-orange-400">
+                                {offerTokens[res]}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setOfferTokens({
+                                    ...offerTokens,
+                                    [res]: Math.min(
+                                      maxHave,
+                                      offerTokens[res] + 1,
+                                    ),
+                                  })
+                                }
+                                disabled={offerTokens[res] >= maxHave}
+                                className="w-7 h-7 rounded-md bg-slate-700 hover:bg-slate-600 active:scale-95 disabled:opacity-30 font-black text-white flex items-center justify-center"
+                              >
+                                +
+                              </button>
+                            </div>
                           </div>
                         );
                       })}
                     </div>
                   </div>
-                  <div className="flex items-center justify-center">
-                    <ArrowRightLeft className="text-slate-600" />
+
+                  <div className="flex items-center justify-center shrink-0">
+                    <ArrowRightLeft size={18} className="text-slate-600" />
                   </div>
+
+                  {/* YOU WANT */}
                   <div className="flex-1">
-                    <div className="text-xs text-slate-400 font-bold mb-2 uppercase">
+                    <div className="text-xs text-emerald-400 font-bold mb-2 uppercase">
                       You Want
                     </div>
                     <div className="flex flex-col gap-2">
                       {["WOOD", "BRICK", "SHEEP", "WHEAT", "ORE"].map((res) => {
                         const IconComponent = RESOURCES[res].icon;
                         return (
-                          <div key={res} className="flex items-center gap-2">
-                            <input
-                              type="number"
-                              min="0"
-                              value={requestTokens[res]}
-                              onChange={(e) =>
-                                setRequestTokens({
-                                  ...requestTokens,
-                                  [res]: parseInt(e.target.value) || 0,
-                                })
-                              }
-                              className="w-12 bg-black border border-slate-700 rounded text-center text-white p-1"
-                            />
+                          <div
+                            key={res}
+                            className="flex items-center justify-between bg-slate-800/70 p-1.5 rounded-lg border border-slate-700/60"
+                          >
+                            <div className="flex items-center gap-1.5 md:gap-2">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setRequestTokens({
+                                    ...requestTokens,
+                                    [res]: Math.max(0, requestTokens[res] - 1),
+                                  })
+                                }
+                                disabled={requestTokens[res] <= 0}
+                                className="w-7 h-7 rounded-md bg-slate-700 hover:bg-slate-600 active:scale-95 disabled:opacity-30 font-black text-white flex items-center justify-center"
+                              >
+                                -
+                              </button>
+                              <span className="w-5 text-center font-black text-sm text-emerald-400">
+                                {requestTokens[res]}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setRequestTokens({
+                                    ...requestTokens,
+                                    [res]: requestTokens[res] + 1,
+                                  })
+                                }
+                                className="w-7 h-7 rounded-md bg-slate-700 hover:bg-slate-600 active:scale-95 font-black text-white flex items-center justify-center"
+                              >
+                                +
+                              </button>
+                            </div>
                             <div
-                              className={`p-1.5 rounded bg-slate-800 border ${RESOURCES[res].border} w-8 flex justify-center`}
+                              className={`p-1.5 rounded ${RESOURCES[res].color} border ${RESOURCES[res].border} w-7 h-7 flex items-center justify-center shrink-0`}
                             >
-                              <IconComponent size={16} />
+                              <IconComponent size={14} className="text-white" />
                             </div>
                           </div>
                         );
@@ -3836,9 +3886,9 @@ export default function ColonyGame() {
                 </div>
               </div>
 
-              {/* Player Selector (Moved above Trade/Propose buttons) */}
-              <div className="bg-slate-800/80 p-3 rounded-xl mb-4 border border-slate-700">
-                <div className="text-xs text-slate-400 font-bold mb-2 uppercase tracking-widest text-center">
+              {/* Player Selector */}
+              <div className="bg-slate-800/80 p-2.5 md:p-3 rounded-xl mb-3 md:mb-4 border border-slate-700">
+                <div className="text-[10px] md:text-xs text-slate-400 font-bold mb-1.5 md:mb-2 uppercase tracking-widest text-center">
                   Select Player to Trade With
                 </div>
                 <div className="flex flex-wrap justify-center gap-2">
@@ -3866,14 +3916,14 @@ export default function ColonyGame() {
               <div className="flex gap-2">
                 <button
                   onClick={executeBankTrade}
-                  className="flex-1 py-3 bg-emerald-700 hover:bg-emerald-600 rounded-xl font-bold text-white flex items-center justify-center gap-2 transition-colors"
+                  className="flex-1 py-3 bg-emerald-700 hover:bg-emerald-600 rounded-xl font-bold text-white flex items-center justify-center gap-2 transition-colors text-sm md:text-base"
                 >
                   <Anchor size={18} /> Bank Trade
                 </button>
                 <button
                   onClick={proposeDomesticTrade}
                   disabled={!tradeTargetId}
-                  className="flex-1 py-3 bg-blue-700 hover:bg-blue-600 disabled:opacity-50 disabled:hover:bg-blue-700 disabled:cursor-not-allowed rounded-xl font-bold text-white flex items-center justify-center gap-2 transition-all"
+                  className="flex-1 py-3 bg-blue-700 hover:bg-blue-600 disabled:opacity-50 disabled:hover:bg-blue-700 disabled:cursor-not-allowed rounded-xl font-bold text-white flex items-center justify-center gap-2 transition-all text-sm md:text-base"
                 >
                   <Handshake size={18} /> Propose
                 </button>
