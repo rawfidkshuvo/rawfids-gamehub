@@ -3344,6 +3344,9 @@ export default function DarkFolkloreGame() {
                       }`}
                     >
                       <UserCheck size={16} /> {p.name}
+                      <span className="text-[10px] bg-slate-950/80 px-2 py-0.5 rounded-full text-fuchsia-400 border border-slate-700/80 flex items-center gap-1 ml-1">
+                        <Hand size={10} /> {p.hand.length}
+                      </span>
                     </button>
                   ))}
 
@@ -3478,46 +3481,88 @@ export default function DarkFolkloreGame() {
                     );
                     if (!opp) return null;
                     return (
-                      <div>
-                        <h4 className="text-sm font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
-                          <UserCheck size={16} /> {opp.name}'s Banked Sets
-                          <span className="text-xs bg-slate-900 px-2 py-0.5 rounded-full text-slate-400 border border-slate-800 ml-2">
-                            {opp.tableau.length}
-                          </span>
-                        </h4>
-                        <div className="flex flex-wrap gap-4 content-start">
-                          {opp.tableau.length === 0 ? (
-                            <div className="text-slate-600 uppercase tracking-widest font-black py-6 flex flex-col items-center gap-3 w-full bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
-                              <Ghost size={32} className="opacity-20" />
-                              {opp.name} has no banked sets yet.
+                      <div className="flex flex-col gap-8">
+                        {/* Opponent's Hand Count */}
+                        <div>
+                          <h4 className="text-sm font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
+                            <Hand size={16} className="text-fuchsia-400" />{" "}
+                            {opp.name}'s Hand
+                            <span className="text-xs bg-slate-900 px-2.5 py-0.5 rounded-full text-fuchsia-400 border border-slate-800 ml-2">
+                              {opp.hand.length}/7 Cards
+                            </span>
+                          </h4>
+                          {opp.hand.length === 0 ? (
+                            <div className="text-slate-600 uppercase tracking-widest font-black py-4 flex items-center justify-center gap-2 w-full bg-slate-900/30 rounded-2xl border border-dashed border-slate-800 text-xs">
+                              <Ghost size={20} className="opacity-20" />
+                              {opp.name}'s hand is empty.
                             </div>
                           ) : (
-                            opp.tableau.map((set, sIdx) => (
-                              <div
-                                key={sIdx}
-                                className={`p-3 rounded-xl bg-slate-900 border-2 ${
-                                  set.isLocked
-                                    ? "border-yellow-600/50 shadow-[0_0_15px_rgba(202,138,4,0.2)]"
-                                    : "border-slate-800"
-                                } flex gap-1 relative shrink-0`}
-                              >
-                                {set.isLocked && (
-                                  <Shield
-                                    className="absolute -top-2 -right-2 text-yellow-500 bg-slate-900 rounded-full p-0.5 z-20 shadow-md"
-                                    size={18}
+                            <div className="flex flex-wrap gap-2 items-center bg-slate-900/40 p-4 rounded-2xl border border-slate-800/80">
+                              {opp.hand.map((_, idx) => (
+                                <div
+                                  key={idx}
+                                  className="w-10 h-14 sm:w-12 sm:h-16 rounded-lg bg-slate-950 border-2 border-fuchsia-900/40 flex items-center justify-center shadow-md"
+                                  title="Hidden Card"
+                                >
+                                  <Moon
+                                    size={14}
+                                    className="text-fuchsia-500/30"
                                   />
-                                )}
-                                {set.cards.map((c, cIdx) => (
-                                  <div
-                                    key={c.uid}
-                                    className={`relative transition-transform hover:-translate-y-1 ${cIdx > 0 ? "-ml-4" : ""}`}
-                                  >
-                                    <CardDisplay cardId={c.cardId} small />
-                                  </div>
-                                ))}
-                              </div>
-                            ))
+                                </div>
+                              ))}
+                              <span className="ml-3 text-xs font-black uppercase tracking-widest text-slate-400">
+                                {opp.hand.length}{" "}
+                                {opp.hand.length === 1
+                                  ? "Hidden Card"
+                                  : "Hidden Cards"}
+                              </span>
+                            </div>
                           )}
+                        </div>
+
+                        {/* Opponent's Banked Sets */}
+                        <div>
+                          <h4 className="text-sm font-black text-slate-300 uppercase tracking-widest mb-4 flex items-center gap-2 border-b border-slate-800 pb-2">
+                            <Layers size={16} className="text-fuchsia-400" />{" "}
+                            {opp.name}'s Banked Sets
+                            <span className="text-xs bg-slate-900 px-2 py-0.5 rounded-full text-slate-400 border border-slate-800 ml-2">
+                              {opp.tableau.length}
+                            </span>
+                          </h4>
+                          <div className="flex flex-wrap gap-4 content-start">
+                            {opp.tableau.length === 0 ? (
+                              <div className="text-slate-600 uppercase tracking-widest font-black py-6 flex flex-col items-center gap-3 w-full bg-slate-900/30 rounded-2xl border border-dashed border-slate-800">
+                                <Ghost size={32} className="opacity-20" />
+                                {opp.name} has no banked sets yet.
+                              </div>
+                            ) : (
+                              opp.tableau.map((set, sIdx) => (
+                                <div
+                                  key={sIdx}
+                                  className={`p-3 rounded-xl bg-slate-900 border-2 ${
+                                    set.isLocked
+                                      ? "border-yellow-600/50 shadow-[0_0_15px_rgba(202,138,4,0.2)]"
+                                      : "border-slate-800"
+                                  } flex gap-1 relative shrink-0`}
+                                >
+                                  {set.isLocked && (
+                                    <Shield
+                                      className="absolute -top-2 -right-2 text-yellow-500 bg-slate-900 rounded-full p-0.5 z-20 shadow-md"
+                                      size={18}
+                                    />
+                                  )}
+                                  {set.cards.map((c, cIdx) => (
+                                    <div
+                                      key={c.uid}
+                                      className={`relative transition-transform hover:-translate-y-1 ${cIdx > 0 ? "-ml-4" : ""}`}
+                                    >
+                                      <CardDisplay cardId={c.cardId} small />
+                                    </div>
+                                  ))}
+                                </div>
+                              ))
+                            )}
+                          </div>
                         </div>
                       </div>
                     );
