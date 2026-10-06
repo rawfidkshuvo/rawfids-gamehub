@@ -569,6 +569,19 @@ export default function LastOfUs() {
   const [isQuarantineMode, setIsQuarantineMode] = useState(false); // New state for selection mode
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
+  const [showWinnerModal, setShowWinnerModal] = useState(false);
+
+  // Delay the Winner Screen so players can see the final card played on the board
+  useEffect(() => {
+    if (gameState?.status === "finished") {
+      const timer = setTimeout(() => {
+        setShowWinnerModal(true);
+      }, 2500); // 2.5 seconds delay to admire the winning play
+      return () => clearTimeout(timer);
+    } else {
+      setShowWinnerModal(false);
+    }
+  }, [gameState?.status]);
 
   //read and fill global name
   const [playerName, setPlayerName] = useState(
@@ -1012,10 +1025,16 @@ export default function LastOfUs() {
           board: newBoard,
           status: "finished",
           winner: me,
-          logs: arrayUnion({
-            text: `${me.name} survived! Game Over.`,
-            type: "success",
-          }),
+          logs: arrayUnion(
+            {
+              text: `${me.name} played ${count}x ${cardVal}.`,
+              type: "neutral",
+            },
+            {
+              text: `${me.name} survived! Game Over.`,
+              type: "success",
+            },
+          ),
         },
       );
       setSelectedCards([]);
@@ -1575,12 +1594,21 @@ export default function LastOfUs() {
         )}
 
         {/* Winner Screen */}
-        {gameState.status === "finished" && (
-          <div className="fixed inset-0 top-14 z-150 bg-black/95 flex flex-col items-center justify-center p-6 text-center animate-in zoom-in">
+        {/* Winner Screen (Delayed by 2.5s) */}
+        {gameState.status === "finished" && showWinnerModal && (
+          <div className="fixed inset-0 top-14 z-150 bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center animate-in fade-in zoom-in duration-500">
+            <button
+              onClick={() => setShowWinnerModal(false)}
+              className="absolute top-4 right-4 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold border border-slate-700 transition-colors"
+            >
+              View Final Board
+            </button>
+
             <Crown size={80} className="text-yellow-500 mb-6 animate-bounce" />
             <h1 className="text-5xl font-black text-white mb-4">
               Survivor Found!
             </h1>
+            {/* ... rest of your existing Winner Screen code ... */}
             <p className="text-2xl text-slate-300 mb-8">
               {gameState.winner ? gameState.winner.name : "Unknown Survivor"}{" "}
               cleared their hand!
@@ -1761,54 +1789,74 @@ export default function LastOfUs() {
             )}
 
             {/* Play Actions */}
-            {isMyTurn && !me.quarantined && (
-              <div className="absolute bottom-4 flex gap-4 z-20">
-                {isQuarantineMode ? (
-                  <div className="flex flex-col items-center gap-2 animate-in slide-in-from-bottom-2">
-                    <div className="bg-red-900/80 px-4 py-2 rounded text-red-200 text-sm font-bold border border-red-500 shadow-xl">
-                      Tap a card to take penalty
-                    </div>
-                    <button
-                      onClick={() => setIsQuarantineMode(false)}
-                      className="px-6 py-2 rounded-xl font-bold bg-gray-700 hover:bg-gray-600 text-gray-200 shadow-lg"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <button
-                      onClick={handlePlayCards}
-                      disabled={selectedCards.length === 0}
-                      className={`px-6 md:px-8 py-3 rounded-xl font-black text-lg md:text-xl shadow-xl flex items-center gap-2 transition-all ${
-                        selectedCards.length > 0
-                          ? "bg-yellow-500 hover:bg-yellow-400 text-black hover:scale-105"
-                          : "bg-stone-800 text-stone-500 cursor-not-allowed"
-                      }`}
-                    >
-                      PLAY{" "}
-                      {selectedCards.length > 0 && `(${selectedCards.length})`}
-                    </button>
-                    <button
-                      onClick={initiateQuarantine}
-                      className="px-4 md:px-6 py-3 rounded-xl font-bold bg-red-900/50 hover:bg-red-800 text-red-200 border border-red-800 flex items-center gap-2 transition-all"
-                    >
-                      <Ban size={18} />{" "}
-                      <span className="inline">QUARANTINE</span>
-                    </button>
-                  </>
+            {gameState.status === "finished" ? (
+              <div className="absolute bottom-4 z-20 flex flex-col items-center gap-2 animate-in fade-in">
+                <div className="px-6 py-2 bg-yellow-500/20 border border-yellow-500 text-yellow-300 rounded-full text-sm font-black tracking-wider uppercase animate-pulse shadow-lg backdrop-blur-md">
+                  🏆 {gameState.winner?.name || "Survivor"} played their final
+                  card!
+                </div>
+                {!showWinnerModal && (
+                  <button
+                    onClick={() => setShowWinnerModal(true)}
+                    className="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-lg border border-slate-600 shadow"
+                  >
+                    Show Results
+                  </button>
                 )}
               </div>
-            )}
-            {isMyTurn && me.quarantined && (
-              <div className="absolute bottom-4 text-red-500 font-bold animate-pulse bg-black/50 px-4 py-2 rounded-xl">
-                You are Quarantined. Skip turn.
-              </div>
-            )}
-            {!isMyTurn && (
-              <div className="absolute bottom-4 px-4 py-2 bg-slate-900 rounded-full text-slate-500 text-sm border border-slate-800 animate-pulse">
-                Waiting for survivors...
-              </div>
+            ) : (
+              <>
+                {isMyTurn && !me.quarantined && (
+                  <div className="absolute bottom-4 flex gap-4 z-20">
+                    {isQuarantineMode ? (
+                      <div className="flex flex-col items-center gap-2 animate-in slide-in-from-bottom-2">
+                        <div className="bg-red-900/80 px-4 py-2 rounded text-red-200 text-sm font-bold border border-red-500 shadow-xl">
+                          Tap a card to take penalty
+                        </div>
+                        <button
+                          onClick={() => setIsQuarantineMode(false)}
+                          className="px-6 py-2 rounded-xl font-bold bg-gray-700 hover:bg-gray-600 text-gray-200 shadow-lg"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          onClick={handlePlayCards}
+                          disabled={selectedCards.length === 0}
+                          className={`px-6 md:px-8 py-3 rounded-xl font-black text-lg md:text-xl shadow-xl flex items-center gap-2 transition-all ${
+                            selectedCards.length > 0
+                              ? "bg-yellow-500 hover:bg-yellow-400 text-black hover:scale-105"
+                              : "bg-stone-800 text-stone-500 cursor-not-allowed"
+                          }`}
+                        >
+                          PLAY{" "}
+                          {selectedCards.length > 0 &&
+                            `(${selectedCards.length})`}
+                        </button>
+                        <button
+                          onClick={initiateQuarantine}
+                          className="px-4 md:px-6 py-3 rounded-xl font-bold bg-red-900/50 hover:bg-red-800 text-red-200 border border-red-800 flex items-center gap-2 transition-all"
+                        >
+                          <Ban size={18} />{" "}
+                          <span className="inline">QUARANTINE</span>
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+                {isMyTurn && me.quarantined && (
+                  <div className="absolute bottom-4 text-red-500 font-bold animate-pulse bg-black/50 px-4 py-2 rounded-xl">
+                    You are Quarantined. Skip turn.
+                  </div>
+                )}
+                {!isMyTurn && (
+                  <div className="absolute bottom-4 px-4 py-2 bg-slate-900 rounded-full text-slate-500 text-sm border border-slate-800 animate-pulse">
+                    Waiting for survivors...
+                  </div>
+                )}
+              </>
             )}
           </div>
 
