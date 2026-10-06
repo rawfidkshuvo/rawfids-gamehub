@@ -79,6 +79,8 @@ import {
   Check,
   UserPlus,
   Edit2,
+  ChessKing,
+  ChessQueen,
 } from "lucide-react";
 import CoverImage from "./assets/gamehub_cover.png";
 
