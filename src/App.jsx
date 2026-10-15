@@ -2078,7 +2078,7 @@ const GameHub = () => {
     const newHistory = [
       game.id,
       ...recentlyPlayed.filter((id) => id !== game.id),
-    ].slice(0, 5);
+    ].slice(0, 10);
     setRecentlyPlayed(newHistory);
     localStorage.setItem("gamehub_history", JSON.stringify(newHistory));
 
